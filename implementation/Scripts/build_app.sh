@@ -36,6 +36,21 @@ mkdir -p "${APP_DIR}/Contents/Resources"
 cp "$BINARY" "${APP_DIR}/Contents/MacOS/FlowLite"
 chmod +x "${APP_DIR}/Contents/MacOS/FlowLite"
 
+# Sign with a stable identity so macOS TCC (Accessibility / Input
+# Monitoring / Microphone) treats every rebuild as the same app.
+# Falls back to ad-hoc if the local signer is missing; in that case
+# you'll need to re-grant Accessibility after each rebuild.
+SIGN_IDENTITY="FlowLite Local Signer"
+if security find-certificate -c "$SIGN_IDENTITY" >/dev/null 2>&1; then
+  SIGN_ARG="$SIGN_IDENTITY"
+  echo "Signing with identity: $SIGN_IDENTITY"
+else
+  SIGN_ARG="-"
+  echo "Warning: '$SIGN_IDENTITY' not in keychain; falling back to ad-hoc."
+  echo "         TCC permissions (Accessibility etc.) will be invalidated on every rebuild."
+  echo "         Run Scripts/setup_signing.sh once to create a stable local signer."
+fi
+
 cat > "${APP_DIR}/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -66,6 +81,13 @@ cat > "${APP_DIR}/Contents/Info.plist" <<'PLIST'
 </dict>
 </plist>
 PLIST
+
+codesign --force --deep \
+  --sign "$SIGN_ARG" \
+  --identifier "com.flowlite.app" \
+  -r '=designated => identifier "com.flowlite.app"' \
+  "$APP_DIR"
+codesign -dvv "$APP_DIR" 2>&1 | grep -E "^(Authority|Identifier)" || true
 
 cat <<EOF
 
