@@ -21,7 +21,7 @@ fi
 
 if [ ! -f "$SAMPLE" ]; then
   echo "Sample WAV missing — regenerating with 'say' + 'afconvert'..."
-  say "testing one two three" -o /tmp/flowlite_sample.aiff
+  say -v Albert "the quick brown fox jumps over the lazy dog testing one two three" -o /tmp/flowlite_sample.aiff
   afconvert -d LEI16@16000 -c 1 -f WAVE /tmp/flowlite_sample.aiff "$SAMPLE"
   rm -f /tmp/flowlite_sample.aiff
 fi
