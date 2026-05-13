@@ -69,6 +69,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         notch.onRetryRequested = { [weak self] in
             self?.appState.toggleDictation()
         }
+        appState.onPasteResult = { [weak self] result in
+            switch result {
+            case .pasted(let target):
+                self?.notch.setSuccess(label: "Pasted into \(target.name)")
+            case .copiedOnly:
+                self?.notch.setSuccess(label: "Copied to clipboard")
+            }
+        }
 
         Notifier.bootstrap()
         // Pre-warm mic permission without blocking the main thread.
@@ -221,8 +229,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .pasting:
             menuBarTitle = base
             menuLabel = "Flow Lite: \(appState.state.displayName)"
-            // Brief success flash on the notch before it dismisses.
-            notch.setSuccess(label: "Inserted")
+            // The contextual success message ("Pasted into TextEdit") is set
+            // by AppState.onPasteResult once paste actually completes — see
+            // wiring below in applicationDidFinishLaunching. Don't show a
+            // generic "Inserted" here, because the result may be
+            // copied-only and the message should match reality.
         case .idle:
             menuBarTitle = base
             menuLabel = "Flow Lite: \(appState.state.displayName)"

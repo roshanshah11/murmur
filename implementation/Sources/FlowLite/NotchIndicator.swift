@@ -79,9 +79,9 @@ final class NotchIndicator {
     func setSuccess(label: String) {
         ensureBuilt()
         applyState(.success(label: label))
-        // Hold the success flash even if the upstream state machine has
-        // already moved to .idle. The dismiss timer fires hide() after.
-        scheduleDismiss(after: 1.1)
+        // Hold long enough to actually read the confirmation; upstream
+        // state machine may have already moved to .idle.
+        scheduleDismiss(after: 1.6)
     }
 
     func setError(label: String) {
@@ -152,7 +152,13 @@ final class NotchIndicator {
     private func scheduleDismiss(after delay: TimeInterval) {
         dismissTimer?.invalidate()
         dismissTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
-            self?.hide()
+            guard let self else { return }
+            // Clear the timer BEFORE calling hide(), otherwise hide()'s
+            // own guard ("don't dismiss while success timer is pending")
+            // would block us from collapsing — exactly the dead end the
+            // user reported.
+            self.dismissTimer = nil
+            self.applyState(.hidden)
         }
     }
 
@@ -544,10 +550,11 @@ final class NotchPillView: NSView {
             micIcon.contentTintColor = Self.successColor
             micIcon.image = NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: "Success")
             secondaryLabel.isHidden = false
-            secondaryLabel.textColor = Self.primaryTextColor
+            secondaryLabel.textColor = Self.successColor
             secondaryLabel.stringValue = label
             glowLayer.shadowColor = Self.successColor.cgColor
-            glowLayer.shadowOpacity = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0.0 : 0.5
+            glowLayer.shadowOpacity = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0.0 : 0.85
+            glowLayer.shadowRadius = 14
 
         case .error(let label):
             micIcon.isHidden = false

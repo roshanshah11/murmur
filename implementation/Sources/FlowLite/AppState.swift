@@ -38,6 +38,11 @@ final class AppState {
     let volume: VolumeController
 
     private let onStateChange: (FlowLiteState) -> Void
+    /// Fired on the main thread immediately after a paste completes,
+    /// with the actual `PasteResult`. Lets the UI show a contextual
+    /// success message ("Pasted into TextEdit") instead of a generic
+    /// one driven by the state machine.
+    var onPasteResult: ((PasteResult) -> Void)?
     private let queue = DispatchQueue(label: "flowlite.pipeline", qos: .userInitiated)
     private var currentAudioURL: URL?
     private var recordingStartedAt: Date?
@@ -154,6 +159,7 @@ final class AppState {
                     resultLabel = "copied_only"
                     Notifier.warn("Copied to clipboard — \(reason)")
                 }
+                self.onPasteResult?(result)
                 let totalMs = Int(Date().timeIntervalSince(pipelineStart) * 1000)
                 self.history.append(
                     cleaned: cleaned,
