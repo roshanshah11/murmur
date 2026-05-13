@@ -89,10 +89,33 @@ codesign --force --deep \
   "$APP_DIR"
 codesign -dvv "$APP_DIR" 2>&1 | grep -E "^(Authority|Identifier)" || true
 
+# Install to /Applications so the app is launchable from Spotlight / Launchpad
+# and lives at a stable path that other tooling (TCC, mds) expects.
+INSTALL_DIR="${FLOWLITE_INSTALL_DIR:-/Applications}"
+INSTALLED_APP="${INSTALL_DIR}/FlowLite.app"
+if [ -w "$INSTALL_DIR" ] || [ -w "$INSTALLED_APP" ] 2>/dev/null; then
+  echo "Installing to ${INSTALLED_APP}..."
+  # Quit any running copy so we can overwrite without permission errors.
+  pkill -f "${INSTALLED_APP}/Contents/MacOS/FlowLite" 2>/dev/null || true
+  sleep 1
+  rm -rf "$INSTALLED_APP"
+  cp -R "$APP_DIR" "$INSTALLED_APP"
+  # Kick Spotlight so it shows up immediately.
+  mdimport "$INSTALLED_APP" >/dev/null 2>&1 || true
+  INSTALLED_OK=1
+else
+  echo "Note: ${INSTALL_DIR} not writable; skipping install."
+  echo "      Run manually: sudo cp -R \"$APP_DIR\" \"$INSTALLED_APP\""
+  INSTALLED_OK=0
+fi
+
 cat <<EOF
 
 FlowLite.app built at:
   $(pwd)/${APP_DIR}
+$( [ "$INSTALLED_OK" = 1 ] && echo "Installed to:
+  ${INSTALLED_APP}
+You can now launch it from Spotlight (Cmd+Space → 'FlowLite') or Launchpad." )
 
 First-run instructions:
   1. The bundle is unsigned. The first time you open it, right-click
