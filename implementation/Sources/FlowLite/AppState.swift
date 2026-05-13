@@ -40,6 +40,15 @@ final class AppState {
     private let queue = DispatchQueue(label: "flowlite.pipeline", qos: .userInitiated)
     private var currentAudioURL: URL?
     private var recordingStartedAt: Date?
+    private var transcribingStartedAt: Date?
+
+    var recordingElapsedSeconds: TimeInterval? {
+        recordingStartedAt.map { Date().timeIntervalSince($0) }
+    }
+
+    var transcribingElapsedSeconds: TimeInterval? {
+        transcribingStartedAt.map { Date().timeIntervalSince($0) }
+    }
     private var recordingContext: AppContext?
     private var errorClearWorkItem: DispatchWorkItem?
 
@@ -102,6 +111,7 @@ final class AppState {
         do {
             let audioURL = try recorder.stopRecording()
             currentAudioURL = audioURL
+            transcribingStartedAt = Date()
             state = .transcribing
 
             let context = recordingContext ?? AppContext.capture()
@@ -170,6 +180,8 @@ final class AppState {
     }
 
     private func cleanup(audioURL: URL) {
+        recordingStartedAt = nil
+        transcribingStartedAt = nil
         guard config.deleteTempAudio && !config.debugRetainAudio else { return }
         try? FileManager.default.removeItem(at: audioURL)
     }

@@ -7,6 +7,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var appState: AppState!
     private var hotkeyMonitor: HotkeyMonitor?
     private var exitAfterNextDictation = false
+    private var durationTimer: Timer?
+    private var stateItemRef: NSMenuItem?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -30,6 +32,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             onStateChange: { [weak self] newState in
                 DispatchQueue.main.async {
                     self?.rebuildMenu()
+                    self?.refreshDurationTimer(state: newState)
                     self?.handlePostDictationExitIfNeeded(newState)
                 }
             }
@@ -165,7 +168,56 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(quitItem)
 
         statusItem.menu = menu
-        statusItem.button?.title = appState.state.shortTitle
+        stateItemRef = stateItem
+        applyLiveTitle()
+    }
+
+    private func formatElapsed(_ seconds: TimeInterval) -> String {
+        let s = max(0, Int(seconds))
+        if s < 60 { return String(format: "0:%02d", s) }
+        return String(format: "%d:%02d", s / 60, s % 60)
+    }
+
+    private func applyLiveTitle() {
+        let base = appState.state.shortTitle
+        let menuBarTitle: String
+        let menuLabel: String
+        switch appState.state {
+        case .recording:
+            let elapsed = appState.recordingElapsedSeconds ?? 0
+            menuBarTitle = "● \(formatElapsed(elapsed))"
+            menuLabel = "Flow Lite: Recording… \(formatElapsed(elapsed))"
+        case .transcribing:
+            let elapsed = appState.transcribingElapsedSeconds ?? 0
+            let recorded = appState.recordingElapsedSeconds ?? 0
+            menuBarTitle = "… \(formatElapsed(elapsed))"
+            menuLabel = "Flow Lite: Transcribing… \(formatElapsed(elapsed))  (\(formatElapsed(recorded)) audio)"
+        case .pasting, .idle, .error:
+            menuBarTitle = base
+            menuLabel = "Flow Lite: \(appState.state.displayName)"
+        }
+        statusItem.button?.title = menuBarTitle
+        stateItemRef?.title = menuLabel
+    }
+
+    private func refreshDurationTimer(state: FlowLiteState) {
+        let isActive: Bool
+        switch state {
+        case .recording, .transcribing: isActive = true
+        default: isActive = false
+        }
+        if isActive {
+            if durationTimer == nil {
+                durationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+                    self?.applyLiveTitle()
+                }
+                if let t = durationTimer { RunLoop.main.add(t, forMode: .common) }
+            }
+        } else {
+            durationTimer?.invalidate()
+            durationTimer = nil
+        }
+        applyLiveTitle()
     }
 
     @objc private func toggleDictation() {

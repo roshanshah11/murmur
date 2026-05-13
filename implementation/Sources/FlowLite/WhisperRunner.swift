@@ -115,7 +115,14 @@ final class WhisperRunner {
             }
         }
 
-        let timeoutSeconds = max(1, config.transcriptionTimeoutSeconds)
+        // Dynamic timeout: floor at config value, but scale up for long
+        // recordings so multi-minute audio doesn't get killed mid-decode.
+        // WAV at 16 kHz mono 16-bit = 32 KB/sec → audio_sec ≈ bytes / 32_000.
+        // Allow ~4x realtime as a generous ceiling, plus 10s startup slack.
+        let audioBytes = (try? FileManager.default.attributesOfItem(atPath: audioURL.path)[.size] as? Int) ?? 0
+        let audioSec = max(1, audioBytes / 32_000)
+        let dynamicTimeout = audioSec * 4 + 10
+        let timeoutSeconds = max(max(1, config.transcriptionTimeoutSeconds), dynamicTimeout)
         let timeoutItem = DispatchWorkItem { [weak process] in
             if process?.isRunning == true {
                 process?.terminate()
