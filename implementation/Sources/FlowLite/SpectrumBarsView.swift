@@ -32,7 +32,9 @@ final class SpectrumBarsView: NSView {
         NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
     }
 
-    static let palette: [UInt32] = [0x27E1FF, 0x3F8CFF, 0x7A5CFF, 0xD94DFF, 0xFF4FA3]
+    // Traditional white + red palette per user preference. Bars stay white;
+    // the red accents live elsewhere (REC label, mic icon, recording glow).
+    static let palette: [UInt32] = [0xFFFFFF]
 
     var intrinsicWidth: CGFloat {
         CGFloat(barCount) * barWidth + CGFloat(barCount - 1) * barSpacing
@@ -168,18 +170,13 @@ final class SpectrumBarsView: NSView {
     // MARK: - Palette helper
 
     static func colorForIndex(_ i: Int, of n: Int) -> NSColor {
-        guard n > 1 else { return color(palette[0]) }
-        let t = Float(i) / Float(n - 1)               // 0..1
-        let stops: [Float] = [0.0, 0.25, 0.55, 0.80, 1.0]
-        // Find bracketing stops.
-        var lo = 0
-        for k in 0..<stops.count - 1 {
-            if t >= stops[k] && t <= stops[k + 1] { lo = k; break }
-        }
-        let hi = min(lo + 1, palette.count - 1)
-        let span = stops[hi] - stops[lo]
-        let mix = span > 0 ? (t - stops[lo]) / span : 0
-        return lerp(color(palette[lo]), color(palette[hi]), CGFloat(mix))
+        // Single-color palette → all bars share the base color. Slight
+        // alpha variation across the row keeps the row visually grouped
+        // without re-introducing a gradient.
+        let base = color(palette[0])
+        let t = n > 1 ? Float(i) / Float(n - 1) : 0
+        let alpha: CGFloat = 0.82 + CGFloat(sin(Float.pi * t)) * 0.18
+        return base.withAlphaComponent(alpha)
     }
 
     static func color(_ hex: UInt32) -> NSColor {

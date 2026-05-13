@@ -413,7 +413,7 @@ final class NotchPillView: NSView {
 
     private static let primaryTextColor = NSColor(white: 1.0, alpha: 0.96)
     private static let secondaryTextColor = NSColor(white: 1.0, alpha: 0.58)
-    private static let recColor = SpectrumBarsView.color(0xFF4FA3)
+    private static let recColor = NSColor.systemRed
     private static let successColor = NSColor(srgbRed: 0.32, green: 0.86, blue: 0.55, alpha: 1)
     private static let errorColor = NSColor(srgbRed: 1.0, green: 0.45, blue: 0.35, alpha: 1)
 
