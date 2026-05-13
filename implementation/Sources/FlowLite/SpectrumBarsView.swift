@@ -27,7 +27,11 @@ final class SpectrumBarsView: NSView {
     private let barWidth: CGFloat = 3.0
     private let barSpacing: CGFloat = 3.5
     private let minBarHeight: CGFloat = 2.0
-    private let smoothing: CGFloat = 0.30  // higher = snappier; 0..1
+    // Peak-hold physics: fast rise on attack, slow decay so amplitude peaks
+    // linger long enough to read. Pure single-value smoothing made the bars
+    // feel uniform and lifeless.
+    private let attack: CGFloat = 0.55    // 0..1 — how fast bars rise toward target
+    private let decay: CGFloat = 0.12     // 0..1 — how fast bars fall back down
     private var reducedMotion: Bool {
         NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
     }
@@ -162,7 +166,9 @@ final class SpectrumBarsView: NSView {
                 target = minBarHeight + 2
             }
             targets[i] = target
-            heights[i] += (targets[i] - heights[i]) * smoothing
+            // Peak-hold: rise fast, fall slow.
+            let delta = targets[i] - heights[i]
+            heights[i] += delta * (delta > 0 ? attack : decay)
         }
         layoutBars(animated: false)
     }

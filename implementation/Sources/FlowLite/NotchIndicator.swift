@@ -208,13 +208,16 @@ final class NotchIndicator {
     }
 
     private func expandedFrame(width: CGFloat, geo: NotchGeometry) -> NSRect {
+        // Panel now covers ONLY the drip below the notch — height =
+        // visibleHeight. Concave top corners (drawn at the panel's top
+        // edge) sit exactly at the notch's bottom edge and visually mate
+        // with the notch's outer curves.
         let w = max(geo.notchWidth + Self.extraOverhang * 2, width)
-        let totalHeight = geo.safeTop + Self.visibleHeight
         return NSRect(
             x: geo.centerX - w / 2,
-            y: geo.topY - totalHeight,
+            y: geo.topY - geo.safeTop - Self.visibleHeight,
             width: w,
-            height: totalHeight
+            height: Self.visibleHeight
         )
     }
 
@@ -224,7 +227,7 @@ final class NotchIndicator {
             x: geo.centerX - w / 2,
             y: geo.topY - geo.safeTop,
             width: w,
-            height: geo.safeTop
+            height: 0
         )
     }
 
@@ -373,21 +376,17 @@ final class NotchPillView: NSView {
     func intrinsicWidth(for state: NotchIndicator.State, hovered: Bool) -> CGFloat {
         switch state {
         case .hidden:
-            return 220
-        case .idle:
             return 230
+        case .idle:
+            return 260
         case .recording:
-            // Snug around the notch when not hovered; widen on hover to
-            // make room for Stop / Cancel.
-            return hovered ? 340 : 240
+            return hovered ? 400 : 300
         case .processing:
-            // Match the non-hovered recording width so the pill keeps
-            // its size across recording → transcription.
-            return 240
+            return 300
         case .success(let label):
-            return max(200, 100 + estimatedWidth(label))
+            return max(220, 110 + estimatedWidth(label))
         case .error(let label):
-            return max(260, 130 + estimatedWidth(label))
+            return max(280, 140 + estimatedWidth(label))
         }
     }
 
@@ -417,12 +416,23 @@ final class NotchPillView: NSView {
     private static let successColor = NSColor(srgbRed: 0.32, green: 0.86, blue: 0.55, alpha: 1)
     private static let errorColor = NSColor(srgbRed: 1.0, green: 0.45, blue: 0.35, alpha: 1)
 
+    private var maskShape: CAShapeLayer?
+    private let topCornerR: CGFloat = 8
+    private let bottomCornerR: CGFloat = 18
+
     override init(frame: NSRect) {
         super.init(frame: frame)
         wantsLayer = true
         layer?.backgroundColor = NSColor.black.cgColor
-        layer?.masksToBounds = true
-        layer?.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        layer?.masksToBounds = false
+        // Custom NotchShape mask: small concave indents at the top corners
+        // mate with the notch's outer curves; bottom corners are convex
+        // round. Path is rebuilt every layout pass so it tracks the
+        // panel's animated height.
+        let m = CAShapeLayer()
+        m.fillColor = NSColor.black.cgColor
+        layer?.mask = m
+        maskShape = m
 
         glowLayer.cornerRadius = 18
         glowLayer.shadowColor = Self.recColor.cgColor
@@ -489,88 +499,112 @@ final class NotchPillView: NSView {
     }
 
     func applyState(_ state: NotchIndicator.State, hovered: Bool, recordingStartedAt: Date?) {
+        let previousState = currentState
         currentState = state
         hoveredNow = hovered
 
-        // Hide all by default, then enable the ones this state uses.
+        // Ensure all subviews are unhidden so alpha can animate. Hidden
+        // views skip layout/animation, which would cause pops.
         for v in [primaryLabel, secondaryLabel, timerLabel, micIcon, bars, stopButton, cancelButton, retryButton] as [NSView] {
-            v.isHidden = true
+            v.isHidden = false
         }
+
+        // Mic-pulse: on for recording, off elsewhere. Triggered AFTER the
+        // configure step below so the icon image is set first.
+        let wasRecording: Bool = { if case .recording = previousState { return true }; return false }()
+        let isRecordingNow: Bool = { if case .recording = state { return true }; return false }()
+        let isSuccessNow: Bool = { if case .success = state { return true }; return false }()
+        let wasSuccess: Bool = { if case .success = previousState { return true }; return false }()
 
         switch state {
         case .hidden:
-            break
+            stopMicPulse()
+            crossfade(targets: [
+                (primaryLabel, 0), (secondaryLabel, 0), (timerLabel, 0),
+                (micIcon, 0), (bars, 0),
+                (stopButton, 0), (cancelButton, 0), (retryButton, 0)
+            ])
+            return
 
         case .idle:
-            micIcon.isHidden = false
             micIcon.contentTintColor = NSColor(white: 1.0, alpha: 0.48)
             micIcon.image = NSImage(systemSymbolName: "mic", accessibilityDescription: "Microphone")
-            secondaryLabel.isHidden = false
             secondaryLabel.textColor = Self.secondaryTextColor
             secondaryLabel.stringValue = "Double-tap fn"
-            bars.isHidden = false
             bars.mode = .idle
-            bars.alphaValue = 0.45
             glowLayer.shadowOpacity = 0.0
+            crossfade(targets: [
+                (micIcon, 1), (secondaryLabel, 1), (bars, 0.45),
+                (primaryLabel, 0), (timerLabel, 0),
+                (stopButton, 0), (cancelButton, 0), (retryButton, 0)
+            ])
 
         case .recording:
-            micIcon.isHidden = false
             micIcon.contentTintColor = Self.recColor
             micIcon.image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Recording")
-            primaryLabel.isHidden = false
             primaryLabel.textColor = Self.recColor
             primaryLabel.stringValue = "REC"
-            bars.isHidden = false
             bars.mode = .live
-            bars.alphaValue = 1.0
-            timerLabel.isHidden = false
             timerLabel.stringValue = elapsed(from: recordingStartedAt)
+            glowLayer.shadowColor = Self.recColor.cgColor
             glowLayer.shadowOpacity = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0.0 : 0.4
-            if hovered {
-                stopButton.isHidden = false
-                cancelButton.isHidden = false
-            }
+            glowLayer.shadowRadius = 10
+            crossfade(targets: [
+                (micIcon, 1), (primaryLabel, 1), (bars, 1), (timerLabel, 1),
+                (secondaryLabel, 0), (retryButton, 0),
+                (stopButton, hovered ? 1 : 0),
+                (cancelButton, hovered ? 1 : 0)
+            ])
 
         case .processing(let label):
-            micIcon.isHidden = false
             micIcon.contentTintColor = NSColor(white: 1.0, alpha: 0.75)
             micIcon.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: "Processing")
-            secondaryLabel.isHidden = false
             secondaryLabel.textColor = Self.primaryTextColor
             secondaryLabel.stringValue = label
-            bars.isHidden = false
             bars.mode = .processing
-            bars.alphaValue = 0.85
-            timerLabel.isHidden = false
             timerLabel.stringValue = elapsed(from: recordingStartedAt)
             glowLayer.shadowOpacity = 0.0
+            crossfade(targets: [
+                (micIcon, 1), (secondaryLabel, 1), (bars, 0.85), (timerLabel, 1),
+                (primaryLabel, 0), (stopButton, 0), (cancelButton, 0), (retryButton, 0)
+            ])
 
         case .success(let label):
-            micIcon.isHidden = false
             micIcon.contentTintColor = Self.successColor
             micIcon.image = NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: "Success")
-            secondaryLabel.isHidden = false
             secondaryLabel.textColor = Self.successColor
             secondaryLabel.stringValue = label
             glowLayer.shadowColor = Self.successColor.cgColor
             glowLayer.shadowOpacity = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0.0 : 0.85
             glowLayer.shadowRadius = 14
+            crossfade(targets: [
+                (micIcon, 1), (secondaryLabel, 1),
+                (primaryLabel, 0), (timerLabel, 0), (bars, 0),
+                (stopButton, 0), (cancelButton, 0), (retryButton, 0)
+            ])
 
         case .error(let label):
-            micIcon.isHidden = false
             micIcon.contentTintColor = Self.errorColor
             micIcon.image = NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: "Error")
-            secondaryLabel.isHidden = false
             secondaryLabel.textColor = Self.primaryTextColor
             secondaryLabel.stringValue = label
-            retryButton.isHidden = false
             glowLayer.shadowColor = Self.errorColor.cgColor
             glowLayer.shadowOpacity = 0.0
+            crossfade(targets: [
+                (micIcon, 1), (secondaryLabel, 1), (retryButton, 1),
+                (primaryLabel, 0), (timerLabel, 0), (bars, 0),
+                (stopButton, 0), (cancelButton, 0)
+            ])
         }
 
-        // Restore default glow color for next time.
-        if case .recording = state {
-            glowLayer.shadowColor = Self.recColor.cgColor
+        // Pulse and bounce animations tied to state transitions.
+        if isRecordingNow && !wasRecording {
+            startMicPulse()
+        } else if !isRecordingNow && wasRecording {
+            stopMicPulse()
+        }
+        if isSuccessNow && !wasSuccess {
+            playSuccessBounce()
         }
 
         needsLayout = true
@@ -602,11 +636,22 @@ final class NotchPillView: NSView {
     override func layout() {
         super.layout()
         guard let host = layer else { return }
-        host.cornerRadius = min(visibleHeight / 2, bounds.height / 2)
 
-        let visibleH = min(visibleHeight, bounds.height)
-        let visibleStripY = bounds.maxY - bounds.height
-        let stripCenterY = visibleStripY + visibleH / 2
+        // Rebuild the NotchShape mask path for the current bounds.
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        maskShape?.frame = bounds
+        maskShape?.path = Self.makeNotchPath(
+            width: bounds.width,
+            height: bounds.height,
+            topR: min(topCornerR, bounds.height / 2),
+            bottomR: min(bottomCornerR, bounds.height / 2)
+        )
+        CATransaction.commit()
+
+        let visibleH = bounds.height
+        let visibleStripY: CGFloat = 0
+        let stripCenterY = visibleH / 2
 
         // Glow layer sits behind everything, only in the visible strip.
         glowLayer.frame = NSRect(x: 0, y: visibleStripY, width: bounds.width, height: visibleH)
@@ -729,5 +774,98 @@ final class NotchPillButton: NSButton {
         sizeToFit()
         let s = fittingSize
         return NSSize(width: s.width + 18, height: 22)
+    }
+}
+
+// MARK: - NotchPillView path + animation helpers
+
+extension NotchPillView {
+
+    /// Builds a pill silhouette with concave top corners (small inward
+    /// indents that mate with the notch's outer curves) and convex
+    /// rounded bottom corners (standard pill shape).
+    static func makeNotchPath(width w: CGFloat, height h: CGFloat,
+                              topR: CGFloat, bottomR: CGFloat) -> CGPath {
+        let p = CGMutablePath()
+        guard w > 0, h > 0 else { return p }
+        // Start on the top edge, just inside the top-left concave indent.
+        p.move(to: CGPoint(x: topR, y: h))
+        // Concave top-left: control inside the body so the curve dips in.
+        p.addQuadCurve(to: CGPoint(x: 0, y: h - topR),
+                       control: CGPoint(x: topR, y: h - topR))
+        p.addLine(to: CGPoint(x: 0, y: bottomR))
+        // Convex bottom-left: control at the corner.
+        p.addQuadCurve(to: CGPoint(x: bottomR, y: 0),
+                       control: CGPoint(x: 0, y: 0))
+        p.addLine(to: CGPoint(x: w - bottomR, y: 0))
+        // Convex bottom-right.
+        p.addQuadCurve(to: CGPoint(x: w, y: bottomR),
+                       control: CGPoint(x: w, y: 0))
+        p.addLine(to: CGPoint(x: w, y: h - topR))
+        // Concave top-right.
+        p.addQuadCurve(to: CGPoint(x: w - topR, y: h),
+                       control: CGPoint(x: w - topR, y: h - topR))
+        p.closeSubpath()
+        return p
+    }
+
+    /// Continuous gentle scale pulse on the mic icon while recording.
+    func startMicPulse() {
+        guard let layer = micIcon.layer else {
+            micIcon.wantsLayer = true
+            DispatchQueue.main.async { [weak self] in self?.startMicPulse() }
+            return
+        }
+        if layer.animation(forKey: "rec-pulse") != nil { return }
+        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { return }
+        let pulse = CAKeyframeAnimation(keyPath: "transform.scale")
+        pulse.values = [1.0, 1.12, 1.0]
+        pulse.keyTimes = [0.0, 0.5, 1.0]
+        pulse.duration = 1.3
+        pulse.repeatCount = .infinity
+        pulse.timingFunctions = [
+            CAMediaTimingFunction(name: .easeInEaseOut),
+            CAMediaTimingFunction(name: .easeInEaseOut)
+        ]
+        layer.add(pulse, forKey: "rec-pulse")
+    }
+
+    func stopMicPulse() {
+        micIcon.layer?.removeAnimation(forKey: "rec-pulse")
+    }
+
+    /// One-shot bounce when transitioning into success.
+    func playSuccessBounce() {
+        guard let layer = micIcon.layer else {
+            micIcon.wantsLayer = true
+            DispatchQueue.main.async { [weak self] in self?.playSuccessBounce() }
+            return
+        }
+        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { return }
+        let bounce = CAKeyframeAnimation(keyPath: "transform.scale")
+        bounce.values = [0.55, 1.18, 0.96, 1.0]
+        bounce.keyTimes = [0.0, 0.55, 0.82, 1.0]
+        bounce.duration = 0.42
+        bounce.timingFunctions = [
+            CAMediaTimingFunction(controlPoints: 0.2, 0.85, 0.2, 1.0),
+            CAMediaTimingFunction(name: .easeOut),
+            CAMediaTimingFunction(name: .easeInEaseOut)
+        ]
+        bounce.isRemovedOnCompletion = true
+        layer.add(bounce, forKey: "success-bounce")
+    }
+
+    /// Animate all subviews' alpha to their target values (1 if visible
+    /// in the new state, 0 if not) over ~180ms. Avoids the popping
+    /// hide/show used previously.
+    func crossfade(targets: [(NSView, CGFloat)]) {
+        NSAnimationContext.runAnimationGroup({ ctx in
+            ctx.duration = 0.18
+            ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            ctx.allowsImplicitAnimation = true
+            for (view, alpha) in targets {
+                view.animator().alphaValue = alpha
+            }
+        }, completionHandler: nil)
     }
 }
