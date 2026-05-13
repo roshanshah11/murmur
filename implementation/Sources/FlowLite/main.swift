@@ -54,6 +54,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         hotkeyMonitor?.start()
 
+        notch.levelProvider = { [weak recorder] in recorder?.currentLevel() ?? 0 }
+        notch.onStopRequested = { [weak self] in
+            self?.appState.stopAndProcessDictation()
+        }
+        notch.onCancelRequested = { [weak self] in
+            self?.appState.cancelIfNeeded()
+        }
+        notch.onRetryRequested = { [weak self] in
+            self?.appState.toggleDictation()
+        }
+
         Notifier.bootstrap()
         // Pre-warm mic permission without blocking the main thread.
         DispatchQueue.global(qos: .utility).async {
@@ -195,17 +206,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let elapsed = appState.recordingElapsedSeconds ?? 0
             menuBarTitle = "● \(formatElapsed(elapsed))"
             menuLabel = "Flow Lite: Recording… \(formatElapsed(elapsed))"
-            notch.showRecording(elapsedSeconds: elapsed)
+            notch.setRecording()
         case .transcribing:
             let elapsed = appState.transcribingElapsedSeconds ?? 0
             let recorded = appState.recordingElapsedSeconds ?? 0
             menuBarTitle = "… \(formatElapsed(elapsed))"
             menuLabel = "Flow Lite: Transcribing… \(formatElapsed(elapsed))  (\(formatElapsed(recorded)) audio)"
-            notch.showTranscribing(elapsedSeconds: elapsed)
-        case .pasting, .idle, .error:
+            notch.setProcessing(label: "Transcribing…")
+        case .pasting:
+            menuBarTitle = base
+            menuLabel = "Flow Lite: \(appState.state.displayName)"
+            // Brief success flash on the notch before it dismisses.
+            notch.setSuccess(label: "Inserted")
+        case .idle:
             menuBarTitle = base
             menuLabel = "Flow Lite: \(appState.state.displayName)"
             notch.hide()
+        case .error(let message):
+            menuBarTitle = base
+            menuLabel = "Flow Lite: \(appState.state.displayName)"
+            notch.setError(label: message)
         }
         statusItem.button?.title = menuBarTitle
         stateItemRef?.title = menuLabel

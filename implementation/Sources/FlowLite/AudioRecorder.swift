@@ -28,6 +28,16 @@ final class AudioRecorder: NSObject, AVAudioRecorderDelegate {
     private var recorder: AVAudioRecorder?
     private var currentURL: URL?
 
+    /// Normalized mic level 0..1 derived from AVAudioRecorder.averagePower.
+    /// Returns 0 when not recording. Cheap to poll at 30Hz.
+    func currentLevel() -> Float {
+        guard let r = recorder else { return 0 }
+        r.updateMeters()
+        let dB = r.averagePower(forChannel: 0)   // -160 (silence) .. 0 (max)
+        let clamped = max(-50, min(0, dB))
+        return (clamped + 50) / 50
+    }
+
     static func authorizationStatus() -> AVAuthorizationStatus {
         AVCaptureDevice.authorizationStatus(for: .audio)
     }
