@@ -57,8 +57,14 @@ final class NotchIndicator {
 
     func setRecording() {
         ensureBuilt()
-        recordingStartedAt = Date()
-        applyState(.recording)
+        // Idempotent: caller invokes this every menu-bar tick (~0.5s) while
+        // recording, so only stamp the start time on transition in.
+        if case .recording = state {
+            applyState(.recording)
+        } else {
+            recordingStartedAt = Date()
+            applyState(.recording)
+        }
     }
 
     func setProcessing(label: String = "Transcribing…") {
@@ -69,7 +75,9 @@ final class NotchIndicator {
     func setSuccess(label: String) {
         ensureBuilt()
         applyState(.success(label: label))
-        scheduleDismiss(after: 1.0)
+        // Hold the success flash even if the upstream state machine has
+        // already moved to .idle. The dismiss timer fires hide() after.
+        scheduleDismiss(after: 1.1)
     }
 
     func setError(label: String) {
@@ -80,6 +88,9 @@ final class NotchIndicator {
 
     func hide() {
         guard visible else { return }
+        // Don't let an upstream `idle` transition wipe out an active success
+        // flash — the dismiss timer is the sole driver of success → hide.
+        if case .success = state, dismissTimer != nil { return }
         applyState(.hidden)
     }
 
@@ -143,46 +154,75 @@ final class NotchIndicator {
 
     // MARK: - Geometry / animation
 
-    private func currentScreen() -> NSScreen? {
-        NSScreen.screens.first ?? NSScreen.main
+    private struct NotchGeometry {
+        let screen: NSScreen
+        let centerX: CGFloat   // notch horizontal midpoint, in global coords
+        let topY: CGFloat      // screen.frame.maxY (top of physical screen)
+        let safeTop: CGFloat   // notch height (or menu bar height on non-notch)
+        let notchWidth: CGFloat
+        let hasNotch: Bool
     }
 
-    private func safeTop(for screen: NSScreen) -> CGFloat {
-        let inset = screen.safeAreaInsets.top
-        return inset > 0 ? inset : Self.fallbackSafeTop
-    }
+    private func currentGeometry() -> NotchGeometry? {
+        // Prefer the screen that physically has the notch. `NSScreen.screens.first`
+        // is the LEFTMOST screen by arrangement, which on multi-monitor setups
+        // is often an external display with no notch.
+        let notched = NSScreen.screens.first(where: { $0.safeAreaInsets.top > 0 })
+        let screen = notched ?? NSScreen.main ?? NSScreen.screens.first
+        guard let screen else { return nil }
 
-    private func notchWidth(for screen: NSScreen) -> CGFloat {
-        screen.safeAreaInsets.top > 0 ? Self.fallbackNotchWidth : 160
-    }
+        let safe = screen.safeAreaInsets.top
+        let hasNotch = safe > 0
 
-    private func expandedFrame(width: CGFloat, screen: NSScreen) -> NSRect {
-        let safe = safeTop(for: screen)
-        let w = max(notchWidth(for: screen) + Self.extraOverhang * 2, width)
-        return NSRect(
-            x: screen.frame.midX - w / 2,
-            y: screen.frame.maxY - (safe + Self.visibleHeight),
-            width: w,
-            height: safe + Self.visibleHeight
+        var centerX = screen.frame.midX
+        var notchW: CGFloat = hasNotch ? Self.fallbackNotchWidth : 160
+
+        // macOS 12+ exposes the menu bar regions flanking the notch.
+        if hasNotch {
+            let aL = screen.auxiliaryTopLeftArea
+            let aR = screen.auxiliaryTopRightArea
+            if let aL, let aR {
+                centerX = (aL.maxX + aR.minX) / 2
+                notchW = max(80, aR.minX - aL.maxX)
+            }
+        }
+
+        return NotchGeometry(
+            screen: screen,
+            centerX: centerX,
+            topY: screen.frame.maxY,
+            safeTop: hasNotch ? safe : Self.fallbackSafeTop,
+            notchWidth: notchW,
+            hasNotch: hasNotch
         )
     }
 
-    private func collapsedFrame(width: CGFloat, screen: NSScreen) -> NSRect {
-        let safe = safeTop(for: screen)
-        let w = max(notchWidth(for: screen) + Self.extraOverhang * 2, width)
+    private func expandedFrame(width: CGFloat, geo: NotchGeometry) -> NSRect {
+        let w = max(geo.notchWidth + Self.extraOverhang * 2, width)
+        let totalHeight = geo.safeTop + Self.visibleHeight
         return NSRect(
-            x: screen.frame.midX - w / 2,
-            y: screen.frame.maxY - safe,
+            x: geo.centerX - w / 2,
+            y: geo.topY - totalHeight,
             width: w,
-            height: safe
+            height: totalHeight
+        )
+    }
+
+    private func collapsedFrame(width: CGFloat, geo: NotchGeometry) -> NSRect {
+        let w = max(geo.notchWidth + Self.extraOverhang * 2, width)
+        return NSRect(
+            x: geo.centerX - w / 2,
+            y: geo.topY - geo.safeTop,
+            width: w,
+            height: geo.safeTop
         )
     }
 
     private func present(targetWidth: CGFloat) {
-        guard let panel, let screen = currentScreen() else { return }
-        let target = expandedFrame(width: targetWidth, screen: screen)
+        guard let panel, let geo = currentGeometry() else { return }
+        let target = expandedFrame(width: targetWidth, geo: geo)
         if !visible {
-            panel.setFrame(collapsedFrame(width: targetWidth, screen: screen), display: false)
+            panel.setFrame(collapsedFrame(width: targetWidth, geo: geo), display: false)
             panel.orderFrontRegardless()
             visible = true
             NSAnimationContext.runAnimationGroup({ ctx in
@@ -202,8 +242,8 @@ final class NotchIndicator {
     }
 
     private func animateCollapsedAndHide() {
-        guard let panel, let screen = currentScreen() else { return }
-        let target = collapsedFrame(width: pill?.frame.width ?? 240, screen: screen)
+        guard let panel, let geo = currentGeometry() else { return }
+        let target = collapsedFrame(width: pill?.frame.width ?? 240, geo: geo)
         NSAnimationContext.runAnimationGroup({ ctx in
             ctx.duration = closeDuration
             ctx.timingFunction = easeInTiming
@@ -323,17 +363,19 @@ final class NotchPillView: NSView {
     func intrinsicWidth(for state: NotchIndicator.State, hovered: Bool) -> CGFloat {
         switch state {
         case .hidden:
-            return 200
+            return 220
         case .idle:
-            return 256
+            return 260
         case .recording:
-            return hovered ? 372 : 304
+            return hovered ? 380 : 320
         case .processing:
-            return 290
+            // Match recording width so the pill doesn't shrink when the
+            // pipeline crosses from .recording → .transcribing.
+            return 320
         case .success(let label):
-            return max(200, 130 + estimatedWidth(label))
+            return max(200, 110 + estimatedWidth(label))
         case .error(let label):
-            return max(280, 150 + estimatedWidth(label))
+            return max(300, 140 + estimatedWidth(label))
         }
     }
 

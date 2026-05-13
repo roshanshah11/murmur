@@ -54,7 +54,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         hotkeyMonitor?.start()
 
-        notch.levelProvider = { [weak recorder] in recorder?.currentLevel() ?? 0 }
+        // Strong-capture is intentional: AudioRecorder is owned by AppState
+        // (which lives as long as the AppDelegate). A weak capture has been
+        // observed dropping to nil immediately after launch on some macOS
+        // builds, leaving the spectrum bars stuck at zero.
+        let recorderRef = recorder
+        notch.levelProvider = { recorderRef.currentLevel() }
         notch.onStopRequested = { [weak self] in
             self?.appState.stopAndProcessDictation()
         }
