@@ -15,8 +15,6 @@ final class NotchIndicator {
     private var pillView: NotchPillView?
     private var label: NSTextField?
     private var dot: NSView?
-    private var ringLayer: CAGradientLayer?
-    private var ringMask: CAShapeLayer?
     private var visible = false
     private var currentMode: Mode?
 
@@ -52,7 +50,6 @@ final class NotchIndicator {
     func hide() {
         guard visible else { return }
         visible = false
-        stopShimmer()
         currentMode = nil
         animateCollapsed { [weak self] in
             self?.panel?.orderOut(nil)
@@ -133,37 +130,18 @@ final class NotchIndicator {
         }, completionHandler: completion)
     }
 
-    private func startShimmer() {
-        guard let ring = ringLayer else { return }
-        ring.isHidden = false
-        guard ring.animation(forKey: "shimmer") == nil else { return }
-        let anim = CABasicAnimation(keyPath: "transform.rotation.z")
-        anim.fromValue = 0
-        anim.toValue = CGFloat.pi * 2
-        anim.duration = 2.6
-        anim.repeatCount = .infinity
-        anim.isRemovedOnCompletion = false
-        ring.add(anim, forKey: "shimmer")
-    }
-
-    private func stopShimmer() {
-        ringLayer?.removeAnimation(forKey: "shimmer")
-        ringLayer?.isHidden = true
-    }
-
     private func setMode(_ mode: Mode) {
         guard currentMode != mode else { return }
         currentMode = mode
         switch mode {
         case .recording:
-            stopShimmer()
             dot?.isHidden = false
             dot?.layer?.backgroundColor = NSColor.systemRed.cgColor
             pillView?.contentLayout = .recording
         case .transcribing:
-            dot?.isHidden = true
+            dot?.isHidden = false
+            dot?.layer?.backgroundColor = NSColor.systemTeal.cgColor
             pillView?.contentLayout = .transcribing
-            startShimmer()
         }
         pillView?.needsLayout = true
     }
@@ -204,32 +182,6 @@ final class NotchIndicator {
         pill.autoresizingMask = [.width, .height]
         pill.frame = NSRect(origin: .zero, size: p.frame.size)
 
-        // Rainbow conic ring — only visible in the bottom "visible" strip.
-        let ring = CAGradientLayer()
-        ring.type = .conic
-        ring.startPoint = CGPoint(x: 0.5, y: 0.5)
-        ring.endPoint = CGPoint(x: 1.0, y: 0.5)
-        ring.colors = [
-            NSColor.systemBlue.cgColor,
-            NSColor.systemPurple.cgColor,
-            NSColor.systemPink.cgColor,
-            NSColor.systemOrange.cgColor,
-            NSColor.systemYellow.cgColor,
-            NSColor.systemTeal.cgColor,
-            NSColor.systemBlue.cgColor
-        ]
-        ring.locations = [0.0, 0.18, 0.36, 0.54, 0.72, 0.88, 1.0]
-        ring.isHidden = true
-
-        let mask = CAShapeLayer()
-        mask.fillColor = NSColor.clear.cgColor
-        mask.strokeColor = NSColor.white.cgColor
-        mask.lineWidth = 2.0
-        ring.mask = mask
-
-        pill.ringLayer = ring
-        pill.ringMask = mask
-
         // Dot
         let dotView = NSView(frame: NSRect(x: 14, y: 0, width: 8, height: 8))
         dotView.wantsLayer = true
@@ -255,8 +207,6 @@ final class NotchIndicator {
         self.pillView = pill
         self.label = l
         self.dot = dotView
-        self.ringLayer = ring
-        self.ringMask = mask
     }
 }
 
@@ -267,8 +217,6 @@ final class NotchPillView: NSView {
 
     var visibleHeight: CGFloat = 36
     var contentLayout: ContentLayout = .recording
-    var ringLayer: CAGradientLayer?
-    var ringMask: CAShapeLayer?
     weak var label: NSTextField?
     weak var dotView: NSView?
 
@@ -279,9 +227,6 @@ final class NotchPillView: NSView {
         layer?.masksToBounds = true
         // Round only the bottom corners — top corners hide under the notch.
         layer?.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        if let ring = ringLayer {
-            layer?.addSublayer(ring)
-        }
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -291,75 +236,17 @@ final class NotchPillView: NSView {
         guard let host = layer else { return }
         host.cornerRadius = min(visibleHeight / 2, bounds.height / 2)
 
-        // Ring overlay — sized to the visible (below-notch) strip only.
-        let ring = ringLayer
-        if ring?.superlayer == nil, let ring { host.addSublayer(ring) }
-        let visibleStripY = bounds.maxY - bounds.height
-        // The "visible strip" is the bottom visibleHeight points; the rest is
-        // hidden under the notch.
         let visibleH = min(visibleHeight, bounds.height)
-        let inset: CGFloat = 1.5
-        let stripRect = NSRect(
-            x: inset,
-            y: visibleStripY + inset,
-            width: bounds.width - inset * 2,
-            height: visibleH - inset * 2
-        )
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        ring?.frame = stripRect
-        ring?.cornerRadius = max(0, (visibleH - inset * 2) / 2)
-        if let mask = ringMask {
-            mask.frame = ring?.bounds ?? .zero
-            let stroke: CGFloat = 2
-            let path = NSBezierPath(
-                roundedRect: ring?.bounds.insetBy(dx: stroke / 2, dy: stroke / 2) ?? .zero,
-                xRadius: max(0, (visibleH - inset * 2 - stroke) / 2),
-                yRadius: max(0, (visibleH - inset * 2 - stroke) / 2)
-            )
-            mask.path = path.cgPath
-        }
-        CATransaction.commit()
+        let visibleStripY = bounds.maxY - bounds.height
+        let stripCenterY = visibleStripY + visibleH / 2
 
-        // Position dot + label inside the visible strip.
-        let stripCenterY = stripRect.midY
-        switch contentLayout {
-        case .recording:
-            let dotSize: CGFloat = 8
-            dotView?.isHidden = false
-            dotView?.frame = NSRect(x: 16, y: stripCenterY - dotSize / 2, width: dotSize, height: dotSize)
-            let labelX: CGFloat = 30
-            let labelW = bounds.width - labelX - 16
-            label?.frame = NSRect(x: labelX, y: stripCenterY - 9, width: labelW, height: 18)
-            label?.alignment = .left
-        case .transcribing:
-            dotView?.isHidden = true
-            let labelW = bounds.width - 32
-            label?.frame = NSRect(x: 16, y: stripCenterY - 9, width: labelW, height: 18)
-            label?.alignment = .center
-        }
+        let dotSize: CGFloat = 8
+        dotView?.isHidden = false
+        dotView?.frame = NSRect(x: 16, y: stripCenterY - dotSize / 2, width: dotSize, height: dotSize)
+        let labelX: CGFloat = 30
+        let labelW = bounds.width - labelX - 16
+        label?.frame = NSRect(x: labelX, y: stripCenterY - 9, width: labelW, height: 18)
+        label?.alignment = .left
     }
 }
 
-// MARK: - NSBezierPath → CGPath bridge
-
-private extension NSBezierPath {
-    var cgPath: CGPath {
-        let path = CGMutablePath()
-        var points = [CGPoint](repeating: .zero, count: 3)
-        for i in 0..<elementCount {
-            let type = element(at: i, associatedPoints: &points)
-            switch type {
-            case .moveTo: path.move(to: points[0])
-            case .lineTo: path.addLine(to: points[0])
-            case .curveTo, .cubicCurveTo:
-                path.addCurve(to: points[2], control1: points[0], control2: points[1])
-            case .quadraticCurveTo:
-                path.addQuadCurve(to: points[1], control: points[0])
-            case .closePath: path.closeSubpath()
-            @unknown default: break
-            }
-        }
-        return path
-    }
-}
