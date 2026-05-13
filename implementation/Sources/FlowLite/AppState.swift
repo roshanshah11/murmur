@@ -34,6 +34,7 @@ final class AppState {
     let whisper: WhisperRunner
     let cleaner: TextCleaner
     let inserter: PasteboardInserter
+    let history: HistoryStore
 
     private let onStateChange: (FlowLiteState) -> Void
     private let queue = DispatchQueue(label: "flowlite.pipeline", qos: .userInitiated)
@@ -58,6 +59,7 @@ final class AppState {
         whisper: WhisperRunner,
         cleaner: TextCleaner,
         inserter: PasteboardInserter,
+        history: HistoryStore,
         onStateChange: @escaping (FlowLiteState) -> Void
     ) {
         self.config = config
@@ -65,6 +67,7 @@ final class AppState {
         self.whisper = whisper
         self.cleaner = cleaner
         self.inserter = inserter
+        self.history = history
         self.onStateChange = onStateChange
     }
 
@@ -118,6 +121,7 @@ final class AppState {
     }
 
     private func runPipeline(audioURL: URL, context: AppContext) {
+        let pipelineStart = Date()
         do {
             let rawTranscript = try whisper.transcribe(audioURL: audioURL)
             let cleaned = cleaner.clean(rawTranscript)
@@ -126,12 +130,23 @@ final class AppState {
                 guard let self else { return }
                 self.state = .pasting
                 let result = self.inserter.paste(cleaned)
+                let resultLabel: String
                 switch result {
                 case .pasted(let target):
+                    resultLabel = "pasted:" + target.bundleID
                     Notifier.success("Pasted into \(target.name)")
                 case .copiedOnly(let reason):
+                    resultLabel = "copied_only"
                     Notifier.warn("Copied to clipboard — \(reason)")
                 }
+                let totalMs = Int(Date().timeIntervalSince(pipelineStart) * 1000)
+                self.history.append(
+                    cleaned: cleaned,
+                    raw: rawTranscript,
+                    target: context,
+                    durationMs: totalMs,
+                    result: resultLabel
+                )
                 self.cleanup(audioURL: audioURL)
                 self.state = .idle
             }

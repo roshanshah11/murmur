@@ -18,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let whisper = WhisperRunner(config: config)
         let cleaner = TextCleaner(config: config)
         let inserter = PasteboardInserter(config: config)
+        let history = HistoryStore(enabled: config.historyEnabled, maxEntries: config.historyMaxEntries)
 
         appState = AppState(
             config: config,
@@ -25,6 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             whisper: whisper,
             cleaner: cleaner,
             inserter: inserter,
+            history: history,
             onStateChange: { [weak self] newState in
                 DispatchQueue.main.async {
                     self?.rebuildMenu()
@@ -144,6 +146,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         testItem.target = self
         menu.addItem(testItem)
 
+        let historyItem = NSMenuItem(title: "History", action: nil, keyEquivalent: "")
+        historyItem.submenu = buildHistorySubmenu()
+        menu.addItem(historyItem)
+
         let configItem = NSMenuItem(title: "Open Config", action: #selector(openConfig), keyEquivalent: "")
         configItem.target = self
         menu.addItem(configItem)
@@ -181,6 +187,82 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openLogs() {
         NSWorkspace.shared.open(Config.logsDirectoryURL())
+    }
+
+    private func buildHistorySubmenu() -> NSMenu {
+        let submenu = NSMenu()
+        let entries = appState.history.loadRecent(limit: 10)
+        if entries.isEmpty {
+            let empty = NSMenuItem(title: "(no transcriptions yet)", action: nil, keyEquivalent: "")
+            empty.isEnabled = false
+            submenu.addItem(empty)
+        } else {
+            for (idx, entry) in entries.enumerated() {
+                let preview = previewForEntry(entry)
+                let item = NSMenuItem(title: preview, action: #selector(copyHistoryEntry(_:)), keyEquivalent: "")
+                item.target = self
+                item.tag = idx
+                item.representedObject = entry.cleaned
+                item.toolTip = "\(entry.ts) — \(entry.targetApp)\n\n\(entry.cleaned)"
+                submenu.addItem(item)
+            }
+        }
+        submenu.addItem(NSMenuItem.separator())
+
+        let openItem = NSMenuItem(title: "Open Full History File…", action: #selector(openHistoryFile), keyEquivalent: "")
+        openItem.target = self
+        submenu.addItem(openItem)
+
+        let clearItem = NSMenuItem(title: "Clear History…", action: #selector(clearHistory), keyEquivalent: "")
+        clearItem.target = self
+        submenu.addItem(clearItem)
+
+        return submenu
+    }
+
+    private func previewForEntry(_ entry: HistoryEntry) -> String {
+        let max = 48
+        let oneLine = entry.cleaned.replacingOccurrences(of: "\n", with: " ")
+        let truncated = oneLine.count > max ? String(oneLine.prefix(max)) + "…" : oneLine
+        return "\(shortTimestamp(entry.ts))  \(truncated)"
+    }
+
+    private func shortTimestamp(_ iso: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let date = formatter.date(from: iso) else { return iso }
+        let display = DateFormatter()
+        display.dateFormat = "MMM d HH:mm"
+        return display.string(from: date)
+    }
+
+    @objc private func copyHistoryEntry(_ sender: NSMenuItem) {
+        guard let text = sender.representedObject as? String else { return }
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(text, forType: .string)
+        Notifier.success("Copied to clipboard. Paste with Cmd+V in target app.")
+    }
+
+    @objc private func openHistoryFile() {
+        let url = HistoryStore.defaultURL()
+        if !FileManager.default.fileExists(atPath: url.path) {
+            FileManager.default.createFile(atPath: url.path, contents: Data())
+        }
+        NSWorkspace.shared.open(url)
+    }
+
+    @objc private func clearHistory() {
+        let alert = NSAlert()
+        alert.messageText = "Clear all history?"
+        alert.informativeText = "This deletes \(HistoryStore.defaultURL().path)\nCannot be undone."
+        alert.addButton(withTitle: "Clear")
+        alert.addButton(withTitle: "Cancel")
+        if alert.runModal() == .alertFirstButtonReturn {
+            appState.history.clear()
+            Notifier.success("History cleared.")
+            rebuildMenu()
+        }
     }
 
     @objc private func openAccessibilitySettings() {

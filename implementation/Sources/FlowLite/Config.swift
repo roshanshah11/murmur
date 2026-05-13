@@ -13,6 +13,8 @@ struct Config: Codable {
     var whisperThreads: Int?
     var pasteDelayMs: Int
     var errorAutoClearSeconds: Int
+    var historyEnabled: Bool
+    var historyMaxEntries: Int
     var customVocabulary: [String: String]
 
     static func defaultConfigURL() -> URL {
@@ -59,6 +61,8 @@ struct Config: Codable {
             whisperThreads: nil,
             pasteDelayMs: 50,
             errorAutoClearSeconds: 3,
+            historyEnabled: true,
+            historyMaxEntries: 1000,
             customVocabulary: [
                 "cofounders capital": "Cofounders Capital",
                 "caju dot ai": "Caju.ai",
@@ -83,6 +87,8 @@ struct Config: Codable {
         whisperThreads: Int?,
         pasteDelayMs: Int,
         errorAutoClearSeconds: Int,
+        historyEnabled: Bool,
+        historyMaxEntries: Int,
         customVocabulary: [String: String]
     ) {
         self.whisperBinaryPath = whisperBinaryPath
@@ -97,6 +103,8 @@ struct Config: Codable {
         self.whisperThreads = whisperThreads
         self.pasteDelayMs = pasteDelayMs
         self.errorAutoClearSeconds = errorAutoClearSeconds
+        self.historyEnabled = historyEnabled
+        self.historyMaxEntries = historyMaxEntries
         self.customVocabulary = customVocabulary
     }
 
@@ -115,6 +123,8 @@ struct Config: Codable {
         self.whisperThreads = try c.decodeIfPresent(Int.self, forKey: .whisperThreads) ?? d.whisperThreads
         self.pasteDelayMs = try c.decodeIfPresent(Int.self, forKey: .pasteDelayMs) ?? d.pasteDelayMs
         self.errorAutoClearSeconds = try c.decodeIfPresent(Int.self, forKey: .errorAutoClearSeconds) ?? d.errorAutoClearSeconds
+        self.historyEnabled = try c.decodeIfPresent(Bool.self, forKey: .historyEnabled) ?? d.historyEnabled
+        self.historyMaxEntries = try c.decodeIfPresent(Int.self, forKey: .historyMaxEntries) ?? d.historyMaxEntries
         self.customVocabulary = try c.decodeIfPresent([String: String].self, forKey: .customVocabulary) ?? d.customVocabulary
     }
 
