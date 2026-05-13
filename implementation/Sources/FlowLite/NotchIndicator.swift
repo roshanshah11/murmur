@@ -38,10 +38,14 @@ final class NotchIndicator {
     private var dismissTimer: Timer?
 
     // Tunables shared with the pill view.
-    private static let visibleHeight: CGFloat = 38
+    private static let visibleHeight: CGFloat = 36
     private static let fallbackSafeTop: CGFloat = 32
-    private static let fallbackNotchWidth: CGFloat = 200
-    private static let extraOverhang: CGFloat = 18
+    // M-series 14" / 16" MacBook notch is ~215pt wide. Used when
+    // auxiliaryTop areas are unavailable.
+    private static let fallbackNotchWidth: CGFloat = 215
+    // Tight overhang so the pill reads as "the notch grew a little",
+    // not as a separate widget floating below.
+    private static let extraOverhang: CGFloat = 4
     private let openDuration: CFTimeInterval = 0.18
     private let closeDuration: CFTimeInterval = 0.14
     private let morphDuration: CFTimeInterval = 0.22
@@ -365,17 +369,19 @@ final class NotchPillView: NSView {
         case .hidden:
             return 220
         case .idle:
-            return 260
+            return 230
         case .recording:
-            return hovered ? 380 : 320
+            // Snug around the notch when not hovered; widen on hover to
+            // make room for Stop / Cancel.
+            return hovered ? 340 : 240
         case .processing:
-            // Match recording width so the pill doesn't shrink when the
-            // pipeline crosses from .recording → .transcribing.
-            return 320
+            // Match the non-hovered recording width so the pill keeps
+            // its size across recording → transcription.
+            return 240
         case .success(let label):
-            return max(200, 110 + estimatedWidth(label))
+            return max(200, 100 + estimatedWidth(label))
         case .error(let label):
-            return max(300, 140 + estimatedWidth(label))
+            return max(260, 130 + estimatedWidth(label))
         }
     }
 
