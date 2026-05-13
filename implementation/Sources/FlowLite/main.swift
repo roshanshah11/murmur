@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var exitAfterNextDictation = false
     private var durationTimer: Timer?
     private var stateItemRef: NSMenuItem?
+    private let notch = NotchIndicator()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -21,6 +22,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let cleaner = TextCleaner(config: config)
         let inserter = PasteboardInserter(config: config)
         let history = HistoryStore(enabled: config.historyEnabled, maxEntries: config.historyMaxEntries)
+        let volume = VolumeController()
+
+        // Pre-validate whisper paths once so per-dictation transcribe() skips
+        // 4 stat syscalls. Validation failures are surfaced via the
+        // "Test Whisper Setup" menu item on first use.
+        try? whisper.validateSetup()
 
         appState = AppState(
             config: config,
@@ -29,6 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             cleaner: cleaner,
             inserter: inserter,
             history: history,
+            volume: volume,
             onStateChange: { [weak self] newState in
                 DispatchQueue.main.async {
                     self?.rebuildMenu()
@@ -187,14 +195,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let elapsed = appState.recordingElapsedSeconds ?? 0
             menuBarTitle = "● \(formatElapsed(elapsed))"
             menuLabel = "Flow Lite: Recording… \(formatElapsed(elapsed))"
+            notch.showRecording(elapsedSeconds: elapsed)
         case .transcribing:
             let elapsed = appState.transcribingElapsedSeconds ?? 0
             let recorded = appState.recordingElapsedSeconds ?? 0
             menuBarTitle = "… \(formatElapsed(elapsed))"
             menuLabel = "Flow Lite: Transcribing… \(formatElapsed(elapsed))  (\(formatElapsed(recorded)) audio)"
+            notch.showTranscribing(elapsedSeconds: elapsed)
         case .pasting, .idle, .error:
             menuBarTitle = base
             menuLabel = "Flow Lite: \(appState.state.displayName)"
+            notch.hide()
         }
         statusItem.button?.title = menuBarTitle
         stateItemRef?.title = menuLabel

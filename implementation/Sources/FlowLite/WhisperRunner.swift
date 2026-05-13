@@ -47,11 +47,16 @@ enum WhisperRunnerError: Error, CustomStringConvertible {
 
 final class WhisperRunner {
     private let config: Config
+    private var cachedBinaryPath: String?
+    private var cachedModelPath: String?
+    private static let cachedThreads: Int = WhisperRunner.computeDefaultThreads()
 
     init(config: Config) {
         self.config = config
     }
 
+    /// Validate paths and cache them so subsequent calls skip the four stat
+    /// syscalls on the hot path. Caller should run this once at startup.
     func validateSetup() throws {
         let fm = FileManager.default
         let binaryPath = expand(config.whisperBinaryPath)
@@ -65,10 +70,19 @@ final class WhisperRunner {
         guard fm.fileExists(atPath: modelPath) else {
             throw WhisperRunnerError.missingModel(modelPath)
         }
+        cachedBinaryPath = binaryPath
+        cachedModelPath = modelPath
     }
 
     func transcribe(audioURL: URL) throws -> String {
-        try validateSetup()
+        // Use cached validated paths if available — avoids 4 stat syscalls per
+        // dictation. Falls back to a fresh validate on first call.
+        if cachedBinaryPath == nil || cachedModelPath == nil {
+            try validateSetup()
+        }
+        guard let binaryPath = cachedBinaryPath, let modelPath = cachedModelPath else {
+            throw WhisperRunnerError.missingBinary(config.whisperBinaryPath)
+        }
 
         guard FileManager.default.fileExists(atPath: audioURL.path) else {
             throw WhisperRunnerError.missingAudio(audioURL.path)
@@ -78,17 +92,20 @@ final class WhisperRunner {
         let outputTXT = outputBase.appendingPathExtension("txt")
 
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: expand(config.whisperBinaryPath))
+        process.executableURL = URL(fileURLWithPath: binaryPath)
 
         var args = [
-            "-m", expand(config.modelPath),
+            "-m", modelPath,
             "-f", audioURL.path,
             "-l", config.language,
             "-nt",
+            "-bs", "1",
+            "-bo", "1",
+            "-np",
             "-otxt",
             "-of", outputBase.path
         ]
-        let threads = config.whisperThreads ?? Self.defaultThreads()
+        let threads = config.whisperThreads ?? Self.cachedThreads
         args.append(contentsOf: ["-t", String(threads)])
 
         process.arguments = args
@@ -189,7 +206,10 @@ final class WhisperRunner {
         (path as NSString).expandingTildeInPath
     }
 
-    static func defaultThreads() -> Int {
+    /// Public accessor for tests / debugging. Use the static cache on hot path.
+    static func defaultThreads() -> Int { cachedThreads }
+
+    private static func computeDefaultThreads() -> Int {
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/usr/sbin/sysctl")
         p.arguments = ["-n", "hw.perflevel0.physicalcpu"]

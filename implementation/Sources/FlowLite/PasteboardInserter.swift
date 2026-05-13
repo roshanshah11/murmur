@@ -30,12 +30,15 @@ final class PasteboardInserter {
             return .copiedOnly(reason: "FlowLite is frontmost; text copied to clipboard")
         }
 
-        let target = AppContext.capture()
         let delay = max(0, config.pasteDelayMs)
         if delay > 0 {
             usleep(useconds_t(delay * 1000))
         }
         simulateCommandV()
+
+        // Capture frontmost AFTER the keystroke fires — it's diagnostic only
+        // and lifting it out of the critical path saves ~0.5ms.
+        let target = AppContext.capture()
 
         if config.restoreClipboardAfterPaste, let previousString {
             let restoreDelay = Double(config.clipboardRestoreDelayMs) / 1000.0

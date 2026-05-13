@@ -35,6 +35,7 @@ final class AppState {
     let cleaner: TextCleaner
     let inserter: PasteboardInserter
     let history: HistoryStore
+    let volume: VolumeController
 
     private let onStateChange: (FlowLiteState) -> Void
     private let queue = DispatchQueue(label: "flowlite.pipeline", qos: .userInitiated)
@@ -69,6 +70,7 @@ final class AppState {
         cleaner: TextCleaner,
         inserter: PasteboardInserter,
         history: HistoryStore,
+        volume: VolumeController,
         onStateChange: @escaping (FlowLiteState) -> Void
     ) {
         self.config = config
@@ -77,6 +79,7 @@ final class AppState {
         self.cleaner = cleaner
         self.inserter = inserter
         self.history = history
+        self.volume = volume
         self.onStateChange = onStateChange
     }
 
@@ -96,11 +99,13 @@ final class AppState {
         cancelErrorClear()
         do {
             recordingContext = AppContext.capture()
+            volume.captureAndMute()
             let audioURL = try recorder.startRecording()
             currentAudioURL = audioURL
             recordingStartedAt = Date()
             state = .recording
         } catch {
+            volume.restore()
             setError(error)
         }
     }
@@ -158,11 +163,13 @@ final class AppState {
                     result: resultLabel
                 )
                 self.cleanup(audioURL: audioURL)
+                self.volume.restore()
                 self.state = .idle
             }
         } catch {
             DispatchQueue.main.async { [weak self] in
                 self?.cleanup(audioURL: audioURL)
+                self?.volume.restore()
                 self?.setError(error)
             }
         }
@@ -175,6 +182,7 @@ final class AppState {
         if let currentAudioURL, !config.debugRetainAudio {
             try? FileManager.default.removeItem(at: currentAudioURL)
         }
+        volume.restore()
         cancelErrorClear()
         state = .idle
     }

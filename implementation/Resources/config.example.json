@@ -9,7 +9,7 @@
   "debugRetainAudio": false,
   "transcriptionTimeoutSeconds": 60,
   "whisperThreads": null,
-  "pasteDelayMs": 50,
+  "pasteDelayMs": 10,
   "errorAutoClearSeconds": 3,
   "customVocabulary": {
     "cofounders capital": "Cofounders Capital",

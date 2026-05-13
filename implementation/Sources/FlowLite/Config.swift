@@ -59,7 +59,7 @@ struct Config: Codable {
             debugRetainAudio: false,
             transcriptionTimeoutSeconds: 60,
             whisperThreads: nil,
-            pasteDelayMs: 50,
+            pasteDelayMs: 10,
             errorAutoClearSeconds: 3,
             historyEnabled: true,
             historyMaxEntries: 1000,
