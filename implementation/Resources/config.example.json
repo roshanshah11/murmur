@@ -1,0 +1,22 @@
+{
+  "whisperBinaryPath": "~/dev/whisper.cpp/build/bin/whisper-cli",
+  "modelPath": "~/models/ggml-small.en-q5_1.bin",
+  "language": "en",
+  "rawTranscriptMode": false,
+  "restoreClipboardAfterPaste": false,
+  "clipboardRestoreDelayMs": 1500,
+  "deleteTempAudio": true,
+  "debugRetainAudio": false,
+  "transcriptionTimeoutSeconds": 60,
+  "whisperThreads": null,
+  "pasteDelayMs": 50,
+  "errorAutoClearSeconds": 3,
+  "customVocabulary": {
+    "cofounders capital": "Cofounders Capital",
+    "caju dot ai": "Caju.ai",
+    "caju ai": "Caju.ai",
+    "element four fifty one": "Element451",
+    "kenan flagler": "Kenan-Flagler",
+    "pmt": "PMT"
+  }
+}

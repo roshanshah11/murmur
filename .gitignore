@@ -1,0 +1,19 @@
+.DS_Store
+.build/
+build/
+*.xcodeproj
+*.xcworkspace
+Package.resolved
+.swiftpm/
+DerivedData/
+*.o
+*.a
+*.dylib
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# FlowLite artifacts (machine-local; never commit)
+implementation/build/
+implementation/.build/
