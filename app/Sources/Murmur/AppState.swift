@@ -34,7 +34,13 @@ public enum MurmurState: Equatable {
 }
 
 final class AppState {
-    let config: Config
+    /// `var` (not `let`) so live toggles in Settings → General (e.g. the
+    /// history opt-in) take effect on the *next* dictation without a full
+    /// app restart. main.swift listens for `.murmurHistoryToggleChanged` and
+    /// updates `config.historyEnabled` in place. Without this, the gate
+    /// would read a captured-at-launch value and continue recording history
+    /// after the user toggled it off — a privacy regression.
+    var config: Config
     let recorder: AudioRecorder
     let whisper: WhisperRunner
     let cleaner: TextCleaner

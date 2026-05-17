@@ -85,6 +85,38 @@ final class HistoryGateTests: XCTestCase {
                        "new entries default to favorite=false")
     }
 
+    /// Privacy-critical: toggling history OFF mid-session must stop new
+    /// dictations from being recorded. AppState.config is `var` and the
+    /// menubar/notification wiring (in main.swift) mutates it in-place;
+    /// this test exercises the gate after a runtime mutation.
+    func test_historyToggle_takesEffectWithoutRestart() {
+        let (state, store) = makeAppState(historyEnabled: true)
+        state.appendHistoryIfEnabled(
+            cleaned: "first",
+            raw: "first",
+            target: ctx(),
+            durationMs: 1,
+            result: "pasted"
+        )
+        Thread.sleep(forTimeInterval: 0.1)
+        XCTAssertEqual(store.loadRecent(limit: 5).count, 1)
+
+        // User toggles OFF in the live session.
+        state.config.historyEnabled = false
+        state.appendHistoryIfEnabled(
+            cleaned: "second",
+            raw: "second",
+            target: ctx(),
+            durationMs: 1,
+            result: "pasted"
+        )
+        Thread.sleep(forTimeInterval: 0.1)
+        let entries = store.loadRecent(limit: 5)
+        XCTAssertEqual(entries.count, 1,
+                       "toggling history OFF mid-session must block subsequent appends")
+        XCTAssertEqual(entries.first?.cleaned, "first")
+    }
+
     func test_historyEntry_favoriteFieldRoundTrips() throws {
         // Explicit value round-trips.
         let original = HistoryEntry(

@@ -117,14 +117,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
             self?.appState.clearDownloadingModel()
         }
 
-        // Phase 5: rebuild the menubar when the user toggles history. Cheap
-        // and keeps the "History…" item's enable-state honest without
-        // waiting for the next menu open.
+        // Phase 5: when the user toggles history in Settings → General, the
+        // tab posts a `.murmurHistoryToggleChanged` notification carrying
+        // the new Bool. We mutate AppState.config in-place so the next
+        // dictation's gate sees the fresh value, and rebuild the menubar
+        // so the "History…" item's enable-state updates immediately.
+        // Without the live mutate, toggling OFF would still record history
+        // until the next app restart (privacy regression).
         NotificationCenter.default.addObserver(
             forName: .murmurHistoryToggleChanged,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
+        ) { [weak self] note in
+            if let newValue = note.object as? Bool {
+                self?.appState.config.historyEnabled = newValue
+            }
             self?.rebuildMenu()
         }
 
