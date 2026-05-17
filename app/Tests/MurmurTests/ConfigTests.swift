@@ -118,6 +118,33 @@ final class ConfigTests: XCTestCase {
         XCTAssertTrue(decoded.historyEnabled, "historyEnabled=true must round-trip")
     }
 
+    func test_onboardingCompletedVersion_defaultsNil_andRoundTrips() throws {
+        // Phase 6: default factory must leave the wizard "unfinished"
+        // so the first launch reopens it.
+        XCTAssertNil(Config.defaultConfig().onboardingCompletedVersion,
+                     "onboardingCompletedVersion must default to nil so first launch shows the wizard")
+
+        // Missing key in JSON should also decode to nil.
+        let missing = "{}".data(using: .utf8)!
+        let decodedMissing = try JSONDecoder().decode(Config.self, from: missing)
+        XCTAssertNil(decodedMissing.onboardingCompletedVersion,
+                     "missing onboardingCompletedVersion key must decode to nil")
+
+        // Setting an explicit version round-trips.
+        var cfg = Config.defaultConfig()
+        cfg.onboardingCompletedVersion = "1.0"
+        let data = try JSONEncoder().encode(cfg)
+        let decoded = try JSONDecoder().decode(Config.self, from: data)
+        XCTAssertEqual(decoded.onboardingCompletedVersion, "1.0",
+                       "explicit onboardingCompletedVersion must round-trip")
+
+        // And clearing it back to nil also persists across a round trip.
+        cfg.onboardingCompletedVersion = nil
+        let data2 = try JSONEncoder().encode(cfg)
+        let decoded2 = try JSONDecoder().decode(Config.self, from: data2)
+        XCTAssertNil(decoded2.onboardingCompletedVersion)
+    }
+
     func testTempDirectoryUnderCaches() {
         let path = Config.tempDirectoryURL().path
         XCTAssertTrue(

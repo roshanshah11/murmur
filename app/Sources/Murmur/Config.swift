@@ -17,6 +17,13 @@ struct Config: Codable {
     var historyMaxEntries: Int
     var vocabulary: Vocabulary
     var activeProfile: PromptLibrary.Profile
+    /// Phase 6: stamped to "1.0" once the user finishes the onboarding
+    /// wizard. `nil` (the default) means the wizard has never completed
+    /// successfully, so the next launch will reopen it. Stored as a
+    /// version string (not a bool) so future onboarding refreshes can
+    /// re-prompt only users whose previous completion is older than the
+    /// new revision.
+    var onboardingCompletedVersion: String?
 
     static func defaultConfigURL() -> URL {
         AppPaths.configFile
@@ -81,7 +88,8 @@ struct Config: Codable {
             historyEnabled: false,
             historyMaxEntries: 1000,
             vocabulary: defaultVocabulary(),
-            activeProfile: .casual
+            activeProfile: .casual,
+            onboardingCompletedVersion: nil
         )
     }
 
@@ -101,7 +109,8 @@ struct Config: Codable {
         historyEnabled: Bool,
         historyMaxEntries: Int,
         vocabulary: Vocabulary,
-        activeProfile: PromptLibrary.Profile
+        activeProfile: PromptLibrary.Profile,
+        onboardingCompletedVersion: String? = nil
     ) {
         self.whisperBinaryPath = whisperBinaryPath
         self.modelPath = modelPath
@@ -119,6 +128,7 @@ struct Config: Codable {
         self.historyMaxEntries = historyMaxEntries
         self.vocabulary = vocabulary
         self.activeProfile = activeProfile
+        self.onboardingCompletedVersion = onboardingCompletedVersion
     }
 
     /// Coding keys are listed explicitly so we can decode the legacy
@@ -141,6 +151,7 @@ struct Config: Codable {
         case historyMaxEntries
         case vocabulary
         case activeProfile
+        case onboardingCompletedVersion
         case customVocabulary  // legacy — migrated into `vocabulary`
     }
 
@@ -162,6 +173,7 @@ struct Config: Codable {
         self.historyEnabled = try c.decodeIfPresent(Bool.self, forKey: .historyEnabled) ?? d.historyEnabled
         self.historyMaxEntries = try c.decodeIfPresent(Int.self, forKey: .historyMaxEntries) ?? d.historyMaxEntries
         self.activeProfile = try c.decodeIfPresent(PromptLibrary.Profile.self, forKey: .activeProfile) ?? d.activeProfile
+        self.onboardingCompletedVersion = try c.decodeIfPresent(String.self, forKey: .onboardingCompletedVersion)
 
         // Vocabulary precedence: modern `vocabulary` key wins. If absent, fall
         // back to legacy `customVocabulary: [String: String]` (sorted-key order
@@ -197,6 +209,7 @@ struct Config: Codable {
         try c.encode(historyMaxEntries, forKey: .historyMaxEntries)
         try c.encode(vocabulary, forKey: .vocabulary)
         try c.encode(activeProfile, forKey: .activeProfile)
+        try c.encodeIfPresent(onboardingCompletedVersion, forKey: .onboardingCompletedVersion)
         // Deliberately do not emit `customVocabulary` — the field is decode-only
         // for legacy migration.
     }
