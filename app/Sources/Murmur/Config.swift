@@ -15,7 +15,8 @@ struct Config: Codable {
     var errorAutoClearSeconds: Int
     var historyEnabled: Bool
     var historyMaxEntries: Int
-    var customVocabulary: [String: String]
+    var vocabulary: Vocabulary
+    var activeProfile: PromptLibrary.Profile
 
     static func defaultConfigURL() -> URL {
         AppPaths.configFile
@@ -37,6 +38,26 @@ struct Config: Codable {
         AppPaths.cachesDirectory.appendingPathComponent("debug", isDirectory: true)
     }
 
+    /// Seed entries shipped with every fresh install. Preserved verbatim from
+    /// the pre-Vocabulary `customVocabulary` defaults so installer behavior
+    /// does not regress when the schema rolls forward.
+    private static let defaultVocabularySeed: [(String, String)] = [
+        ("cofounders capital", "Cofounders Capital"),
+        ("caju dot ai", "Caju.ai"),
+        ("caju ai", "Caju.ai"),
+        ("element four fifty one", "Element451"),
+        ("kenan flagler", "Kenan-Flagler"),
+        ("pmt", "PMT")
+    ]
+
+    static func defaultVocabulary() -> Vocabulary {
+        var v = Vocabulary()
+        for (from, to) in defaultVocabularySeed {
+            v.upsert(from: from, to: to)
+        }
+        return v
+    }
+
     static func defaultConfig() -> Config {
         let home = FileManager.default.homeDirectoryForCurrentUser
         let binary = home.appendingPathComponent("dev/whisper.cpp/build/bin/whisper-cli").path
@@ -56,14 +77,8 @@ struct Config: Codable {
             errorAutoClearSeconds: 3,
             historyEnabled: true,
             historyMaxEntries: 1000,
-            customVocabulary: [
-                "cofounders capital": "Cofounders Capital",
-                "caju dot ai": "Caju.ai",
-                "caju ai": "Caju.ai",
-                "element four fifty one": "Element451",
-                "kenan flagler": "Kenan-Flagler",
-                "pmt": "PMT"
-            ]
+            vocabulary: defaultVocabulary(),
+            activeProfile: .casual
         )
     }
 
@@ -82,7 +97,8 @@ struct Config: Codable {
         errorAutoClearSeconds: Int,
         historyEnabled: Bool,
         historyMaxEntries: Int,
-        customVocabulary: [String: String]
+        vocabulary: Vocabulary,
+        activeProfile: PromptLibrary.Profile
     ) {
         self.whisperBinaryPath = whisperBinaryPath
         self.modelPath = modelPath
@@ -98,7 +114,31 @@ struct Config: Codable {
         self.errorAutoClearSeconds = errorAutoClearSeconds
         self.historyEnabled = historyEnabled
         self.historyMaxEntries = historyMaxEntries
-        self.customVocabulary = customVocabulary
+        self.vocabulary = vocabulary
+        self.activeProfile = activeProfile
+    }
+
+    /// Coding keys are listed explicitly so we can decode the legacy
+    /// `customVocabulary: [String: String]` field even though it is no
+    /// longer a stored property on Config.
+    private enum CodingKeys: String, CodingKey {
+        case whisperBinaryPath
+        case modelPath
+        case language
+        case rawTranscriptMode
+        case restoreClipboardAfterPaste
+        case clipboardRestoreDelayMs
+        case deleteTempAudio
+        case debugRetainAudio
+        case transcriptionTimeoutSeconds
+        case whisperThreads
+        case pasteDelayMs
+        case errorAutoClearSeconds
+        case historyEnabled
+        case historyMaxEntries
+        case vocabulary
+        case activeProfile
+        case customVocabulary  // legacy — migrated into `vocabulary`
     }
 
     init(from decoder: Decoder) throws {
@@ -118,7 +158,44 @@ struct Config: Codable {
         self.errorAutoClearSeconds = try c.decodeIfPresent(Int.self, forKey: .errorAutoClearSeconds) ?? d.errorAutoClearSeconds
         self.historyEnabled = try c.decodeIfPresent(Bool.self, forKey: .historyEnabled) ?? d.historyEnabled
         self.historyMaxEntries = try c.decodeIfPresent(Int.self, forKey: .historyMaxEntries) ?? d.historyMaxEntries
-        self.customVocabulary = try c.decodeIfPresent([String: String].self, forKey: .customVocabulary) ?? d.customVocabulary
+        self.activeProfile = try c.decodeIfPresent(PromptLibrary.Profile.self, forKey: .activeProfile) ?? d.activeProfile
+
+        // Vocabulary precedence: modern `vocabulary` key wins. If absent, fall
+        // back to legacy `customVocabulary: [String: String]` (sorted-key order
+        // for deterministic migration). If both absent, use defaults.
+        if let modern = try c.decodeIfPresent(Vocabulary.self, forKey: .vocabulary) {
+            self.vocabulary = modern
+        } else if let legacy = try c.decodeIfPresent([String: String].self, forKey: .customVocabulary) {
+            var v = Vocabulary()
+            for key in legacy.keys.sorted() {
+                v.upsert(from: key, to: legacy[key]!)
+            }
+            self.vocabulary = v
+        } else {
+            self.vocabulary = d.vocabulary
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(whisperBinaryPath, forKey: .whisperBinaryPath)
+        try c.encode(modelPath, forKey: .modelPath)
+        try c.encode(language, forKey: .language)
+        try c.encode(rawTranscriptMode, forKey: .rawTranscriptMode)
+        try c.encode(restoreClipboardAfterPaste, forKey: .restoreClipboardAfterPaste)
+        try c.encode(clipboardRestoreDelayMs, forKey: .clipboardRestoreDelayMs)
+        try c.encode(deleteTempAudio, forKey: .deleteTempAudio)
+        try c.encode(debugRetainAudio, forKey: .debugRetainAudio)
+        try c.encode(transcriptionTimeoutSeconds, forKey: .transcriptionTimeoutSeconds)
+        try c.encodeIfPresent(whisperThreads, forKey: .whisperThreads)
+        try c.encode(pasteDelayMs, forKey: .pasteDelayMs)
+        try c.encode(errorAutoClearSeconds, forKey: .errorAutoClearSeconds)
+        try c.encode(historyEnabled, forKey: .historyEnabled)
+        try c.encode(historyMaxEntries, forKey: .historyMaxEntries)
+        try c.encode(vocabulary, forKey: .vocabulary)
+        try c.encode(activeProfile, forKey: .activeProfile)
+        // Deliberately do not emit `customVocabulary` — the field is decode-only
+        // for legacy migration.
     }
 
     static func loadOrCreateDefault() -> Config {

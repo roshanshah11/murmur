@@ -49,7 +49,9 @@ final class ConfigTests: XCTestCase {
         XCTAssertFalse(cfg.restoreClipboardAfterPaste)
         XCTAssertNil(cfg.whisperThreads)
         // Default vocabulary carries some seeded entries.
-        XCTAssertEqual(cfg.customVocabulary["caju ai"], "Caju.ai")
+        let cajuEntry = cfg.vocabulary.entries.first { $0.from.lowercased() == "caju ai" }
+        XCTAssertEqual(cajuEntry?.to, "Caju.ai")
+        XCTAssertEqual(cfg.activeProfile, .casual)
     }
 
     func testDecodeFromCompleteJSON() throws {
@@ -71,7 +73,29 @@ final class ConfigTests: XCTestCase {
         XCTAssertEqual(decoded.whisperThreads, original.whisperThreads)
         XCTAssertEqual(decoded.pasteDelayMs, original.pasteDelayMs)
         XCTAssertEqual(decoded.errorAutoClearSeconds, original.errorAutoClearSeconds)
-        XCTAssertEqual(decoded.customVocabulary, original.customVocabulary)
+        XCTAssertEqual(decoded.vocabulary, original.vocabulary)
+        XCTAssertEqual(decoded.activeProfile, original.activeProfile)
+    }
+
+    func test_legacyCustomVocabularyDecodesIntoVocabulary() throws {
+        let legacyJSON = """
+        {"customVocabulary":{"API":"A P I","ChatGPT":"chat gee pee tee"}}
+        """.data(using: .utf8)!
+        let cfg = try JSONDecoder().decode(Config.self, from: legacyJSON)
+        XCTAssertEqual(cfg.vocabulary.entries.count, 2)
+        XCTAssertEqual(cfg.activeProfile, .casual)
+    }
+
+    func test_modernConfigDecodesIntactWithProfile() throws {
+        var v = Vocabulary()
+        v.upsert(from: "ok", to: "okay")
+        var cfg = Config.defaultConfig()
+        cfg.vocabulary = v
+        cfg.activeProfile = .formal
+        let data = try JSONEncoder().encode(cfg)
+        let restored = try JSONDecoder().decode(Config.self, from: data)
+        XCTAssertEqual(restored.vocabulary.entries.count, 1)
+        XCTAssertEqual(restored.activeProfile, .formal)
     }
 
     func testTempDirectoryUnderCaches() {

@@ -47,7 +47,8 @@ final class WhisperRunnerTests: XCTestCase {
             errorAutoClearSeconds: 3,
             historyEnabled: false,
             historyMaxEntries: 0,
-            customVocabulary: [:]
+            vocabulary: Vocabulary(),
+            activeProfile: .casual
         )
     }
 
