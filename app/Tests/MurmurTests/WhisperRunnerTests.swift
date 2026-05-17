@@ -45,6 +45,8 @@ final class WhisperRunnerTests: XCTestCase {
             whisperThreads: 1,
             pasteDelayMs: 50,
             errorAutoClearSeconds: 3,
+            historyEnabled: false,
+            historyMaxEntries: 0,
             customVocabulary: [:]
         )
     }
