@@ -48,7 +48,8 @@ a{color:var(--ink);text-decoration:underline;text-decoration-color:color-mix(in 
 a:hover{color:var(--red);text-decoration-color:var(--red)}
 .skip{position:absolute;left:-9999px}
 .skip:focus{left:16px;top:16px;padding:8px 14px;background:var(--ink);color:var(--paper);text-decoration:none;z-index:9}
-.wrap{max-width:1080px;margin:0 auto;padding:0 var(--gutter)}
+.wrap{max-width:clamp(880px, 92vw, 1320px);margin:0 auto;padding:0 var(--gutter)}
+.wrap-narrow{max-width:1080px;margin:0 auto;padding:0 var(--gutter)}
 
 /* MASTHEAD */
 header.masthead{padding:28px 0 18px;border-bottom:var(--rule)}
@@ -64,8 +65,14 @@ nav.masthead-nav a:hover{color:var(--red)}
 
 /* HERO */
 .hero{padding:72px 0 56px}
+.hero-grid{display:grid;grid-template-columns:1fr;gap:48px;align-items:start}
+@media (min-width:1024px){
+  .hero-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:64px;align-items:center}
+  .hero-grid .demo-frame{margin-top:0}
+}
 .kicker{font-family:var(--sans);font-size:11.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--red);margin:0 0 18px}
-h1.title{font-family:var(--serif);font-style:italic;font-weight:500;font-size:clamp(68px,11vw,132px);line-height:0.92;letter-spacing:-0.035em;margin:0;text-wrap:balance;margin-left:-0.04em}
+h1.title{font-family:var(--serif);font-style:italic;font-weight:500;font-size:clamp(68px,8.5vw,128px);line-height:0.92;letter-spacing:-0.035em;margin:0;text-wrap:balance;margin-left:-0.04em}
+@media (min-width:1024px){ h1.title{font-size:clamp(96px,7.2vw,148px)} }
 h1.title .endmark{display:inline-block;width:0.14em;height:0.14em;border-radius:50%;background:var(--red);vertical-align:0.18em;margin-left:0.08em;transform:translateY(-0.06em)}
 @media (prefers-reduced-motion: no-preference){ h1.title .endmark{animation:pulse 2.4s ease-in-out infinite} @keyframes pulse{0%,100%{opacity:0.75;transform:translateY(-0.06em) scale(1)} 50%{opacity:1;transform:translateY(-0.06em) scale(1.18)}} }
 .standfirst{max-width:38ch;margin:28px 0 0;font-family:var(--serif);font-size:21px;line-height:1.42;color:var(--ink-soft)}
@@ -98,6 +105,13 @@ section{padding:64px 0;border-top:var(--rule)}
   border-radius:18px;
   background:linear-gradient(180deg,color-mix(in srgb,var(--paper-edge) 60%,transparent),transparent 60%);
   position:relative;
+}
+@media (min-width:1024px){
+  .demo-frame{
+    /* on wide viewports the demo sits inline with the hero text */
+    background:linear-gradient(180deg,color-mix(in srgb,var(--paper-edge) 80%,transparent),transparent 70%);
+  }
+  .hero-grid .demo-row{grid-template-columns:1fr;gap:18px}
 }
 .demo-frame::before{
   content:"FIG. I — THE NOTCH OVERLAY, AT REST AND DURING DICTATION";
@@ -307,59 +321,63 @@ kbd{font-family:var(--mono);font-size:0.9em;background:color-mix(in srgb,var(--i
 
 <section class="hero" aria-labelledby="hero-title">
   <div class="wrap">
-    <p class="kicker">Local-first dictation for macOS</p>
-    <h1 id="hero-title" class="title">Murmur<span class="endmark" aria-hidden="true"></span></h1>
+    <div class="hero-grid">
+      <div class="hero-text">
+        <p class="kicker">Local-first dictation for macOS</p>
+        <h1 id="hero-title" class="title">Murmur<span class="endmark" aria-hidden="true"></span></h1>
 
-    <p class="standfirst">
-      A quiet little app that listens only when you ask, transcribes <em>on your Mac</em>,
-      and never sends a single byte of audio to anyone. Double-tap <kbd>fn</kbd>, speak, paste.
-      That is the whole product.
-    </p>
+        <p class="standfirst">
+          A quiet little app that listens only when you ask, transcribes <em>on your Mac</em>,
+          and never sends a single byte of audio to anyone. Double-tap <kbd>fn</kbd>, speak, paste.
+          That is the whole product.
+        </p>
 
-    <div class="hero-byline">
-      <div class="row-actions">
-        <div class="install" role="group" aria-label="Install via Homebrew">
-          <code id="brew-cmd">brew install --cask murmur</code>
-          <button type="button" id="copy-btn" aria-label="Copy install command">Copy</button>
-        </div>
-        <a class="dmg-link" href="https://github.com/roshanshah11/murmur/releases/latest/download/Murmur.dmg">Download DMG</a>
-      </div>
-      <div class="row-meta">
-        <span class="byline-meta">macOS 13+ &nbsp;·&nbsp; Apple Silicon &amp; Intel &nbsp;·&nbsp; Free, forever</span>
-      </div>
-    </div>
-
-    <div class="demo-frame" aria-hidden="true">
-      <div class="demo-row">
-        <div class="demo-card idle">
-          <div class="menu-bar">
-            <i></i><i></i><i></i>
-            <span class="app">Notes</span>
-            <span class="app-menu"><span>File</span><span>Edit</span><span>View</span></span>
-            <span class="clk">100% &nbsp; Sun 10:42</span>
+        <div class="hero-byline">
+          <div class="row-actions">
+            <div class="install" role="group" aria-label="Install via Homebrew">
+              <code id="brew-cmd">brew install --cask murmur</code>
+              <button type="button" id="copy-btn" aria-label="Copy install command">Copy</button>
+            </div>
+            <a class="dmg-link" href="https://github.com/roshanshah11/murmur/releases/latest/download/Murmur.dmg">Download DMG</a>
           </div>
-          <div class="notch"></div>
-          <div class="pill"></div>
-          <div class="demo-target">The cursor waits in your editor.<span class="caret"></span></div>
-        </div>
-        <div class="demo-card active">
-          <div class="menu-bar">
-            <i></i><i></i><i></i>
-            <span class="app">Notes</span>
-            <span class="app-menu"><span>File</span><span>Edit</span><span>View</span></span>
-            <span class="clk">100% &nbsp; Sun 10:42</span>
+          <div class="row-meta">
+            <span class="byline-meta">macOS 13+ &nbsp;·&nbsp; Apple Silicon &amp; Intel &nbsp;·&nbsp; Free, forever</span>
           </div>
-          <div class="notch"></div>
-          <div class="pill">
-            <span class="dot"></span>
-            <span class="bars"><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span>
-            <span class="time">0:04</span>
-          </div>
-          <div class="demo-target">Three sentences of perfectly capitalised prose, just landed.<span class="caret"></span></div>
         </div>
       </div>
-      <div class="demo-caption">
-        <span>Idle</span><span>Recording &amp; transcribing</span>
+
+      <div class="demo-frame" aria-hidden="true">
+        <div class="demo-row">
+          <div class="demo-card idle">
+            <div class="menu-bar">
+              <i></i><i></i><i></i>
+              <span class="app">Notes</span>
+              <span class="app-menu"><span>File</span><span>Edit</span><span>View</span></span>
+              <span class="clk">100% &nbsp; Sun 10:42</span>
+            </div>
+            <div class="notch"></div>
+            <div class="pill"></div>
+            <div class="demo-target">The cursor waits in your editor.<span class="caret"></span></div>
+          </div>
+          <div class="demo-card active">
+            <div class="menu-bar">
+              <i></i><i></i><i></i>
+              <span class="app">Notes</span>
+              <span class="app-menu"><span>File</span><span>Edit</span><span>View</span></span>
+              <span class="clk">100% &nbsp; Sun 10:42</span>
+            </div>
+            <div class="notch"></div>
+            <div class="pill">
+              <span class="dot"></span>
+              <span class="bars"><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span>
+              <span class="time">0:04</span>
+            </div>
+            <div class="demo-target">Three sentences of perfectly capitalised prose, just landed.<span class="caret"></span></div>
+          </div>
+        </div>
+        <div class="demo-caption">
+          <span>Idle</span><span>Recording &amp; transcribing</span>
+        </div>
       </div>
     </div>
   </div>
