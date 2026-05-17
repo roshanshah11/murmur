@@ -1,7 +1,7 @@
 import Foundation
 
 enum Log {
-    private static let queue = DispatchQueue(label: "flowlite.log", qos: .utility)
+    private static let queue = DispatchQueue(label: "murmur.log", qos: .utility)
     private static let iso: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -12,7 +12,7 @@ enum Log {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let stamp = dateFormatter.string(from: Date())
-        return Config.logsDirectoryURL().appendingPathComponent("flow-lite-\(stamp).log")
+        return AppPaths.logsDirectory.appendingPathComponent("murmur-\(stamp).log")
     }
 
     static func event(state: String, fields: [String: String] = [:]) {
@@ -33,7 +33,7 @@ enum Log {
         queue.async {
             let url = fileURL
             let fm = FileManager.default
-            try? fm.createDirectory(at: Config.logsDirectoryURL(), withIntermediateDirectories: true)
+            try? fm.createDirectory(at: AppPaths.logsDirectory, withIntermediateDirectories: true)
 
             if !fm.fileExists(atPath: url.path) {
                 fm.createFile(atPath: url.path, contents: nil)
