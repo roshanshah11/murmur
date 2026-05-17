@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://murmur-landing-phi.vercel.app/sitemap.xml

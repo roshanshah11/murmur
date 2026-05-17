@@ -16,6 +16,10 @@
 <meta property="og:image:height" content="630">
 <meta property="og:url"         content="https://murmur-landing-phi.vercel.app/">
 <meta name="twitter:card"       content="summary_large_image">
+<meta name="twitter:title"      content="Murmur — local-first dictation for macOS">
+<meta name="twitter:description" content="Double-tap fn, speak, paste. Your voice never leaves the machine.">
+<meta name="twitter:image"      content="https://murmur-landing-phi.vercel.app/og-image.png">
+<link rel="canonical" href="https://murmur-landing-phi.vercel.app/">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="icon" type="image/svg+xml" sizes="16x16" href="/favicon-source-16.svg">
 <link rel="icon" type="image/svg+xml" sizes="32x32" href="/favicon-source-32.svg">
@@ -27,7 +31,7 @@
 <style>
 :root {
   --paper:#EFE9DD; --paper-edge:#E8DFC9; --paper-deep:#DFD5BD;
-  --ink:#1C1814; --ink-soft:#46403A; --ink-fade:#7D766B;
+  --ink:#1C1814; --ink-soft:#46403A; --ink-fade:#6A6358;
   --red:#B23A2A; --red-soft:#C66B5F; --gold:#94774A;
   --serif: ui-serif,"New York","Cormorant Garamond","Apple Garamond",Garamond,"Hoefler Text","Times New Roman",serif;
   --sans:  ui-sans-serif,-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,sans-serif;
@@ -46,6 +50,7 @@ body{background-image:radial-gradient(circle at 0% 0%,color-mix(in srgb,var(--pa
 ::selection{background:color-mix(in srgb,var(--red) 30%,transparent);color:var(--ink)}
 a{color:var(--ink);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--red) 60%,transparent);text-underline-offset:3px;text-decoration-thickness:1px;transition:color 150ms,text-decoration-color 150ms}
 a:hover{color:var(--red);text-decoration-color:var(--red)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--red);outline-offset:3px;border-radius:4px}
 .skip{position:absolute;left:-9999px}
 .skip:focus{left:16px;top:16px;padding:8px 14px;background:var(--ink);color:var(--paper);text-decoration:none;z-index:9}
 .wrap{max-width:clamp(880px, 92vw, 1320px);margin:0 auto;padding:0 var(--gutter)}
@@ -313,6 +318,7 @@ kbd{font-family:var(--mono);font-size:0.9em;background:color-mix(in srgb,var(--i
       <span><span class="pip"></span>Vol. 1 · No. 1</span>
       <span>May 2026</span>
       <span>An independent release</span>
+      <span>v1.0.0</span>
     </p>
   </div>
 </header>
@@ -335,7 +341,7 @@ kbd{font-family:var(--mono);font-size:0.9em;background:color-mix(in srgb,var(--i
         <div class="hero-byline">
           <div class="row-actions">
             <div class="install" role="group" aria-label="Install via Homebrew">
-              <code id="brew-cmd">brew install --cask murmur</code>
+              <code id="brew-cmd">brew install --cask roshanshah11/murmur/murmur</code>
               <button type="button" id="copy-btn" aria-label="Copy install command">Copy</button>
             </div>
             <a class="dmg-link" href="https://github.com/roshanshah11/murmur/releases/latest/download/Murmur.dmg">Download DMG</a>
@@ -502,7 +508,7 @@ kbd{font-family:var(--mono);font-size:0.9em;background:color-mix(in srgb,var(--i
     <div class="foot-row">
       <span>Set in ui-serif &amp; ui-sans-serif. Hand-coded. © 2026 Roshan Shah.</span>
       <span class="right">
-        <a href="/privacy">Privacy</a>
+        <a href="/privacy.html">Privacy</a>
         <a href="https://github.com/roshanshah11/murmur/blob/main/LICENSE">MIT License</a>
         <a href="https://github.com/roshanshah11/murmur">GitHub</a>
         <a href="https://github.com/sponsors/roshanshah11">Sponsor</a>
