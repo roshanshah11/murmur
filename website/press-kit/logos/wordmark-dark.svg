@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" width="600" height="160"
+     role="img" aria-label="Murmur">
+  <!--
+    Murmur wordmark — inverse (paper on ink).
+    Identical geometry to wordmark.svg; palette swapped so the wordmark
+    sits on dark surfaces (marketing dark mode, social cards, footer).
+    Background is transparent; if you need a hard backdrop, wrap in a
+    container of #1A1A1A.
+  -->
+  <style>
+    .ink  { fill: #FFFBF5; }      /* letters become warm paper */
+    .wave { stroke: #E07A6F; }    /* warmer rose so the decay still whispers */
+    .dot  { fill: #E07A6F; }
+  </style>
+
+  <g class="wordmark">
+
+    <!-- M -->
+    <g class="ink">
+      <path d="M 30 42 L 50 42 L 56 120 L 38 120 Z
+               M 24 42 C 24 38, 28 36, 34 36 L 56 36 C 62 36, 66 38, 66 42 L 66 46 L 24 46 Z
+               M 30 120 C 24 120, 22 122, 22 126 L 22 130 L 66 130 L 66 126 C 66 122, 62 120, 56 120 Z"/>
+      <path d="M 96 42 L 116 42 L 122 120 L 104 120 Z
+               M 90 42 C 90 38, 94 36, 100 36 L 122 36 C 128 36, 132 38, 132 42 L 132 46 L 90 46 Z
+               M 96 120 C 90 120, 88 122, 88 126 L 88 130 L 132 130 L 132 126 C 132 122, 128 120, 122 120 Z"/>
+      <path d="M 52 42 L 80 118 L 76 120 L 48 44 Z"/>
+      <path d="M 100 42 L 80 118 L 84 120 L 104 44 Z"/>
+    </g>
+
+    <!-- u -->
+    <g class="ink">
+      <path d="M 138 68 L 154 68 L 158 116 C 158 122, 154 124, 148 124 C 142 124, 138 122, 138 118 Z
+               M 138 68 C 138 62, 142 60, 148 60 L 158 60 L 158 68 Z"/>
+      <path d="M 174 60 L 186 60 L 192 120 L 178 120 Z
+               M 172 60 C 172 58, 176 58, 182 58 L 192 58 L 192 62 L 172 62 Z
+               M 178 120 C 174 120, 172 122, 172 126 L 192 126 L 192 122 Z"/>
+      <path d="M 158 116 C 158 122, 162 124, 168 124 L 174 124 C 180 124, 184 122, 184 116
+               L 178 116 C 178 120, 174 120, 170 120 C 166 120, 162 120, 162 116 Z"/>
+    </g>
+
+    <!-- italic m -->
+    <g class="ink" transform="translate(40,0) skewX(-10)">
+      <path d="M 200 68 L 214 68 L 218 116 C 218 122, 214 124, 208 124 C 202 124, 200 122, 200 118 Z
+               M 200 68 C 200 62, 204 60, 210 60 L 218 60 L 218 68 Z"/>
+      <path d="M 230 68 L 244 68 L 248 120 L 234 120 Z
+               M 230 68 C 230 62, 234 60, 240 60 L 248 60 L 248 64 L 230 64 Z"/>
+      <path d="M 260 68 L 274 68 L 278 120 L 264 120 Z
+               M 260 68 C 260 62, 264 60, 270 60 L 278 60 L 278 64 L 260 64 Z
+               M 264 120 C 260 120, 258 122, 258 126 L 278 126 L 278 122 Z"/>
+      <path d="M 214 68 C 220 60, 226 58, 234 60 L 230 64 C 224 64, 220 66, 218 70 Z"/>
+      <path d="M 244 68 C 250 60, 256 58, 264 60 L 260 64 C 254 64, 250 66, 248 70 Z"/>
+    </g>
+
+    <!-- second u -->
+    <g class="ink">
+      <path d="M 294 68 L 310 68 L 314 116 C 314 122, 310 124, 304 124 C 298 124, 294 122, 294 118 Z
+               M 294 68 C 294 62, 298 60, 304 60 L 314 60 L 314 68 Z"/>
+      <path d="M 330 60 L 342 60 L 348 120 L 334 120 Z
+               M 328 60 C 328 58, 332 58, 338 58 L 348 58 L 348 62 L 328 62 Z
+               M 334 120 C 330 120, 328 122, 328 126 L 348 126 L 348 122 Z"/>
+      <path d="M 314 116 C 314 122, 318 124, 324 124 L 330 124 C 336 124, 340 122, 340 116
+               L 334 116 C 334 120, 330 120, 326 120 C 322 120, 318 120, 318 116 Z"/>
+    </g>
+
+    <!-- italic r -->
+    <g class="ink" transform="translate(20,0) skewX(-10)">
+      <path d="M 358 68 L 372 68 L 376 120 L 362 120 Z
+               M 358 68 C 358 62, 362 60, 368 60 L 376 60 L 376 64 L 358 64 Z
+               M 362 120 C 358 120, 356 122, 356 126 L 376 126 L 376 122 Z"/>
+      <path d="M 372 68 C 380 60, 388 58, 396 62 C 402 65, 404 70, 402 74
+               L 396 74 C 396 70, 394 68, 390 68 C 384 68, 378 72, 374 78 Z"/>
+    </g>
+
+    <!-- whisper-decay wave + dot -->
+    <g fill="none" stroke-linecap="round">
+      <path class="wave"
+            stroke-width="2.6"
+            d="M 408 92
+               C 424 92, 436 86, 446 78
+               C 458 68, 470 68, 478 80
+               C 484 88, 492 88, 498 80
+               C 502 74, 508 74, 512 80
+               C 515 84, 519 84, 522 80
+               C 524 77, 528 77, 530 80"/>
+    </g>
+    <circle class="dot" cx="544" cy="80" r="4.2"/>
+  </g>
+</svg>
