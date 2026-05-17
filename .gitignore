@@ -14,9 +14,10 @@ DerivedData/
 .vscode/
 .idea/
 
-# FlowLite artifacts (machine-local; never commit)
+# Build artifacts (machine-local; never commit)
 app/build/
 app/.build/
-app/.build/
-app/build/
 .superpowers/
+
+# Claude Code session exports (created by PreCompact hook; opt-in to commit)
+docs/session-exports/

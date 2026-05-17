@@ -8,7 +8,7 @@ final class WhisperRunnerTests: XCTestCase {
         try super.setUpWithError()
         // Per-test scratch dir to avoid cross-test interference.
         scratchDir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-            .appendingPathComponent("FlowLiteTests-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("MurmurTests-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: scratchDir, withIntermediateDirectories: true)
         // WhisperRunner.transcribe writes its output file into Config.tempDirectoryURL().
         // That dir is normally created by Config.loadOrCreateDefault(); make sure it exists for tests.
