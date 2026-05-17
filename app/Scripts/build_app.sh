@@ -5,6 +5,14 @@ set -euo pipefail
 # The bundle is required so macOS attributes Microphone / Accessibility
 # / Input Monitoring permissions to a stable identity instead of the
 # transient `.build/release/Murmur` path.
+#
+# TODO(phase-12 signing): Sparkle's XPC services
+# (Frameworks/Sparkle.framework/Versions/B/XPCServices/{Installer,Downloader}.xpc)
+# and Updater.app/Autoupdate.app inside the framework must be code-signed
+# inner-to-outer with a Developer ID identity before notarization. The
+# current ad-hoc signing block at the bottom signs the outer bundle only,
+# which is fine for local dev but will fail notarization. See
+# docs/internal/sparkle-notes.md §9 pitfall #5.
 
 cd "$(dirname "$0")/.."
 
@@ -32,9 +40,27 @@ fi
 rm -rf "$APP_DIR"
 mkdir -p "${APP_DIR}/Contents/MacOS"
 mkdir -p "${APP_DIR}/Contents/Resources"
+mkdir -p "${APP_DIR}/Contents/Frameworks"
 
 cp "$BINARY" "${APP_DIR}/Contents/MacOS/Murmur"
 chmod +x "${APP_DIR}/Contents/MacOS/Murmur"
+
+# Embed Sparkle.framework so the runtime @rpath link resolves. SwiftPM
+# stages the framework next to the binary; copy it into the bundle's
+# Frameworks/ dir, preserving symlinks (-a) so codesign sees a real
+# versioned framework layout rather than a flattened tree.
+SPARKLE_SRC=".build/release/Sparkle.framework"
+if [ -d "$SPARKLE_SRC" ]; then
+  cp -a "$SPARKLE_SRC" "${APP_DIR}/Contents/Frameworks/"
+  # SwiftPM links Sparkle as a binary product but doesn't bake an rpath
+  # pointing at the bundled Frameworks/ dir. Add one post-link so dyld
+  # finds Sparkle.framework at runtime. (Suppress the "duplicate LC_RPATH"
+  # warning if the script is re-run on a stale binary.)
+  install_name_tool -add_rpath "@executable_path/../Frameworks" \
+    "${APP_DIR}/Contents/MacOS/Murmur" 2>/dev/null || true
+else
+  echo "Warning: Sparkle.framework not found at $SPARKLE_SRC — auto-updates will not work."
+fi
 
 # Copy the SwiftPM resource bundle next to the binary so Bundle.module
 # resolves at runtime. SwiftPM emits `<Target>_<Target>.bundle` alongside
