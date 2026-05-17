@@ -89,7 +89,7 @@ These promises ship on the landing page, the README, and `PRIVACY.md`.
 │   │   └── config.yml
 │   ├── PULL_REQUEST_TEMPLATE.md
 │   └── FUNDING.yml
-├── app/                       # was implementation/
+├── app/                       # was app/
 │   ├── Package.swift
 │   ├── Sources/Murmur/
 │   │   ├── main.swift

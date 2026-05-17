@@ -256,7 +256,7 @@ Optional later:
 Implementation layout:
 
 ```text
-implementation/
+app/
   Package.swift
   Sources/FlowLite/
     main.swift

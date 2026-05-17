@@ -15,8 +15,8 @@ DerivedData/
 .idea/
 
 # FlowLite artifacts (machine-local; never commit)
-implementation/build/
-implementation/.build/
-implementation/.build/
-implementation/build/
+app/build/
+app/.build/
+app/.build/
+app/build/
 .superpowers/

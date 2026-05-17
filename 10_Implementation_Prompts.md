@@ -5,7 +5,7 @@ Use these prompts with Claude Code, Codex, or another coding agent. They assume 
 ## Prompt 1 — Build the v0 audio recorder
 
 ```text
-Read the PRD files in this folder, especially 01_PRD.md, 03_Technical_Architecture.md, and implementation/README.md.
+Read the PRD files in this folder, especially 01_PRD.md, 03_Technical_Architecture.md, and app/README.md.
 
 Implement the AudioRecorder component for the Swift macOS FlowLite executable.
 

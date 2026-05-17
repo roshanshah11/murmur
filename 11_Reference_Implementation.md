@@ -3,7 +3,7 @@
 This file embeds the starter implementation files directly so the implementation can be reviewed without following GitHub links.
 
 
-## `implementation/README.md`
+## `app/README.md`
 
 ```markdown
 # FlowLite Starter Implementation
@@ -69,7 +69,7 @@ macOS may require:
 ```
 
 
-## `implementation/Package.swift`
+## `app/Package.swift`
 
 ```swift
 // swift-tools-version: 5.9
@@ -98,7 +98,7 @@ let package = Package(
 ```
 
 
-## `implementation/Sources/FlowLite/main.swift`
+## `app/Sources/FlowLite/main.swift`
 
 ```swift
 import AppKit
@@ -232,7 +232,7 @@ app.run()
 ```
 
 
-## `implementation/Sources/FlowLite/Config.swift`
+## `app/Sources/FlowLite/Config.swift`
 
 ```swift
 import Foundation
@@ -330,7 +330,7 @@ private extension JSONEncoder {
 ```
 
 
-## `implementation/Sources/FlowLite/AppState.swift`
+## `app/Sources/FlowLite/AppState.swift`
 
 ```swift
 import Foundation
@@ -472,7 +472,7 @@ final class AppState {
 ```
 
 
-## `implementation/Sources/FlowLite/AudioRecorder.swift`
+## `app/Sources/FlowLite/AudioRecorder.swift`
 
 ```swift
 import AVFoundation
@@ -564,7 +564,7 @@ final class AudioRecorder: NSObject, AVAudioRecorderDelegate {
 ```
 
 
-## `implementation/Sources/FlowLite/WhisperRunner.swift`
+## `app/Sources/FlowLite/WhisperRunner.swift`
 
 ```swift
 import Foundation
@@ -688,7 +688,7 @@ final class WhisperRunner {
 ```
 
 
-## `implementation/Sources/FlowLite/TextCleaner.swift`
+## `app/Sources/FlowLite/TextCleaner.swift`
 
 ```swift
 import Foundation
@@ -788,7 +788,7 @@ public struct TextCleaner {
 ```
 
 
-## `implementation/Sources/FlowLite/PasteboardInserter.swift`
+## `app/Sources/FlowLite/PasteboardInserter.swift`
 
 ```swift
 import AppKit
@@ -838,7 +838,7 @@ final class PasteboardInserter {
 ```
 
 
-## `implementation/Sources/FlowLite/HotkeyMonitor.swift`
+## `app/Sources/FlowLite/HotkeyMonitor.swift`
 
 ```swift
 import AppKit
@@ -881,7 +881,7 @@ final class HotkeyMonitor {
 ```
 
 
-## `implementation/Resources/config.example.json`
+## `app/Resources/config.example.json`
 
 ```json
 {
@@ -906,7 +906,7 @@ final class HotkeyMonitor {
 ```
 
 
-## `implementation/Scripts/bootstrap_whisper_cpp.sh`
+## `app/Scripts/bootstrap_whisper_cpp.sh`
 
 ```bash
 #!/usr/bin/env bash
@@ -949,7 +949,7 @@ EOF
 ```
 
 
-## `implementation/Scripts/run_local_smoke_test.sh`
+## `app/Scripts/run_local_smoke_test.sh`
 
 ```bash
 #!/usr/bin/env bash
@@ -971,7 +971,7 @@ swift run FlowLite
 ```
 
 
-## `implementation/Tests/FlowLiteTests/TextCleanerTests.swift`
+## `app/Tests/FlowLiteTests/TextCleanerTests.swift`
 
 ```swift
 import XCTest

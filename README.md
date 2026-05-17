@@ -79,7 +79,7 @@ The same binary inside `FlowLite.app/Contents/MacOS/FlowLite` accepts:
 | `10_Implementation_Prompts.md` | Prompts for Claude/Codex-style implementation workflows |
 | `11_Reference_Implementation.md` | Embedded copies of starter implementation files |
 | `12_References.md` | Reference sources that shaped the implementation |
-| `implementation/` | Swift macOS source, scripts, tests, and resources |
+| `app/` | Swift macOS source, scripts, tests, and resources |
 
 ## Out of scope for v0
 
