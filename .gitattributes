@@ -1,0 +1,20 @@
+# Default: treat as text, normalize line endings to LF on commit.
+* text=auto eol=lf
+
+# Explicit text files
+*.swift  text
+*.md     text
+*.yml    text
+*.yaml   text
+*.json   text
+*.html   text
+*.css    text
+
+# Explicit binary files (no diff, no eol conversion)
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.dmg    binary
+*.icns   binary
+*.zip    binary
