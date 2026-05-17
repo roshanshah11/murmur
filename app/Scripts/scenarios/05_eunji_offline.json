@@ -3,7 +3,7 @@
   "type": "cli_transcribe",
   "source_scenario": "#12 Eun-ji — Offline + noisy-environment",
   "summary": "Full record→transcribe loop leaks zero network egress; whisper artifacts stripped",
-  "input_wav": "../fixtures/05-eunji-coffee-shop.wav",
+  "input_wav": "fixtures/05-eunji-coffee-shop.wav",
   "profile": "raw",
   "language": "en",
   "model": "ggml-base.en",

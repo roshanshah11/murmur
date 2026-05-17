@@ -3,11 +3,11 @@
   "type": "cli_transcribe",
   "source_scenario": "#2 Devraj — Code profile in Cursor",
   "summary": "Code profile preserves UPPER_SNAKE constants and numeric '401'",
-  "input_wav": "../fixtures/01-devraj-code-comment.wav",
+  "input_wav": "fixtures/01-devraj-code-comment.wav",
   "profile": "code",
   "language": "en",
   "model": "ggml-base.en",
-  "vocabulary_file": "../fixtures/01-devraj-vocab.json",
+  "vocabulary_file": "fixtures/01-devraj-vocab.json",
   "expect_contains": [
     "AUTH_EXP_MISSING",
     "401",

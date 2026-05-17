@@ -51,6 +51,7 @@ SUMMARY=$(jq -r '.summary // ""' "$SCENARIO")
 ADAPTERS_DIR="$SCRIPT_DIR/adapters"
 START_TS=$(date +%s)
 
+set +e
 case "$TYPE" in
   cli_transcribe)
     bash "$ADAPTERS_DIR/cli_transcribe.sh" "$SCENARIO" "$MURMUR_APP"
@@ -73,6 +74,7 @@ case "$TYPE" in
     exit 2
     ;;
 esac
+set -e
 
 END_TS=$(date +%s)
 DURATION=$(( END_TS - START_TS ))

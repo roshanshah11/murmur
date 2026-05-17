@@ -3,11 +3,11 @@
   "type": "cli_transcribe",
   "source_scenario": "#3 Priya — Formal profile in Word with legal citations",
   "summary": "Formal profile keeps Rule 12(b)(6) literal punctuation + Latin terms",
-  "input_wav": "../fixtures/02-priya-motion.wav",
+  "input_wav": "fixtures/02-priya-motion.wav",
   "profile": "formal",
   "language": "en",
   "model": "ggml-base.en",
-  "vocabulary_file": "../fixtures/02-priya-legal-vocab.json",
+  "vocabulary_file": "fixtures/02-priya-legal-vocab.json",
   "expect_contains": [
     "12(b)(6)",
     "res judicata",

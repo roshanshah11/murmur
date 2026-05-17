@@ -3,11 +3,11 @@
   "type": "cli_transcribe",
   "source_scenario": "#8 Tomás — Spanish-language path",
   "summary": "Spanish locale forces non-.en model; accents and '+' brand survive",
-  "input_wav": "../fixtures/04-tomas-linkedin.wav",
+  "input_wav": "fixtures/04-tomas-linkedin.wav",
   "profile": "formal",
   "language": "es",
   "model": "ggml-base",
-  "vocabulary_file": "../fixtures/04-tomas-brand-vocab.json",
+  "vocabulary_file": "fixtures/04-tomas-brand-vocab.json",
   "expect_contains": [
     "campaña",
     "orgulloso",

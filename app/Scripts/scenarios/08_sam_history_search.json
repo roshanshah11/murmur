@@ -3,7 +3,7 @@
   "type": "cli_transcribe",
   "source_scenario": "#20 Sam — History viewer search + copy-back",
   "summary": "History DB stores raw+cleaned+timestamp+bundle id and is FTS-indexed",
-  "input_wav": "../fixtures/08-sam-q3-hiring.wav",
+  "input_wav": "fixtures/08-sam-q3-hiring.wav",
   "profile": "casual",
   "language": "en",
   "model": "ggml-base.en",

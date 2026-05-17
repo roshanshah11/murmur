@@ -1,0 +1,8 @@
+{"id":"01_devraj_code_cursor","type":"cli_transcribe","summary":"Code profile preserves UPPER_SNAKE constants and numeric '401'","status":"fail","exit_code":1,"duration_seconds":1}
+{"id":"02_priya_word_legal","type":"cli_transcribe","summary":"Formal profile keeps Rule 12(b)(6) literal punctuation + Latin terms","status":"fail","exit_code":1,"duration_seconds":1}
+{"id":"03_jordan_airpods","type":"cli_transcribe","summary":"Recording resolves the live input device, not the launch-time one","status":"fail","exit_code":1,"duration_seconds":1}
+{"id":"04_tomas_spanish","type":"cli_transcribe","summary":"Spanish locale forces non-.en model; accents and '+' brand survive","status":"fail","exit_code":1,"duration_seconds":1}
+{"id":"05_eunji_offline","type":"cli_transcribe","summary":"Full record→transcribe loop leaks zero network egress; whisper artifacts stripped","status":"pass","exit_code":0,"duration_seconds":1}
+{"id":"06_yusuf_permission_loss","type":"permissions_probe","summary":"Accessibility silently revoked; Murmur must detect within 200ms and surface a banner","status":"fail","exit_code":1,"duration_seconds":0}
+{"id":"07_tabitha_first_launch","type":"installer_flow","summary":"Fresh DMG install on a clean account reaches a working menubar agent","status":"skip","exit_code":77,"duration_seconds":0}
+{"id":"08_sam_history_search","type":"cli_transcribe","summary":"History DB stores raw+cleaned+timestamp+bundle id and is FTS-indexed","status":"pass","exit_code":0,"duration_seconds":1}

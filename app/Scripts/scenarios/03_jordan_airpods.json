@@ -3,7 +3,7 @@
   "type": "cli_transcribe",
   "source_scenario": "#5 Jordan — AirPods routing at start-of-recording",
   "summary": "Recording resolves the live input device, not the launch-time one",
-  "input_wav": "../fixtures/03-jordan-airpods.wav",
+  "input_wav": "fixtures/03-jordan-airpods.wav",
   "profile": "casual",
   "language": "en",
   "model": "ggml-base.en",
