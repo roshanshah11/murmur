@@ -12,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let notch = NotchIndicator()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        ConfigMigration.runDefaultMigration()
         NSApp.setActivationPolicy(.accessory)
 
         let config = Config.loadOrCreateDefault()
