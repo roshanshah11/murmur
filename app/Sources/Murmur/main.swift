@@ -143,6 +143,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         if !Self.isAXTrusted() {
             Log.event(state: "ax_permission_missing")
         }
+
+        // Phase 6: open the onboarding wizard on first launch (or any
+        // launch where the saved completion version doesn't match the
+        // current schema). Deferred until after the hotkey monitor and
+        // notification observers are live so the wizard's "Test
+        // dictation" step actually works.
+        OnboardingWindowController.openIfNeeded()
     }
 
     func enableRecordOnceMode() {

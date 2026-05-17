@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct AboutTab: View {
@@ -31,6 +32,20 @@ struct AboutTab: View {
                 Link("GitHub", destination: URL(string: "https://github.com/roshanshah11/murmur")!)
                 Link("Docs", destination: URL(string: "https://roshanshah11.github.io/murmur/")!)
                 Link("Sponsor", destination: URL(string: "https://github.com/sponsors/roshanshah11")!)
+            }
+            Divider()
+            HStack {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Setup wizard").font(.subheadline)
+                    Text("Re-run the first-launch onboarding flow.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("Run setup again") {
+                    OnboardingWindowController.shared.showWindow(nil)
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                .buttonStyle(.bordered)
             }
             Spacer()
             Text("Made with ♥ for people who like their voice to stay on their Mac.")
