@@ -67,7 +67,7 @@ enum CLI {
     static func runTranscribeOnly(_ wav: URL) -> Int32 {
         let config = Config.loadOrCreateDefault()
         let whisper = WhisperRunner(config: config)
-        let cleaner = TextCleaner(config: config)
+        let cleaner = TextCleaner(vocabulary: config.vocabulary, profile: config.activeProfile)
         do {
             let raw = try whisper.transcribe(audioURL: wav)
             let cleaned = cleaner.clean(raw)

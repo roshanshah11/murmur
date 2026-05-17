@@ -21,7 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let recorder = AudioRecorder()
         let whisper = WhisperRunner(config: config)
-        let cleaner = TextCleaner(config: config)
+        let cleaner = TextCleaner(vocabulary: config.vocabulary, profile: config.activeProfile)
         let inserter = PasteboardInserter(config: config)
         let history = HistoryStore(enabled: config.historyEnabled, maxEntries: config.historyMaxEntries)
         let volume = VolumeController()
