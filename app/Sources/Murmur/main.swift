@@ -2,7 +2,7 @@ import AppKit
 import ApplicationServices
 import Foundation
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     private var statusItem: NSStatusItem!
     private var appState: AppState!
     private var hotkeyMonitor: HotkeyMonitor?
@@ -26,8 +26,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let whisper = WhisperRunner(config: config)
         let cleaner = TextCleaner(vocabulary: config.vocabulary, profile: config.activeProfile)
         let inserter = PasteboardInserter(config: config)
-        let history = HistoryStore(enabled: config.historyEnabled, maxEntries: config.historyMaxEntries)
+        // Pass enabled=true so the History window can always read/write
+        // (delete, favorite-toggle, clear). AppState.appendHistoryIfEnabled
+        // gates *writes from the dictation pipeline* on config.historyEnabled,
+        // so the privacy guarantee is preserved at the call site.
+        let history = HistoryStore(enabled: true, maxEntries: config.historyMaxEntries)
         let volume = VolumeController()
+
+        // Phase 5: the History window is a process-singleton with one
+        // HistoryStore reference. Wire it before any UI can open the window.
+        HistoryWindowController.store = history
+        HistoryWindowController.inserter = inserter
 
         // Pre-validate whisper paths once so per-dictation transcribe() skips
         // 4 stat syscalls. Validation failures are surfaced via the
@@ -106,6 +115,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             queue: .main
         ) { [weak self] _ in
             self?.appState.clearDownloadingModel()
+        }
+
+        // Phase 5: rebuild the menubar when the user toggles history. Cheap
+        // and keeps the "History…" item's enable-state honest without
+        // waiting for the next menu open.
+        NotificationCenter.default.addObserver(
+            forName: .murmurHistoryToggleChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.rebuildMenu()
         }
 
         Log.event(state: "launched", fields: [
@@ -223,6 +243,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsItem.target = self
         menu.addItem(settingsItem)
 
+        // Phase 5: the dedicated History window. Enabled only when the
+        // opt-in toggle is on; otherwise visible but disabled with a tooltip
+        // so first-time users discover where to flip it.
+        let historyEnabled = Config.loadOrCreateDefault().historyEnabled
+        let historyWindowItem = NSMenuItem(
+            title: "History…",
+            action: #selector(openHistoryWindow),
+            keyEquivalent: ""
+        )
+        historyWindowItem.target = self
+        historyWindowItem.isEnabled = historyEnabled
+        if !historyEnabled {
+            historyWindowItem.toolTip = "Enable history in Settings → General first."
+        }
+        menu.addItem(historyWindowItem)
+
         let updatesItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
         updatesItem.target = self
         menu.addItem(updatesItem)
@@ -322,6 +358,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openLogs() {
         NSWorkspace.shared.open(Config.logsDirectoryURL())
+    }
+
+    /// Gates menubar actions. Only `openHistoryWindow` has dynamic enable
+    /// state today — every other selector returns true (matches default
+    /// AppKit behavior). Called automatically by AppKit before the menu
+    /// renders, which means the toggle in Settings → General takes effect
+    /// the next time the user opens the menubar.
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(openHistoryWindow) {
+            return Config.loadOrCreateDefault().historyEnabled
+        }
+        return true
+    }
+
+    @objc private func openHistoryWindow() {
+        HistoryWindowController.shared.showWindow(nil)
     }
 
     @objc func openSettings() {
