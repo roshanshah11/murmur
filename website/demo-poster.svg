@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" role="img" aria-label="Murmur dictation poster: notch pill listening with spectrum bars.">
+<title>Murmur dictation demo poster</title>
+<style>
+.s{font-family:'New York',ui-serif,Garamond,serif;font-style:italic;font-weight:500}
+.n{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',Helvetica,sans-serif}
+</style>
+<defs>
+<radialGradient id="v" cx="0%" cy="0%" r="120%"><stop offset="0%" stop-color="#E8DFC9" stop-opacity=".55"/><stop offset="60%" stop-color="#EFE9DD" stop-opacity="0"/></radialGradient>
+<linearGradient id="mb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A2520"/><stop offset="1" stop-color="#1C1814"/></linearGradient>
+</defs>
+<rect width="1280" height="800" fill="#EFE9DD"/>
+<rect width="1280" height="800" fill="url(#v)"/>
+
+<g class="n" font-size="12" letter-spacing="2.6" fill="#7D766B"><text x="64" y="58">M U R M U R · F I G. I I · D I C T A T I O N  F L O W</text></g>
+<line x1="64" y1="74" x2="1216" y2="74" stroke="#1C1814" stroke-opacity=".14"/>
+
+<g transform="translate(1196 56)">
+<circle r="22" fill="none" stroke="#1C1814" stroke-opacity=".28"/>
+<text class="s" font-size="30" text-anchor="middle" y="10" fill="#1C1814">m</text>
+<circle cx="14" cy="10" r="2.4" fill="#B23A2A"/>
+</g>
+
+<g transform="translate(160 150)">
+<rect x="6" y="10" width="960" height="540" rx="14" fill="#1C1814" opacity=".08"/>
+<rect width="960" height="540" rx="14" fill="#FBF7EC" stroke="#1C1814" stroke-opacity=".18"/>
+<path d="M0 0 H960 V36 H0 Z" fill="url(#mb)"/>
+<circle cx="20" cy="18" r="6" fill="#FF5F57"/><circle cx="40" cy="18" r="6" fill="#FEBC2E"/><circle cx="60" cy="18" r="6" fill="#28C840"/>
+<text class="n" x="86" y="22" font-size="11" font-weight="600" fill="#EFE9DD" letter-spacing=".6">Notes</text>
+<g class="n" font-size="11" fill="#EFE9DD" fill-opacity=".42" letter-spacing=".4">
+<text x="140" y="22">File</text><text x="172" y="22">Edit</text><text x="204" y="22">View</text><text x="240" y="22">Format</text><text x="288" y="22">Window</text><text x="344" y="22">Help</text>
+</g>
+<text class="n" x="930" y="22" font-size="11" fill="#EFE9DD" fill-opacity=".6" text-anchor="end">9:41 AM</text>
+<path d="M410 0 H550 a14 14 0 0 1 -14 14 H424 a14 14 0 0 1 -14 -14 Z" fill="#000"/>
+
+<g transform="translate(480 4)">
+<rect x="-72" y="0" width="144" height="24" rx="12" fill="#0F0C0A" stroke="#B23A2A" stroke-opacity=".55"/>
+<circle cx="-58" cy="12" r="4" fill="#B23A2A"/>
+<g fill="#EFE9DD">
+<rect x="-40" y="9" width="3" height="6" rx="1.5"/>
+<rect x="-32" y="3" width="3" height="18" rx="1.5"/>
+<rect x="-24" y="2" width="3" height="20" rx="1.5"/>
+<rect x="-16" y="3" width="3" height="18" rx="1.5"/>
+<rect x="-8" y="5" width="3" height="14" rx="1.5"/>
+<rect x="0" y="4" width="3" height="16" rx="1.5"/>
+<rect x="8" y="7" width="3" height="10" rx="1.5"/>
+</g>
+<text class="n" x="20" y="16" font-size="7" letter-spacing="1.6" fill="#EFE9DD" fill-opacity=".7">L I S T E N I N G</text>
+</g>
+
+<g transform="translate(0 36)">
+<text class="s" x="40" y="56" font-size="26" fill="#1C1814">A note to self</text>
+<line x1="40" y1="76" x2="640" y2="76" stroke="#1C1814" stroke-opacity=".14"/>
+<text class="n" x="40" y="98" font-size="10" letter-spacing="1.8" fill="#7D766B">M A Y · 1 7 · 2 0 2 6</text>
+<g class="s" font-size="18" fill="#46403A">
+<text x="40" y="140">The keyboard feels honest again.</text>
+<text x="40" y="170">Quiet utilities matter more than loud features —</text>
+</g>
+<g transform="translate(40 200)">
+<rect x="0" y="-14" width="2" height="20" fill="#1C1814"/>
+</g>
+<line x1="40" y1="460" x2="920" y2="460" stroke="#1C1814" stroke-opacity=".14"/>
+<g class="n" font-size="10" letter-spacing="1.6" fill="#7D766B">
+<text x="40" y="482">D O U B L E · T A P  · F N · T O · S P E A K</text>
+<text x="920" y="482" text-anchor="end" fill="#B23A2A">F R A M E · 0 3 / 0 4</text>
+</g>
+</g>
+</g>
+
+<g transform="translate(1056 170)">
+<text class="n" font-size="10" letter-spacing="2.2" fill="#B23A2A">F L O W</text>
+<line x1="0" y1="14" x2="148" y2="14" stroke="#1C1814" stroke-opacity=".28"/>
+<rect x="-12" y="278" width="172" height="116" fill="#B23A2A" fill-opacity=".08" rx="3"/>
+<g class="s" font-size="22" fill="#1C1814" opacity=".55"><text x="0" y="58">Cursor</text><text x="0" y="92">rests.</text></g>
+<text class="n" x="0" y="124" font-size="11" fill="#7D766B" opacity=".7">01 / Editor focused, idle.</text>
+<g class="s" font-size="22" fill="#1C1814" opacity=".55"><text x="0" y="186">Pill</text><text x="0" y="220">drops.</text></g>
+<text class="n" x="0" y="252" font-size="11" fill="#7D766B" opacity=".7">02 / Double-tap fn.</text>
+<g class="s" font-size="22" fill="#1C1814"><text x="0" y="314">Bars</text><text x="0" y="348">listen.</text></g>
+<text class="n" x="0" y="380" font-size="11" fill="#7D766B">03 / Speak; local model.</text>
+<g class="s" font-size="22" fill="#1C1814" opacity=".55"><text x="0" y="442">Text</text><text x="0" y="476">lands.</text></g>
+<text class="n" x="0" y="508" font-size="11" fill="#7D766B" opacity=".7">04 / Pasted at caret.</text>
+</g>
+
+<g transform="translate(160 720)">
+<line x1="0" y1="0" x2="960" y2="0" stroke="#1C1814" stroke-opacity=".14"/>
+<g class="n" font-size="10" letter-spacing="2.2" fill="#7D766B">
+<text x="0" y="22">0 0 : 0 0</text><text x="240" y="22">0 0 : 0 1 . 5</text><text x="480" y="22">0 0 : 0 3</text><text x="720" y="22">0 0 : 0 4 . 5</text><text x="960" y="22" text-anchor="end">0 0 : 0 6</text>
+</g>
+<circle cx="480" cy="0" r="4" fill="#B23A2A"/>
+</g>
+
+<g class="n" font-size="10" letter-spacing="2.2" fill="#7D766B">
+<text x="64" y="772">P R O C E D U R A L · F A L L B A C K · S V G</text>
+<text x="1216" y="772" text-anchor="end">N O · N E T W O R K · R E Q U I R E D</text>
+</g>
+</svg>

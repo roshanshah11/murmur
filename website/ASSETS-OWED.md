@@ -1,7 +1,10 @@
 # Assets owed for production
 
 The landing page references these binary assets that are not yet generated.
-See `docs/internal/website-perf-notes.md` for the exact ffmpeg/cwebp commands.
+See `docs/internal/website-perf-notes.md` and `website/demo-capture.md` for
+the exact ffmpeg/cwebp commands.
+
+## Still owed
 
 - `website/demo.mp4`        ← screen recording of double-tap → spectrum → paste
 - `website/demo.webm`       ← VP9/Opus variant for Firefox + smaller payload
@@ -10,3 +13,10 @@ See `docs/internal/website-perf-notes.md` for the exact ffmpeg/cwebp commands.
 - `website/favicon.ico`     ← 32×32 + 16×16 multi-resolution from brand/icon.svg
 - `website/apple-touch-icon.png` ← 180×180 from brand/icon.svg
 - `website/icon.svg`        ← copy of brand/icon.svg
+
+## Delivered
+
+- ~~`website/demo.svg`~~ — procedural SMIL fallback, ships as the in-`<video>`
+  fallback (see `demo-readme.md`).
+- ~~`website/demo-poster.svg`~~ — static mid-recording frame, used as the
+  `<video poster>` until `demo-poster.webp` is captured.
