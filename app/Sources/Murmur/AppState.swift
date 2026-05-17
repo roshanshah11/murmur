@@ -54,6 +54,13 @@ final class AppState {
     /// success message ("Pasted into TextEdit") instead of a generic
     /// one driven by the state machine.
     var onPasteResult: ((PasteResult) -> Void)?
+    /// Fired on the main thread with the post-cleanup transcription text
+    /// every time the pipeline finishes a dictation. The onboarding
+    /// wizard's test step subscribes so it can display the result
+    /// without depending on the paste path (which short-circuits to
+    /// `.copiedOnly` when Murmur is frontmost — the onboarding window
+    /// IS Murmur, so paste-to-self would otherwise swallow the text).
+    var onCleanedText: ((String) -> Void)?
     private let queue = DispatchQueue(label: "flowlite.pipeline", qos: .userInitiated)
     private var currentAudioURL: URL?
     private var recordingStartedAt: Date?
@@ -183,6 +190,15 @@ final class AppState {
 
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
+                // Broadcast the cleaned text BEFORE paste runs. The onboarding
+                // wizard listens here so it can show the result even when
+                // PasteboardInserter falls back to copied-only (which it does
+                // when Murmur is frontmost — see PasteboardInserter.swift).
+                self.onCleanedText?(cleaned)
+                NotificationCenter.default.post(
+                    name: .murmurDictationCleanedText,
+                    object: cleaned
+                )
                 self.state = .pasting
                 let result = self.inserter.paste(cleaned)
                 let resultLabel: String
@@ -297,4 +313,14 @@ final class AppState {
         errorClearWorkItem?.cancel()
         errorClearWorkItem = nil
     }
+}
+
+extension Notification.Name {
+    /// Posted on the main thread immediately after the dictation pipeline
+    /// finishes cleaning a transcript, BEFORE paste runs. `object` is the
+    /// cleaned `String`. The onboarding wizard's test step subscribes so
+    /// the user can see the dictation result even when paste short-circuits
+    /// to copied-only (which happens whenever Murmur is the frontmost app —
+    /// e.g. while the onboarding window is in focus).
+    static let murmurDictationCleanedText = Notification.Name("murmur.dictation.cleaned.text")
 }
