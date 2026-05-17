@@ -2,23 +2,23 @@
 import PackageDescription
 
 let package = Package(
-    name: "FlowLite",
+    name: "Murmur",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "FlowLite", targets: ["FlowLite"])
+        .executable(name: "Murmur", targets: ["Murmur"])
     ],
     targets: [
         .executableTarget(
-            name: "FlowLite",
-            path: "Sources/FlowLite",
+            name: "Murmur",
+            path: "Sources/Murmur",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
-            name: "FlowLiteTests",
-            dependencies: ["FlowLite"],
-            path: "Tests/FlowLiteTests",
+            name: "MurmurTests",
+            dependencies: ["Murmur"],
+            path: "Tests/MurmurTests",
             swiftSettings: [.swiftLanguageMode(.v5)]
         )
     ]

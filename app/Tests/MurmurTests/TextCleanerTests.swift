@@ -1,5 +1,5 @@
 import XCTest
-@testable import FlowLite
+@testable import Murmur
 
 final class TextCleanerTests: XCTestCase {
     func testRemovesBasicFillers() {
