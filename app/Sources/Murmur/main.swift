@@ -14,6 +14,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         ConfigMigration.runDefaultMigration()
+        // Touch the Sparkle adapter so SPUStandardUpdaterController initialises
+        // and schedules its background appcast check before we return.
+        _ = SparkleUpdater.shared
         NSApp.setActivationPolicy(.accessory)
 
         let config = Config.loadOrCreateDefault()
@@ -220,6 +223,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsItem.target = self
         menu.addItem(settingsItem)
 
+        let updatesItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
+        updatesItem.target = self
+        menu.addItem(updatesItem)
+
         let quitItem = NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
@@ -320,6 +327,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func openSettings() {
         settingsWindow.showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc func checkForUpdates() {
+        MainActor.assumeIsolated {
+            SparkleUpdater.shared.checkForUpdates()
+        }
     }
 
     private func buildHistorySubmenu() -> NSMenu {
