@@ -56,7 +56,7 @@ Twelve common failure modes, each with a probable cause and a fix. If yours isn'
 
 1. Confirm **Settings → General → Pause music during recording** is on.
 2. Launch the music app before recording.
-3. If still broken, file a log — Murmur uses public MediaRemote APIs that occasionally shift in macOS minor releases.
+3. If still broken, file a log — Murmur uses public AppleScript via Apple Eventss that occasionally shift in macOS minor releases.
 
 ## Notch overlay invisible on a non-notched Mac { #notch-overlay-invisible }
 

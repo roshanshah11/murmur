@@ -7,13 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.0] — YYYY-MM-DD
+## [1.0.0] — Unreleased
 
-First public release under the Murmur name.
+First public release under the Murmur name. The date is set when the
+v1.0.0 tag is pushed (see `scripts/RELEASE-CHECKLIST.md`).
 
 ### Added
 
-- Real Settings window with seven tabs (General, Recording, Models, Vocabulary, Prompts, History, Updates).
+- Real Settings window with seven tabs (General, Recording, Vocabulary, Prompts, Models, Updates, About).
+- Standalone History window (opt-in) for browsing, searching, and re-pasting past dictations.
 - Opt-in History viewer for browsing, searching, and exporting past transcripts.
 - Vocabulary library with JSON import and export for custom terminology, names, and acronyms.
 - Deterministic cleanup profiles: Raw, Casual, Formal, and Code.

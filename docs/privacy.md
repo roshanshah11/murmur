@@ -98,9 +98,9 @@ After that, drag **Murmur.app** out of `/Applications` (or `brew uninstall --cas
 Murmur is MIT-licensed. Every claim on this page is verifiable in the public repo:
 
 - [github.com/roshanshah11/murmur](https://github.com/roshanshah11/murmur)
-- Audit the network surface in `Sources/Murmur/Networking/` (Sparkle + model downloader only).
-- Audit the audio surface in `Sources/Murmur/Audio/`.
-- Audit logging in `Sources/Murmur/Logging/` — the `Logger` filters out transcript fields at compile time.
+- Audit the network surface in `app/Sources/Murmur/Networking/` (Sparkle + model downloader only).
+- Audit the audio surface in `app/Sources/Murmur/Audio/`.
+- Audit logging in `app/Sources/Murmur/Logging/` — the `Logger` filters out transcript fields at compile time.
 
 ## Next
 

@@ -11,5 +11,5 @@
 <rect class="bg" width="16" height="16" rx="3"/>
 <text class="ink" x="2" y="13" font-family="ui-serif, Georgia, serif"
       font-style="italic" font-weight="500" font-size="13">m</text>
-<rect x="13" y="11" width="2" height="2" fill="#B23A2A"/>
+<circle cx="14" cy="12" r="1.2" fill="#B23A2A"/>
 </svg>

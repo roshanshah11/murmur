@@ -35,7 +35,7 @@ Murmur requests two permissions. That's it. Nothing else.
 | Screen Recording | We never capture pixels. |
 | Contacts / Calendar / Photos | We don't use them. |
 | Network / Background | The only outbound call is the Sparkle update fetch (HTTPS to GitHub Pages). macOS doesn't gate that. |
-| Automation (other apps) | We pause Spotify/Music via the public MediaRemote API, not AppleScript / Apple Events. |
+| Automation (other apps) | We pause Spotify/Music via the public AppleScript via Apple Events, not AppleScript / Apple Events. |
 
 ## How to revoke everything
 

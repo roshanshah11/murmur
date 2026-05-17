@@ -1,116 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <!--
-    Murmur app icon — v1 Classic
-    Editorial italic lowercase serif "m" with a whisper-decay tail
-    that softens into a damped sine wave and resolves to a red dot.
-    Paths only; no embedded fonts.
+    Murmur app icon — locked direction (D): italic serif lowercase m + small red dot.
+    Renders via SVG <text> with ui-serif → New York on Apple platforms (the
+    primary target). Falls back through Cormorant Garamond → Georgia → Times.
+    For raster pipelines that don't resolve fonts, rsvg-convert is invoked
+    with --keep-aspect-ratio and the underlying fontconfig stack provides
+    Georgia, which renders an acceptable italic m at all required sizes.
   -->
   <defs>
-    <!-- Warm-white squircle background gradient -->
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%"  stop-color="#FFFBF5"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FFFBF5"/>
       <stop offset="100%" stop-color="#F3EBDF"/>
     </linearGradient>
-
-    <!-- Subtle inner shadow for paper depth -->
-    <radialGradient id="paperShade" cx="0.5" cy="0.42" r="0.85">
-      <stop offset="60%" stop-color="#FFFBF5" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#2A1F12" stop-opacity="0.05"/>
-    </radialGradient>
-
-    <!-- Soft decay gradient: ink fades to red on the tail -->
-    <linearGradient id="tailGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%"  stop-color="#1A1A1A" stop-opacity="1"/>
-      <stop offset="55%" stop-color="#1A1A1A" stop-opacity="0.85"/>
-      <stop offset="85%" stop-color="#7A2E2A" stop-opacity="0.55"/>
-      <stop offset="100%" stop-color="#C2362F" stop-opacity="0.9"/>
-    </linearGradient>
   </defs>
-
-  <!-- Background squircle (bleed slightly beyond 1024 safe area) -->
-  <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#bgGrad)"/>
-  <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#paperShade)"/>
-
-  <!--
-    Italic lowercase serif "m" — built as filled bezier paths.
-    Slant ~12°, high-contrast strokes (thick verticals, hairline arches),
-    bracketed serifs at the baseline.
-    Glyph occupies roughly x=230..720, baseline y=720.
-  -->
-  <g fill="#1A1A1A">
-    <!-- First stroke (leftmost downstroke with entry serif + curved top) -->
-    <path d="
-      M 268 720
-      C 268 720, 274 700, 286 700
-      C 298 700, 308 706, 318 720
-      L 354 444
-      C 358 414, 370 396, 392 388
-      C 366 378, 350 380, 332 392
-      C 314 404, 304 426, 300 458
-      L 268 720
-      Z
-      M 250 720
-      C 250 736, 258 742, 274 742
-      L 322 742
-      C 338 742, 346 736, 348 720
-      Z"/>
-
-    <!-- Arch + second downstroke -->
-    <path d="
-      M 396 720
-      C 396 720, 402 700, 414 700
-      C 426 700, 436 706, 446 720
-      L 478 470
-      C 482 442, 478 426, 462 418
-      C 484 408, 506 412, 522 430
-      C 538 448, 542 472, 538 502
-      L 510 720
-      Z
-      M 378 720
-      C 378 736, 386 742, 402 742
-      L 450 742
-      C 466 742, 474 736, 476 720
-      Z"/>
-
-    <!-- Third stroke — slightly taller, its tail will trail into the wave -->
-    <path d="
-      M 552 720
-      C 552 720, 558 700, 570 700
-      C 582 700, 592 706, 602 720
-      L 636 472
-      C 640 444, 636 428, 620 420
-      C 642 410, 666 414, 682 432
-      C 698 450, 702 474, 698 504
-      L 666 720
-      Z
-      M 534 720
-      C 534 736, 542 742, 558 742
-      L 606 742
-      C 622 742, 630 736, 632 720
-      Z"/>
-  </g>
-
-  <!--
-    Whisper-decay: third stroke trails right, damped sine wave,
-    resolves into a red dot. Stroke-rendered for crisp curvature.
-  -->
-  <g fill="none" stroke="url(#tailGrad)" stroke-linecap="round">
-    <!-- Exit from baseline of third stroke, gentle rise, then damped sine -->
-    <path
-      d="
-        M 666 720
-        C 700 718, 730 706, 752 690
-        C 778 672, 796 670, 812 690
-        C 824 706, 836 706, 848 690
-        C 858 678, 866 680, 874 692
-        C 880 700, 886 700, 892 692
-        C 896 686, 900 686, 904 692
-      "
-      stroke-width="14"
-    />
-  </g>
-
-  <!-- Red dot — the final resolution -->
-  <circle cx="924" cy="692" r="13" fill="#C2362F"/>
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <text x="156" y="760"
+        font-family="ui-serif, 'New York', 'Cormorant Garamond', Georgia, 'Times New Roman', serif"
+        font-style="italic" font-weight="500" font-size="720" fill="#1A1A1A">m</text>
+  <circle cx="830" cy="678" r="44" fill="#C2362F"/>
 </svg>

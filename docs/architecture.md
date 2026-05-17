@@ -98,25 +98,25 @@ All cross-thread state flows through the `StateMachine`, which serializes mutati
 
 | Concern | File |
 |---|---|
-| App entry point | `Sources/Murmur/App/MurmurApp.swift` |
-| Coordinator | `Sources/Murmur/Core/AppCoordinator.swift` |
-| State machine | `Sources/Murmur/Core/StateMachine.swift` |
-| Global hotkey | `Sources/Murmur/Input/HotkeyMonitor.swift` |
-| Audio capture | `Sources/Murmur/Audio/AudioRecorder.swift` |
-| Whisper bridge | `Sources/Murmur/Transcription/Transcriber.swift` |
+| App entry point | `app/Sources/Murmur/App/MurmurApp.swift` |
+| Coordinator | `app/Sources/Murmur/Core/AppCoordinator.swift` |
+| State machine | `app/Sources/Murmur/Core/StateMachine.swift` |
+| Global hotkey | `app/Sources/Murmur/Input/HotkeyMonitor.swift` |
+| Audio capture | `app/Sources/Murmur/Audio/AudioRecorder.swift` |
+| Whisper bridge | `app/Sources/Murmur/Transcription/Transcriber.swift` |
 | whisper.cpp wrapper | `Sources/CWhisper/` |
-| Text cleanup profiles | `Sources/Murmur/Text/TextCleaner.swift` |
-| Vocabulary | `Sources/Murmur/Text/Vocabulary.swift` |
-| Paste path | `Sources/Murmur/Paste/Paster.swift` |
-| Notch overlay | `Sources/Murmur/UI/NotchOverlay.swift` |
-| Settings window | `Sources/Murmur/UI/Settings/*` |
-| History viewer | `Sources/Murmur/UI/History/*` |
-| Config persistence | `Sources/Murmur/Config/Config.swift` |
-| Model downloader | `Sources/Murmur/Models/ModelDownloader.swift` |
-| Sparkle integration | `Sources/Murmur/Updates/UpdaterController.swift` |
-| Media remote bridge | `Sources/Murmur/Media/MediaRemoteController.swift` |
-| Logging | `Sources/Murmur/Logging/Logger.swift` |
-| CLI entry points | `Sources/Murmur/CLI/CLI.swift` |
+| Text cleanup profiles | `app/Sources/Murmur/Text/TextCleaner.swift` |
+| Vocabulary | `app/Sources/Murmur/Text/Vocabulary.swift` |
+| Paste path | `app/Sources/Murmur/Paste/Paster.swift` |
+| Notch overlay | `app/Sources/Murmur/UI/NotchOverlay.swift` |
+| Settings window | `app/Sources/Murmur/UI/Settings/*` |
+| History viewer | `app/Sources/Murmur/UI/History/*` |
+| Config persistence | `app/Sources/Murmur/Config/Config.swift` |
+| Model downloader | `app/Sources/Murmur/Models/ModelDownloader.swift` |
+| Sparkle integration | `app/Sources/Murmur/Updates/UpdaterController.swift` |
+| Media remote bridge | `app/Sources/Murmur/Media/MediaRemoteController.swift` |
+| Logging | `app/Sources/Murmur/Logging/Logger.swift` |
+| CLI entry points | `app/Sources/Murmur/CLI/CLI.swift` |
 
 ## How to read the codebase
 
