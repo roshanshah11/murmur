@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Create a local self-signed code-signing identity called
-# "FlowLite Local Signer" and import it into the user's login keychain.
+# "Murmur Local Signer" and import it into the user's login keychain.
 #
 # Why: macOS attributes Accessibility / Input Monitoring / Microphone
 # permission to a code-signing identity + designated requirement.
@@ -15,7 +15,7 @@ set -euo pipefail
 #
 # Run this once. Then build_app.sh will pick the identity up automatically.
 
-SIGN_NAME="FlowLite Local Signer"
+SIGN_NAME="Murmur Local Signer"
 KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
 TMP_DIR="$(mktemp -d -t flowlite-signing-XXXXXX)"
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -31,8 +31,8 @@ distinguished_name = dn
 x509_extensions = ext
 prompt = no
 [dn]
-CN = FlowLite Local Signer
-O = FlowLite Local
+CN = Murmur Local Signer
+O = Murmur Local
 [ext]
 basicConstraints = critical, CA:false
 keyUsage = critical, digitalSignature
@@ -69,7 +69,7 @@ Imported identity '$SIGN_NAME' into:
 Next:
   bash Scripts/build_app.sh
 will use this identity automatically. The designated requirement is:
-  identifier "com.flowlite.app"
+  identifier "com.murmur.app"
 
 The first time you grant Accessibility / Input Monitoring to the new
 signed binary, macOS stores those permissions against this identity,

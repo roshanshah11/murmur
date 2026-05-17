@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Bootstrap helper for local development.
 # This script intentionally clones/builds whisper.cpp as a local sidecar.
-# The FlowLite app itself does not use network calls during dictation.
+# The Murmur app itself does not use network calls during dictation.
 
 DEV_DIR="${HOME}/dev"
 WHISPER_DIR="${DEV_DIR}/whisper.cpp"
@@ -53,16 +53,16 @@ Model path:
 Next steps:
   1. Disable Apple's built-in Dictation:
      System Settings → Keyboard → Dictation shortcut → Off.
-     (FlowLite owns the double-tap fn trigger; the OS Dictation feature
+     (Murmur owns the double-tap fn trigger; the OS Dictation feature
      will steal the keypress otherwise.)
 
-  2. On first run of FlowLite, grant the following permissions to the
-     FlowLite binary when macOS prompts:
+  2. On first run of Murmur, grant the following permissions to the
+     Murmur binary when macOS prompts:
        • Microphone           (for audio capture)
        • Accessibility        (for paste / Cmd+V simulation)
        • Input Monitoring     (for the fn double-tap hotkey)
 
-  3. Defaults in ~/.flow-lite/config.json already match the paths above.
+  3. Defaults in ~/Library/Application Support/Murmur/config.json already match the paths above.
      If you changed MODEL_NAME or installed elsewhere, update:
        whisperBinaryPath  → ${WHISPER_DIR}/build/bin/whisper-cli
        modelPath          → ${MODEL_DIR}/ggml-${MODEL_NAME}.bin

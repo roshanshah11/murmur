@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build FlowLite as an unsigned .app bundle suitable for local use.
+# Build Murmur as an unsigned .app bundle suitable for local use.
 # The bundle is required so macOS attributes Microphone / Accessibility
 # / Input Monitoring permissions to a stable identity instead of the
-# transient `.build/release/FlowLite` path.
+# transient `.build/release/Murmur` path.
 
 cd "$(dirname "$0")/.."
 
-echo "Building FlowLite (release)..."
+echo "Building Murmur (release)..."
 if ! swift build -c release; then
   cat >&2 <<EOF
 
@@ -21,8 +21,8 @@ EOF
   exit 2
 fi
 
-BINARY=".build/release/FlowLite"
-APP_DIR="build/FlowLite.app"
+BINARY=".build/release/Murmur"
+APP_DIR="build/Murmur.app"
 
 if [ ! -x "$BINARY" ]; then
   echo "Build succeeded but binary not found at $BINARY" >&2
@@ -33,14 +33,14 @@ rm -rf "$APP_DIR"
 mkdir -p "${APP_DIR}/Contents/MacOS"
 mkdir -p "${APP_DIR}/Contents/Resources"
 
-cp "$BINARY" "${APP_DIR}/Contents/MacOS/FlowLite"
-chmod +x "${APP_DIR}/Contents/MacOS/FlowLite"
+cp "$BINARY" "${APP_DIR}/Contents/MacOS/Murmur"
+chmod +x "${APP_DIR}/Contents/MacOS/Murmur"
 
 # Sign with a stable identity so macOS TCC (Accessibility / Input
 # Monitoring / Microphone) treats every rebuild as the same app.
 # Falls back to ad-hoc if the local signer is missing; in that case
 # you'll need to re-grant Accessibility after each rebuild.
-SIGN_IDENTITY="FlowLite Local Signer"
+SIGN_IDENTITY="Murmur Local Signer"
 if security find-certificate -c "$SIGN_IDENTITY" >/dev/null 2>&1; then
   SIGN_ARG="$SIGN_IDENTITY"
   echo "Signing with identity: $SIGN_IDENTITY"
@@ -57,17 +57,17 @@ cat > "${APP_DIR}/Contents/Info.plist" <<'PLIST'
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>FlowLite</string>
+    <string>Murmur</string>
     <key>CFBundleDisplayName</key>
-    <string>Flow Lite</string>
+    <string>Murmur</string>
     <key>CFBundleIdentifier</key>
-    <string>com.flowlite.app</string>
+    <string>com.murmur.app</string>
     <key>CFBundleVersion</key>
     <string>0.1</string>
     <key>CFBundleShortVersionString</key>
     <string>0.1.0</string>
     <key>CFBundleExecutable</key>
-    <string>FlowLite</string>
+    <string>Murmur</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>LSMinimumSystemVersion</key>
@@ -75,28 +75,28 @@ cat > "${APP_DIR}/Contents/Info.plist" <<'PLIST'
     <key>LSUIElement</key>
     <true/>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Flow Lite records dictation audio locally. Audio never leaves your Mac.</string>
+    <string>Murmur records dictation audio locally. Audio never leaves your Mac.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>Flow Lite simulates Cmd+V to paste your transcript into the active app.</string>
+    <string>Murmur simulates Cmd+V to paste your transcript into the active app.</string>
 </dict>
 </plist>
 PLIST
 
 codesign --force --deep \
   --sign "$SIGN_ARG" \
-  --identifier "com.flowlite.app" \
-  -r '=designated => identifier "com.flowlite.app"' \
+  --identifier "com.murmur.app" \
+  -r '=designated => identifier "com.murmur.app"' \
   "$APP_DIR"
 codesign -dvv "$APP_DIR" 2>&1 | grep -E "^(Authority|Identifier)" || true
 
 # Install to /Applications so the app is launchable from Spotlight / Launchpad
 # and lives at a stable path that other tooling (TCC, mds) expects.
-INSTALL_DIR="${FLOWLITE_INSTALL_DIR:-/Applications}"
-INSTALLED_APP="${INSTALL_DIR}/FlowLite.app"
+INSTALL_DIR="${MURMUR_INSTALL_DIR:-/Applications}"
+INSTALLED_APP="${INSTALL_DIR}/Murmur.app"
 if [ -w "$INSTALL_DIR" ] || [ -w "$INSTALLED_APP" ] 2>/dev/null; then
   echo "Installing to ${INSTALLED_APP}..."
   # Quit any running copy so we can overwrite without permission errors.
-  pkill -f "${INSTALLED_APP}/Contents/MacOS/FlowLite" 2>/dev/null || true
+  pkill -f "${INSTALLED_APP}/Contents/MacOS/Murmur" 2>/dev/null || true
   sleep 1
   rm -rf "$INSTALLED_APP"
   cp -R "$APP_DIR" "$INSTALLED_APP"
@@ -111,17 +111,17 @@ fi
 
 cat <<EOF
 
-FlowLite.app built at:
+Murmur.app built at:
   $(pwd)/${APP_DIR}
 $( [ "$INSTALLED_OK" = 1 ] && echo "Installed to:
   ${INSTALLED_APP}
-You can now launch it from Spotlight (Cmd+Space → 'FlowLite') or Launchpad." )
+You can now launch it from Spotlight (Cmd+Space → 'Murmur') or Launchpad." )
 
 First-run instructions:
   1. The bundle is unsigned. The first time you open it, right-click
-     FlowLite.app → Open → Open (you only need to do this once).
+     Murmur.app → Open → Open (you only need to do this once).
 
-  2. When macOS prompts, grant FlowLite:
+  2. When macOS prompts, grant Murmur:
        • Microphone        — for audio capture
        • Accessibility     — for Cmd+V paste simulation
        • Input Monitoring  — for the global fn double-tap hotkey

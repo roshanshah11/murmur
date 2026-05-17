@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Local smoke test for FlowLite.
+# Local smoke test for Murmur.
 # Runs 20 transcription iterations against a known-good WAV and
 # reports success rate plus median / p95 latency.
 
 cd "$(dirname "$0")/.."
 
-CONFIG_PATH="${HOME}/.flow-lite/config.json"
+CONFIG_PATH="${HOME}/Library/Application Support/Murmur/config.json"
 SAMPLE="Resources/sample.wav"
 ITERATIONS=20
 
 if [ ! -f "$CONFIG_PATH" ]; then
   echo "Missing config: $CONFIG_PATH"
-  echo "Run FlowLite once to generate it, or copy Resources/config.example.json there:"
-  echo "    mkdir -p \"\$HOME/.flow-lite\""
+  echo "Run Murmur once to generate it, or copy Resources/config.example.json there:"
+  echo "    mkdir -p \"\$HOME/Library/Application Support/Murmur\""
   echo "    cp Resources/config.example.json \"$CONFIG_PATH\""
   exit 1
 fi
@@ -26,7 +26,7 @@ if [ ! -f "$SAMPLE" ]; then
   rm -f /tmp/flowlite_sample.aiff
 fi
 
-echo "Building FlowLite (release)..."
+echo "Building Murmur (release)..."
 if ! swift build -c release; then
   cat >&2 <<EOF
 
@@ -39,7 +39,7 @@ EOF
   exit 2
 fi
 
-BIN=".build/release/FlowLite"
+BIN=".build/release/Murmur"
 if [ ! -x "$BIN" ]; then
   echo "Build succeeded but binary not found at $BIN" >&2
   exit 2
