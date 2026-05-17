@@ -1,0 +1,91 @@
+name: Bug report
+description: Report a defect in Murmur
+title: "[bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please do not paste sensitive transcript content or personal information anywhere in this report. Logs at `~/Library/Logs/Murmur/` never contain transcript text and are safe to attach.
+
+  - type: dropdown
+    id: macos-version
+    attributes:
+      label: macOS version
+      options:
+        - "13 (Ventura)"
+        - "14 (Sonoma)"
+        - "15 or newer"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: chip
+    attributes:
+      label: Chip
+      options:
+        - Apple Silicon
+        - Intel
+    validations:
+      required: true
+
+  - type: input
+    id: murmur-version
+    attributes:
+      label: Murmur version
+      description: Find this under Settings → General, or in the About window.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: model-size
+    attributes:
+      label: Whisper model size
+      options:
+        - tiny
+        - base
+        - small
+        - medium
+        - large
+        - turbo
+        - other / custom
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Minimal, numbered steps.
+      placeholder: |
+        1. Open Murmur
+        2. Press hotkey ...
+        3. Speak "..."
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-actual
+    attributes:
+      label: Expected vs actual behavior
+      description: What you expected, and what actually happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (optional)
+      description: Paste the contents or attach files from `~/Library/Logs/Murmur/`. Logs never contain transcript content.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Privacy confirmation
+      options:
+        - label: This report contains no sensitive transcripts or personal information.
+          required: true
