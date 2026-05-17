@@ -48,18 +48,42 @@ public struct ModelManifest: Codable, Equatable {
         entries.first(where: { $0.name == name })
     }
 
-    /// Load the manifest from the app's resource bundle. Prefers `Bundle.module`
-    /// (SwiftPM) but falls back to `Bundle.main` so the same code path works
-    /// inside the built .app.
+    /// Load the manifest from the app's resource bundle. Tries several
+    /// known layouts so the same call works in three environments:
+    ///   1. SwiftPM tests/dev — `Bundle.module` (the SPM accessor).
+    ///   2. Built .app — `Bundle.main.url(forResource:withExtension:)`
+    ///      finds it inside `Contents/Resources/`.
+    ///   3. Fallback — sibling resource bundle SPM emits next to the
+    ///      executable. Touching `Bundle.module` directly is unsafe
+    ///      because its generated accessor `fatalError`s if the bundle
+    ///      is missing, so we synthesize the same lookup ourselves.
     public static func bundled() throws -> ModelManifest {
-        let candidates: [Bundle] = [Bundle.module, Bundle.main]
-        for bundle in candidates {
-            if let url = bundle.url(forResource: "model-manifest", withExtension: "json") {
-                let data = try Data(contentsOf: url)
-                return try JSONDecoder().decode(ModelManifest.self, from: data)
+        if let url = Bundle.main.url(forResource: "model-manifest", withExtension: "json") {
+            return try decode(from: url)
+        }
+        // Mirror SPM's generated `Bundle.module` lookup without triggering
+        // its fatalError on miss.
+        let candidates: [URL] = [
+            Bundle.main.bundleURL.appendingPathComponent("Murmur_Murmur.bundle"),
+            Bundle.main.bundleURL.appendingPathComponent("Contents/Resources/Murmur_Murmur.bundle"),
+            Bundle.main.bundleURL.appendingPathComponent("Contents/MacOS/Murmur_Murmur.bundle")
+        ]
+        for url in candidates {
+            if let bundle = Bundle(url: url),
+               let res = bundle.url(forResource: "model-manifest", withExtension: "json") {
+                return try decode(from: res)
             }
         }
+        // Last-ditch: the SPM accessor (works in `swift test`).
+        if let res = Bundle.module.url(forResource: "model-manifest", withExtension: "json") {
+            return try decode(from: res)
+        }
         throw ModelManagerError.manifestMissing
+    }
+
+    private static func decode(from url: URL) throws -> ModelManifest {
+        let data = try Data(contentsOf: url)
+        return try JSONDecoder().decode(ModelManifest.self, from: data)
     }
 }
 
