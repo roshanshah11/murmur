@@ -1,0 +1,109 @@
+site_name: Murmur
+site_description: Local-first dictation for macOS. Double-tap fn, paste anywhere.
+site_url: https://roshanshah11.github.io/murmur/
+repo_url: https://github.com/roshanshah11/murmur
+repo_name: roshanshah11/murmur
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+
+theme:
+  name: material
+  language: en
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.tabs.link
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: red
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: red
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/microphone
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/roshanshah11/murmur
+  generator: false
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.keys
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+  - tags
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Install: install.md
+      - First run: first-run.md
+      - Permissions: permissions.md
+  - Using Murmur:
+      - Settings: settings.md
+      - History: history.md
+      - Vocabulary: vocabulary.md
+      - Prompts: prompts.md
+      - Models: models.md
+  - Help:
+      - Troubleshooting: troubleshooting.md
+      - FAQ: faq.md
+  - About:
+      - Privacy: privacy.md
+      - Architecture: architecture.md
+      - Development: development.md
