@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var durationTimer: Timer?
     private var stateItemRef: NSMenuItem?
     private let notch = NotchIndicator()
+    private lazy var settingsWindow = SettingsWindowController()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         ConfigMigration.runDefaultMigration()
@@ -196,6 +197,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(NSMenuItem.separator())
 
+        let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+
         let quitItem = NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
@@ -287,6 +292,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openLogs() {
         NSWorkspace.shared.open(Config.logsDirectoryURL())
+    }
+
+    @objc func openSettings() {
+        settingsWindow.showWindow(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func buildHistorySubmenu() -> NSMenu {
