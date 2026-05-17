@@ -1,0 +1,231 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build, sign, notarize, publish
+    runs-on: macos-14
+    timeout-minutes: 90
+    env:
+      DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+
+    steps:
+      - name: Fail if source tree is unavailable
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Fail if release tag cannot be parsed into a version
+        id: version
+        run: |
+          set -euo pipefail
+          REF="${GITHUB_REF#refs/tags/}"
+          VERSION="${REF#v}"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Tag $REF does not match vMAJOR.MINOR.PATCH"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$REF" >> "$GITHUB_OUTPUT"
+
+      - name: Fail if Homebrew create-dmg dependency is missing
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        id: brew-cache
+        with:
+          path: |
+            ~/Library/Caches/Homebrew/downloads
+            ~/Library/Caches/Homebrew/api
+          key: ${{ runner.os }}-brew-${{ hashFiles('.github/workflows/release.yml') }}
+
+      - name: Fail if create-dmg cannot be installed
+        run: brew install create-dmg
+
+      - name: Fail if Developer ID certificate cannot be imported
+        env:
+          DEVELOPER_ID_CERT_P12: ${{ secrets.DEVELOPER_ID_CERT_P12 }}
+          DEVELOPER_ID_CERT_PASSWORD: ${{ secrets.DEVELOPER_ID_CERT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/murmur-build.keychain-db"
+          KEYCHAIN_PASS="$(uuidgen)"
+          CERT_PATH="$RUNNER_TEMP/developer_id.p12"
+
+          # Decode without echoing
+          printf '%s' "$DEVELOPER_ID_CERT_P12" | base64 --decode > "$CERT_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASS" "$KEYCHAIN_PATH"
+
+          security import "$CERT_PATH" -P "$DEVELOPER_ID_CERT_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH" >/dev/null
+
+          security list-keychain -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASS" "$KEYCHAIN_PATH" >/dev/null
+
+          # Persist for later steps
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+
+          rm -f "$CERT_PATH"
+
+          # Resolve the Developer ID identity name (do not print the cert hash)
+          IDENT=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" \
+            | grep 'Developer ID Application' | head -n1 \
+            | sed -E 's/.*"(Developer ID Application: [^"]+)".*/\1/')
+          if [ -z "$IDENT" ]; then
+            echo "::error::No Developer ID Application identity found in keychain."
+            exit 1
+          fi
+          echo "DEVELOPER_ID=$IDENT" >> "$GITHUB_ENV"
+
+      - name: Fail if whisper.cpp cache is unreadable
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: |
+            app/.whisper
+            app/Vendor/whisper.cpp
+          key: ${{ runner.os }}-whisper-${{ hashFiles('app/Scripts/bootstrap_whisper_cpp.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-whisper-
+
+      - name: Fail if whisper.cpp bootstrap is broken
+        run: bash app/Scripts/bootstrap_whisper_cpp.sh
+
+      - name: Fail if Murmur.app build is broken
+        run: bash app/Scripts/build_app.sh
+
+      - name: Fail if codesign or notarization is broken
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+        run: bash app/Scripts/sign_and_notarize.sh app/build/Murmur.app
+
+      - name: Fail if DMG packaging is broken
+        id: dmg
+        run: |
+          set -euo pipefail
+          bash app/Scripts/package_dmg.sh app/build/Murmur.app
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "dmg_path=app/build/Murmur-${VERSION}.dmg" >> "$GITHUB_OUTPUT"
+          echo "sha_path=app/build/Murmur-${VERSION}.dmg.sha256" >> "$GITHUB_OUTPUT"
+
+      - name: Fail if release assets cannot be uploaded
+        id: release
+        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # v2.0.4
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          fail_on_unmatched_files: true
+          files: |
+            ${{ steps.dmg.outputs.dmg_path }}
+            ${{ steps.dmg.outputs.sha_path }}
+
+      - name: Fail if Sparkle appcast cannot be generated and signed
+        id: appcast
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/appcast-out"
+          mkdir -p "$OUT"
+          bash app/Scripts/publish_appcast.sh \
+            "${{ steps.dmg.outputs.dmg_path }}" \
+            "$OUT"
+          echo "appcast_dir=$OUT" >> "$GITHUB_OUTPUT"
+
+      - name: Fail if appcast cannot be published to gh-pages
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ${{ steps.appcast.outputs.appcast_dir }}
+          keep_files: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: "appcast: ${{ steps.version.outputs.tag }}"
+
+      - name: Fail if Homebrew tap PR cannot be opened
+        id: tap
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_PUSH_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          TAP_REPO="roshanshah11/homebrew-murmur"
+          DMG="${{ steps.dmg.outputs.dmg_path }}"
+          SHA=$(awk '{print $1}' "${{ steps.dmg.outputs.sha_path }}")
+          DMG_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/$(basename "$DMG")"
+
+          WORK="$RUNNER_TEMP/homebrew-tap"
+          rm -rf "$WORK"
+          git clone --depth=1 "https://x-access-token:${GH_TOKEN}@github.com/${TAP_REPO}.git" "$WORK"
+          cd "$WORK"
+
+          BRANCH="bump-murmur-${VERSION}"
+          git checkout -b "$BRANCH"
+
+          CASK="Casks/murmur.rb"
+          if [ ! -f "$CASK" ]; then
+            echo "::error::Cask file $CASK not found in tap."
+            exit 1
+          fi
+
+          # Update version, sha256, and DMG url in the cask
+          /usr/bin/sed -E -i '' "s|^([[:space:]]*version )\".*\"|\1\"${VERSION}\"|" "$CASK"
+          /usr/bin/sed -E -i '' "s|^([[:space:]]*sha256 )\"[a-f0-9]+\"|\1\"${SHA}\"|" "$CASK"
+          /usr/bin/sed -E -i '' "s|^([[:space:]]*url )\"https://github.com/.*\\.dmg\"|\1\"${DMG_URL}\"|" "$CASK"
+
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add "$CASK"
+          git commit -m "murmur ${VERSION}"
+          git push -u origin "$BRANCH"
+
+          PR_URL=$(gh pr create \
+            --repo "$TAP_REPO" \
+            --base main \
+            --head "$BRANCH" \
+            --title "murmur ${VERSION}" \
+            --body "Automated bump from murmur ${TAG}.\n\nDMG: ${DMG_URL}\nSHA256: \`${SHA}\`")
+          echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Write release summary
+        if: always()
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          DMG_PATH: ${{ steps.dmg.outputs.dmg_path }}
+          SHA_PATH: ${{ steps.dmg.outputs.sha_path }}
+          PR_URL: ${{ steps.tap.outputs.pr_url }}
+        run: |
+          set -uo pipefail
+          DMG_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/$(basename "$DMG_PATH")"
+          SHA="(not computed)"
+          if [ -f "$SHA_PATH" ]; then SHA=$(awk '{print $1}' "$SHA_PATH"); fi
+          {
+            echo "## Murmur ${TAG}"
+            echo ""
+            echo "- DMG: ${DMG_URL}"
+            echo "- SHA256: \`${SHA}\`"
+            echo "- Homebrew tap PR: ${PR_URL:-not opened}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Always remove the build keychain
+        if: always()
+        run: |
+          set -uo pipefail
+          if [ -n "${KEYCHAIN_PATH:-}" ] && [ -f "$KEYCHAIN_PATH" ]; then
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          fi
