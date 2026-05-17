@@ -18,30 +18,23 @@ struct Config: Codable {
     var customVocabulary: [String: String]
 
     static func defaultConfigURL() -> URL {
-        baseDirectoryURL().appendingPathComponent("config.json")
+        AppPaths.configFile
     }
 
     static func baseDirectoryURL() -> URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".flow-lite", isDirectory: true)
+        AppPaths.appSupportDirectory
     }
 
     static func logsDirectoryURL() -> URL {
-        baseDirectoryURL().appendingPathComponent("logs", isDirectory: true)
+        AppPaths.logsDirectory
     }
 
     static func tempDirectoryURL() -> URL {
-        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
-            .first!
-            .appendingPathComponent("FlowLite", isDirectory: true)
-            .appendingPathComponent("temp", isDirectory: true)
+        AppPaths.cachesDirectory.appendingPathComponent("temp", isDirectory: true)
     }
 
     static func debugDirectoryURL() -> URL {
-        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
-            .first!
-            .appendingPathComponent("FlowLite", isDirectory: true)
-            .appendingPathComponent("debug", isDirectory: true)
+        AppPaths.cachesDirectory.appendingPathComponent("debug", isDirectory: true)
     }
 
     static func defaultConfig() -> Config {

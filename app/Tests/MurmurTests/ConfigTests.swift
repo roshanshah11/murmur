@@ -39,7 +39,7 @@ final class ConfigTests: XCTestCase {
         XCTAssertEqual(cfg.whisperBinaryPath, "/tmp/x")
         XCTAssertEqual(cfg.modelPath, "/tmp/y")
         XCTAssertEqual(cfg.language, "en")
-        XCTAssertEqual(cfg.pasteDelayMs, 50)
+        XCTAssertEqual(cfg.pasteDelayMs, 10)
         XCTAssertEqual(cfg.errorAutoClearSeconds, 3)
         XCTAssertEqual(cfg.transcriptionTimeoutSeconds, 60)
         XCTAssertEqual(cfg.clipboardRestoreDelayMs, 1500)
@@ -77,16 +77,16 @@ final class ConfigTests: XCTestCase {
     func testTempDirectoryUnderCaches() {
         let path = Config.tempDirectoryURL().path
         XCTAssertTrue(
-            path.contains("Library/Caches/FlowLite/temp"),
-            "temp dir should sit under Library/Caches/FlowLite/temp, got: \(path)"
+            path.contains("Library/Caches/Murmur/temp"),
+            "temp dir should sit under Library/Caches/Murmur/temp, got: \(path)"
         )
     }
 
-    func testLogsDirectoryUnderFlowLite() {
+    func testLogsDirectoryUnderMurmur() {
         let path = Config.logsDirectoryURL().path
         XCTAssertTrue(
-            path.contains(".flow-lite/logs"),
-            "logs dir should sit under .flow-lite/logs, got: \(path)"
+            path.contains("Library/Logs/Murmur"),
+            "logs dir should sit under Library/Logs/Murmur, got: \(path)"
         )
     }
 }
