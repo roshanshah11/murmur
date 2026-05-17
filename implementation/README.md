@@ -11,6 +11,9 @@ Swift macOS menubar dictation utility. Local-first, no network calls. Targets ma
 - Spawns a local `whisper-cli` binary per dictation to transcribe.
 - Applies conservative rule-based cleanup (filler removal, terminal period for ≥3-token sentences).
 - Copies cleaned text to the clipboard and simulates `Cmd+V` to paste into the focused app.
+- Pauses Spotify / Apple Music if playing and mutes system output while recording, so playback doesn't bleed into the mic. Restores volume and resumes the music app on completion.
+- Shows a notch-anchored overlay (animated spectrum bars + state pill) while recording, transcribing, and on the success flash.
+- Persists a local transcription history under `~/.flow-lite/history/` (viewable from the menubar).
 - Writes a dated file log to `~/.flow-lite/logs/`. Transcripts are never logged.
 - Exposes a `--transcribe-only <wav>` CLI mode for headless testing.
 
@@ -51,6 +54,10 @@ Files under `Sources/FlowLite/`:
 | `Config.swift` | Loads and validates `~/.flow-lite/config.json`. |
 | `Log.swift` | Dated file logger to `~/.flow-lite/logs/`. |
 | `Notifier.swift` | User-facing notifications and menu state updates. |
+| `VolumeController.swift` | Pauses Spotify / Music (if playing) and mutes system output during recording; restores both on completion. |
+| `HistoryStore.swift` | Append-only JSON log of past transcripts under `~/.flow-lite/history/`. |
+| `NotchIndicator.swift` | Notch-anchored overlay window: morphing pill states (idle → recording → transcribing → success). |
+| `SpectrumBarsView.swift` | CALayer-based animated equalizer used inside the notch pill while recording. |
 | `CLI.swift` | Argument parsing for `--transcribe-only`, `--record-once`, `--help`, `--version`. |
 
 ## Configuration
@@ -79,10 +86,11 @@ Shape lives at `Resources/config.example.json`. Copy to `~/.flow-lite/config.jso
 
 ## Permissions
 
-FlowLite needs two macOS permissions:
+FlowLite needs three macOS permissions:
 
 - **Microphone** — for AVFoundation audio capture. Prompted on first record.
 - **Accessibility / Input Monitoring** — for the global `fn` monitor and simulated `Cmd+V`. Granted manually in **System Settings → Privacy & Security → Accessibility**.
+- **Automation** — for AppleScript control of system volume and Spotify / Music (pause on record-start, resume on completion). Prompted the first time each target is touched; approve once and macOS remembers.
 
 If Accessibility is not granted, the menubar shows **⚠ Grant Accessibility Permission** as the top menu item; clicking it opens the relevant settings pane.
 

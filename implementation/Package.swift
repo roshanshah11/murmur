@@ -12,12 +12,14 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "FlowLite",
-            path: "Sources/FlowLite"
+            path: "Sources/FlowLite",
+            swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
             name: "FlowLiteTests",
             dependencies: ["FlowLite"],
-            path: "Tests/FlowLiteTests"
+            path: "Tests/FlowLiteTests",
+            swiftSettings: [.swiftLanguageMode(.v5)]
         )
     ]
 )
