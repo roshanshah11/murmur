@@ -95,6 +95,12 @@ cat > "${APP_DIR}/Contents/Info.plist" <<'PLIST'
     <string>Murmur records dictation audio locally. Audio never leaves your Mac.</string>
     <key>NSAppleEventsUsageDescription</key>
     <string>Murmur simulates Cmd+V to paste your transcript into the active app.</string>
+    <key>SUFeedURL</key>
+    <string>https://roshanshah11.github.io/murmur/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>PLACEHOLDER_REPLACE_BEFORE_FIRST_RELEASE</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
 </dict>
 </plist>
 PLIST
