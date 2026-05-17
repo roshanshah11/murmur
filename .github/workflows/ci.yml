@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build, test, lint, smoke
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-13, macos-14]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+
+    steps:
+      - name: Fail if source tree is unavailable
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Fail if whisper.cpp cache is unreadable
+        id: whisper-cache
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: |
+            app/.whisper
+            app/Vendor/whisper.cpp
+          key: ${{ runner.os }}-whisper-${{ hashFiles('app/Scripts/bootstrap_whisper_cpp.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-whisper-
+
+      - name: Fail if whisper.cpp bootstrap fails
+        run: bash app/Scripts/bootstrap_whisper_cpp.sh
+
+      - name: Fail if release build is broken
+        working-directory: app
+        run: swift build -c release
+
+      - name: Fail if unit tests are broken
+        working-directory: app
+        run: swift test --parallel
+
+      - name: Fail if SwiftLint warnings are present
+        uses: realm/SwiftLint@d10b6dec0d54e94fc41f9c52c46808af49d22cee # 0.55.1 / v3.2.7 action
+        with:
+          args: --strict --config .swiftlint.yml
+
+      - name: Fail if local smoke test is broken
+        run: bash app/Scripts/run_local_smoke_test.sh
+
+      - name: Fail if banned FlowLite terms reappear in tracked sources
+        run: |
+          set -euo pipefail
+          if git grep -nIE 'FlowLite|flow-lite|Flow Lite' \
+              -- ':!docs/specs/v0' ':!.superpowers' \
+              > /tmp/forbidden_terms.txt; then
+            echo "::error::Banned terms found (see below). Rename to Murmur."
+            cat /tmp/forbidden_terms.txt
+            exit 1
+          fi
+          echo "No banned terms found."
+
+      - name: Warn if new public Swift symbols are undocumented
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -uo pipefail
+          git fetch --no-tags --depth=50 origin "$BASE_REF" || true
+          MERGE_BASE=$(git merge-base "origin/$BASE_REF" HEAD || echo "")
+          if [ -z "$MERGE_BASE" ]; then
+            echo "::warning::No merge base found; skipping doc-drift check."
+            exit 0
+          fi
+          ADDED=$(git diff "$MERGE_BASE"...HEAD -- 'app/Sources/**/*.swift' \
+            | grep -E '^\+\s*public (func|struct|class|enum|protocol|var|let|actor) ' \
+            | sed -E 's/^\+\s*public (func|struct|class|enum|protocol|var|let|actor) +([A-Za-z_][A-Za-z0-9_]*).*/\2/' \
+            | sort -u || true)
+          if [ -z "$ADDED" ]; then
+            echo "No new public Swift symbols."
+            exit 0
+          fi
+          MISSING=""
+          for SYM in $ADDED; do
+            if ! git grep -qIE "\\b$SYM\\b" -- 'docs/**/*.md'; then
+              MISSING="$MISSING $SYM"
+            fi
+          done
+          if [ -n "$MISSING" ]; then
+            echo "::warning::New public symbols not referenced in docs/:$MISSING"
+            {
+              echo "### Documentation drift"
+              echo ""
+              echo "New public Swift symbols not yet mentioned under docs/:"
+              echo ""
+              for SYM in $MISSING; do echo "- \`$SYM\`"; done
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "All new public symbols have a docs mention."
+          fi
