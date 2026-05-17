@@ -16,11 +16,11 @@ enum Notifier {
     }
 
     static func success(_ message: String) {
-        post(title: "FlowLite", body: message)
+        post(title: "Murmur", body: message)
     }
 
     static func warn(_ message: String) {
-        post(title: "FlowLite", body: message)
+        post(title: "Murmur", body: message)
     }
 
     private static func post(title: String, body: String) {

@@ -98,7 +98,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         exitAfterNextDictation = true
     }
 
-    private func handlePostDictationExitIfNeeded(_ state: FlowLiteState) {
+    private func handlePostDictationExitIfNeeded(_ state: MurmurState) {
         guard exitAfterNextDictation else { return }
         if case .idle = state {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
@@ -129,12 +129,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem.button?.title = "FlowLite"
+        statusItem.button?.title = "Murmur"
     }
 
     private func rebuildMenu() {
         let menu = NSMenu()
-        let stateTitle = "Flow Lite: \(appState.state.displayName)"
+        let stateTitle = "Murmur: \(appState.state.displayName)"
         let stateItem = NSMenuItem(title: stateTitle, action: nil, keyEquivalent: "")
         stateItem.isEnabled = false
         menu.addItem(stateItem)
@@ -218,17 +218,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .recording:
             let elapsed = appState.recordingElapsedSeconds ?? 0
             menuBarTitle = "● \(formatElapsed(elapsed))"
-            menuLabel = "Flow Lite: Recording… \(formatElapsed(elapsed))"
+            menuLabel = "Murmur: Recording… \(formatElapsed(elapsed))"
             notch.setRecording()
         case .transcribing:
             let elapsed = appState.transcribingElapsedSeconds ?? 0
             let recorded = appState.recordingElapsedSeconds ?? 0
             menuBarTitle = "… \(formatElapsed(elapsed))"
-            menuLabel = "Flow Lite: Transcribing… \(formatElapsed(elapsed))  (\(formatElapsed(recorded)) audio)"
+            menuLabel = "Murmur: Transcribing… \(formatElapsed(elapsed))  (\(formatElapsed(recorded)) audio)"
             notch.setProcessing(label: "Transcribing…")
         case .pasting:
             menuBarTitle = base
-            menuLabel = "Flow Lite: \(appState.state.displayName)"
+            menuLabel = "Murmur: \(appState.state.displayName)"
             // The contextual success message ("Pasted into TextEdit") is set
             // by AppState.onPasteResult once paste actually completes — see
             // wiring below in applicationDidFinishLaunching. Don't show a
@@ -236,18 +236,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // copied-only and the message should match reality.
         case .idle:
             menuBarTitle = base
-            menuLabel = "Flow Lite: \(appState.state.displayName)"
+            menuLabel = "Murmur: \(appState.state.displayName)"
             notch.hide()
         case .error(let message):
             menuBarTitle = base
-            menuLabel = "Flow Lite: \(appState.state.displayName)"
+            menuLabel = "Murmur: \(appState.state.displayName)"
             notch.setError(label: message)
         }
         statusItem.button?.title = menuBarTitle
         stateItemRef?.title = menuLabel
     }
 
-    private func refreshDurationTimer(state: FlowLiteState) {
+    private func refreshDurationTimer(state: MurmurState) {
         let isActive: Bool
         switch state {
         case .recording, .transcribing: isActive = true

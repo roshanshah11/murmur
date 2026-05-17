@@ -16,14 +16,14 @@ struct AppContext {
     }
 
     static var ownBundleID: String {
-        Bundle.main.bundleIdentifier ?? "FlowLite"
+        Bundle.main.bundleIdentifier ?? "Murmur"
     }
 
     static var isFrontmostSelf: Bool {
         guard let app = NSWorkspace.shared.frontmostApplication else { return false }
         let bid = app.bundleIdentifier ?? ""
         if bid == ownBundleID { return true }
-        if (app.localizedName ?? "").contains("FlowLite") { return true }
+        if (app.localizedName ?? "").contains("Murmur") { return true }
         return false
     }
 }

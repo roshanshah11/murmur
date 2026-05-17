@@ -27,7 +27,7 @@ final class PasteboardInserter {
         // T5: don't paste into ourselves.
         if AppContext.isFrontmostSelf {
             Log.event(state: "paste_skipped_self_frontmost", fields: ["chars": String(text.count)])
-            return .copiedOnly(reason: "FlowLite is frontmost; text copied to clipboard")
+            return .copiedOnly(reason: "Murmur is frontmost; text copied to clipboard")
         }
 
         let delay = max(0, config.pasteDelayMs)

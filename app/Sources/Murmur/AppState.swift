@@ -1,6 +1,6 @@
 import Foundation
 
-public enum FlowLiteState: Equatable {
+public enum MurmurState: Equatable {
     case idle
     case recording
     case transcribing
@@ -19,11 +19,11 @@ public enum FlowLiteState: Equatable {
 
     var shortTitle: String {
         switch self {
-        case .idle: return "FlowLite"
-        case .recording: return "● FlowLite"
-        case .transcribing: return "… FlowLite"
-        case .pasting: return "↪ FlowLite"
-        case .error: return "! FlowLite"
+        case .idle: return "Murmur"
+        case .recording: return "● Murmur"
+        case .transcribing: return "… Murmur"
+        case .pasting: return "↪ Murmur"
+        case .error: return "! Murmur"
         }
     }
 }
@@ -37,7 +37,7 @@ final class AppState {
     let history: HistoryStore
     let volume: VolumeController
 
-    private let onStateChange: (FlowLiteState) -> Void
+    private let onStateChange: (MurmurState) -> Void
     /// Fired on the main thread immediately after a paste completes,
     /// with the actual `PasteResult`. Lets the UI show a contextual
     /// success message ("Pasted into TextEdit") instead of a generic
@@ -58,7 +58,7 @@ final class AppState {
     private var recordingContext: AppContext?
     private var errorClearWorkItem: DispatchWorkItem?
 
-    private(set) var state: FlowLiteState = .idle {
+    private(set) var state: MurmurState = .idle {
         didSet {
             Log.event(state: "state_transition", fields: [
                 "from": String(describing: oldValue),
@@ -76,7 +76,7 @@ final class AppState {
         inserter: PasteboardInserter,
         history: HistoryStore,
         volume: VolumeController,
-        onStateChange: @escaping (FlowLiteState) -> Void
+        onStateChange: @escaping (MurmurState) -> Void
     ) {
         self.config = config
         self.recorder = recorder

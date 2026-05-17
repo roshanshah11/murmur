@@ -36,14 +36,14 @@ enum CLI {
 
     static func runHelp() {
         let usage = """
-        FlowLite — local-first macOS dictation utility.
+        Murmur — local-first macOS dictation utility.
 
         Usage:
-          FlowLite                            Launch menubar UI (default).
-          FlowLite --transcribe-only <wav>    Transcribe one WAV file, print to stdout, exit.
-          FlowLite --record-once              Launch UI, exit after one dictation completes.
-          FlowLite --help                     Show this help.
-          FlowLite --version                  Print version.
+          Murmur                            Launch menubar UI (default).
+          Murmur --transcribe-only <wav>    Transcribe one WAV file, print to stdout, exit.
+          Murmur --record-once              Launch UI, exit after one dictation completes.
+          Murmur --help                     Show this help.
+          Murmur --version                  Print version.
 
         Trigger:
           Double-tap the fn key to start/stop dictation.
@@ -51,16 +51,16 @@ enum CLI {
           (Dictation shortcut → Off) to avoid collision.
 
         Config:
-          ~/.flow-lite/config.json
+          ~/Library/Application Support/Murmur/config.json
         Logs:
-          ~/.flow-lite/logs/flow-lite-YYYY-MM-DD.log
+          ~/Library/Application Support/Murmur/logs/murmur-YYYY-MM-DD.log
         """
         FileHandle.standardOutput.write(Data(usage.utf8))
         FileHandle.standardOutput.write(Data("\n".utf8))
     }
 
     static func runVersion() {
-        FileHandle.standardOutput.write(Data("FlowLite v0\n".utf8))
+        FileHandle.standardOutput.write(Data("Murmur v0\n".utf8))
     }
 
     /// Headless transcribe + cleanup for smoke tests and scripting.
@@ -74,7 +74,7 @@ enum CLI {
             FileHandle.standardOutput.write(Data((cleaned + "\n").utf8))
             return 0
         } catch {
-            let msg = "FlowLite error: \(error)\n"
+            let msg = "Murmur error: \(error)\n"
             FileHandle.standardError.write(Data(msg.utf8))
             return 1
         }
