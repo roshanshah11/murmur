@@ -225,6 +225,19 @@ struct Config: Codable {
             return defaultConfig()
         }
     }
+
+    /// Persist the current config to `AppPaths.configFile`. The in-memory
+    /// AppState copy is not mutated; callers that need a live refresh must
+    /// reload (a full app restart is fine for v1 — model selection takes
+    /// effect on the next dictation pipeline run regardless).
+    func save() throws {
+        let url = Self.defaultConfigURL()
+        try FileManager.default.createDirectory(at: AppPaths.appSupportDirectory,
+                                                withIntermediateDirectories: true)
+        let data = try JSONEncoder.pretty.encode(self)
+        try data.write(to: url, options: .atomic)
+        Log.event(state: "config_saved", fields: ["path": url.path])
+    }
 }
 
 private extension JSONEncoder {

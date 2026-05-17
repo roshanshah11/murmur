@@ -86,6 +86,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             try? AudioRecorder().ensurePermission()
         }
 
+        // Bridge: ModelsTab posts progress notifications when downloading a
+        // Whisper model; the AppState turns them into MurmurState transitions
+        // so the notch overlay shows a download progress bar.
+        NotificationCenter.default.addObserver(
+            forName: .murmurModelDownloadProgress,
+            object: nil,
+            queue: .main
+        ) { [weak self] note in
+            guard let progress = note.object as? Double else { return }
+            self?.appState.setDownloadingModel(progress: progress)
+        }
+        NotificationCenter.default.addObserver(
+            forName: .murmurModelDownloadFinished,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.appState.clearDownloadingModel()
+        }
+
         Log.event(state: "launched", fields: [
             "ax_trusted": String(Self.isAXTrusted()),
             "mic_status": String(describing: AudioRecorder.authorizationStatus())

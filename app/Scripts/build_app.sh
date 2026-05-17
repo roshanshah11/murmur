@@ -36,6 +36,45 @@ mkdir -p "${APP_DIR}/Contents/Resources"
 cp "$BINARY" "${APP_DIR}/Contents/MacOS/Murmur"
 chmod +x "${APP_DIR}/Contents/MacOS/Murmur"
 
+# Copy the SwiftPM resource bundle next to the binary so Bundle.module
+# resolves at runtime. SwiftPM emits `<Target>_<Target>.bundle` alongside
+# the binary; we mirror that layout inside the .app's MacOS dir (which is
+# where Bundle.module looks first when the bundle's executable is a CLI).
+RESOURCE_BUNDLE=".build/release/Murmur_Murmur.bundle"
+if [ -d "$RESOURCE_BUNDLE" ]; then
+  # Bundle.module looks for `<Target>_<Target>.bundle` next to the executable.
+  # The bundle SPM emits is a flat dir without Info.plist, which codesign
+  # rejects — so we wrap it in a minimal macOS bundle layout (Contents/
+  # Resources/ + Info.plist) which both Bundle.module and codesign accept.
+  WRAPPED_BUNDLE="${APP_DIR}/Contents/MacOS/Murmur_Murmur.bundle"
+  mkdir -p "${WRAPPED_BUNDLE}/Contents/Resources"
+  cp -R "${RESOURCE_BUNDLE}/." "${WRAPPED_BUNDLE}/Contents/Resources/"
+  cat > "${WRAPPED_BUNDLE}/Contents/Info.plist" <<'PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.murmur.resources</string>
+    <key>CFBundleName</key>
+    <string>Murmur_Murmur</string>
+    <key>CFBundlePackageType</key>
+    <string>BNDL</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+</dict>
+</plist>
+PLIST
+  # Also stash a flat copy under Contents/Resources for the Bundle.main fallback.
+  if [ -f "${RESOURCE_BUNDLE}/model-manifest.json" ]; then
+    cp "${RESOURCE_BUNDLE}/model-manifest.json" "${APP_DIR}/Contents/Resources/"
+  fi
+else
+  echo "Warning: SwiftPM resource bundle not found at $RESOURCE_BUNDLE"
+fi
+
 # Sign with a stable identity so macOS TCC (Accessibility / Input
 # Monitoring / Microphone) treats every rebuild as the same app.
 # Falls back to ad-hoc if the local signer is missing; in that case
