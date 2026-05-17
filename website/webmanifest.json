@@ -1,0 +1,24 @@
+{
+  "name": "Murmur",
+  "short_name": "Murmur",
+  "description": "Local-first dictation for macOS.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#EFE9DD",
+  "theme_color": "#EFE9DD",
+  "theme_color_dark": "#1C1814",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

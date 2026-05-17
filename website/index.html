@@ -16,6 +16,11 @@
 <meta property="og:image:height" content="630">
 <meta property="og:url"         content="https://murmur-landing-phi.vercel.app/">
 <meta name="twitter:card"       content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/svg+xml" sizes="16x16" href="/favicon-source-16.svg">
+<link rel="icon" type="image/svg+xml" sizes="32x32" href="/favicon-source-32.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.svg">
+<link rel="manifest" href="/webmanifest.json">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Murmur","applicationCategory":"ProductivityApplication","operatingSystem":"macOS 13+","license":"https://opensource.org/licenses/MIT","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Roshan Shah"},"description":"Local-first dictation for macOS. Double-tap fn, speak, paste."}
 </script>
@@ -66,7 +71,9 @@ h1.title .endmark{display:inline-block;width:0.14em;height:0.14em;border-radius:
 .standfirst{max-width:38ch;margin:28px 0 0;font-family:var(--serif);font-size:21px;line-height:1.42;color:var(--ink-soft)}
 .standfirst::first-letter{font-family:var(--serif);font-weight:500;font-size:3.2em;float:left;line-height:0.88;margin:0.06em 0.08em 0 0;color:var(--ink)}
 .standfirst em{color:var(--ink);font-style:italic}
-.hero-byline{margin:36px 0 0;display:flex;align-items:center;gap:18px;flex-wrap:wrap;border-top:var(--rule-soft);padding-top:22px}
+.hero-byline{margin:36px 0 0;border-top:var(--rule-soft);padding-top:22px}
+.hero-byline .row-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.hero-byline .row-meta{margin-top:14px}
 .byline-meta{font-family:var(--sans);font-size:11.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-fade)}
 .install{display:inline-flex;align-items:stretch;font-family:var(--mono);font-size:13px;background:transparent;border:1px solid var(--ink-soft);border-radius:999px;overflow:hidden}
 .install code{padding:9px 14px 9px 16px;white-space:nowrap}
@@ -109,14 +116,21 @@ section{padding:64px 0;border-top:var(--rule)}
   overflow:hidden;
   box-shadow:0 1px 0 color-mix(in srgb,var(--ink) 8%,transparent), 0 22px 60px -28px color-mix(in srgb,var(--ink) 50%,transparent);
 }
+.demo-card{border-top-left-radius:14px;border-top-right-radius:14px}
 .demo-card .menu-bar{
   position:absolute;top:0;left:0;right:0;height:22px;
-  background:rgba(255,255,255,0.04);
-  border-bottom:1px solid rgba(255,255,255,0.06);
-  display:flex;align-items:center;gap:6px;padding:0 10px;
+  background:rgba(255,255,255,0.05);
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  display:flex;align-items:center;gap:6px;padding:0 9px;
 }
-.demo-card .menu-bar i{ display:inline-block;width:8px;height:8px;border-radius:50%;background:#3b3b3b;}
-.demo-card .menu-bar .clk{ margin-left:auto;color:rgba(255,255,255,0.42);font-family:var(--sans);font-size:9.5px;letter-spacing:0.12em;}
+.demo-card .menu-bar i{ display:inline-block;width:8px;height:8px;border-radius:50%;}
+.demo-card .menu-bar i:nth-child(1){background:#FF5F57;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18) inset}
+.demo-card .menu-bar i:nth-child(2){background:#FEBC2E;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18) inset}
+.demo-card .menu-bar i:nth-child(3){background:#28C840;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18) inset}
+.demo-card .menu-bar .app{margin-left:14px;color:rgba(255,255,255,0.86);font-family:var(--sans);font-size:9.5px;letter-spacing:0.06em;font-weight:600}
+.demo-card .menu-bar .app-menu{margin-left:10px;color:rgba(255,255,255,0.42);font-family:var(--sans);font-size:9.5px;letter-spacing:0.06em;display:flex;gap:9px}
+.demo-card .menu-bar .clk{ margin-left:auto;color:rgba(255,255,255,0.6);font-family:var(--sans);font-size:9.5px;letter-spacing:0.04em;display:flex;gap:8px;align-items:center}
+.demo-card .menu-bar .clk svg{width:9px;height:9px;opacity:0.7}
 /* notch */
 .demo-card .notch{ position:absolute;top:0;left:50%;transform:translateX(-50%); width:140px;height:26px; background:#000; border-bottom-left-radius:14px;border-bottom-right-radius:14px;}
 .demo-card.idle .pill{
@@ -220,6 +234,42 @@ kbd{font-family:var(--mono);font-size:0.9em;background:color-mix(in srgb,var(--i
   @keyframes rise{to{opacity:1;transform:none}}
 }
 @media print{ body{background:white;color:black} nav,.install button,footer .right a{display:none} .demo-card{display:none} }
+
+/* MOBILE RECOVERY — hero must dominate above the fold on 390px */
+@media (max-width:640px){
+  header.masthead{padding:18px 0 12px}
+  nav.masthead-nav{display:none}
+  .issue-line{display:none}
+  .hero{padding:36px 0 36px}
+  .kicker{font-size:10.5px;margin:0 0 12px}
+  h1.title{font-size:clamp(64px,17vw,108px);line-height:0.9;margin-left:-0.03em}
+  .standfirst{font-size:18px;max-width:none;margin-top:22px}
+  .hero-byline{margin-top:24px;padding-top:18px}
+  .hero-byline .row-actions{flex-direction:column;align-items:stretch;gap:12px}
+  .install{width:100%;justify-content:space-between}
+  .install code{flex:1;overflow:hidden;text-overflow:ellipsis}
+  .dmg-link{align-self:flex-start}
+  .demo-frame{margin-top:30px;padding:22px 16px 14px}
+  .demo-frame::before{left:14px;font-size:9px}
+  .demo-card{aspect-ratio:16/11}
+  .demo-card .menu-bar .app-menu{display:none}
+  .demo-card.active .pill{width:130px;height:24px;top:5px}
+  .demo-card.active .time{font-size:8.5px}
+  .demo-card .menu-bar{height:18px}
+  .demo-card .menu-bar i{width:6.5px;height:6.5px}
+  .demo-card .menu-bar .app{margin-left:8px;font-size:8.5px}
+  .demo-card .menu-bar .clk{font-size:8.5px}
+  .demo-card .notch{width:96px;height:18px}
+  section{padding:44px 0}
+  .section-head{margin-bottom:24px}
+  .section-num{font-size:10px}
+  .act-num{font-size:36px}
+  .manifesto p{font-size:18px}
+  .manifesto p::first-letter{font-size:2.6em}
+  .feat-name{font-size:20px}
+  footer.colophon-foot{padding:22px 0 36px}
+  .foot-row{flex-direction:column;gap:14px}
+}
 </style>
 </head>
 <body>
@@ -267,24 +317,38 @@ kbd{font-family:var(--mono);font-size:0.9em;background:color-mix(in srgb,var(--i
     </p>
 
     <div class="hero-byline">
-      <div class="install" role="group" aria-label="Install via Homebrew">
-        <code id="brew-cmd">brew install --cask murmur</code>
-        <button type="button" id="copy-btn" aria-label="Copy install command">Copy</button>
+      <div class="row-actions">
+        <div class="install" role="group" aria-label="Install via Homebrew">
+          <code id="brew-cmd">brew install --cask murmur</code>
+          <button type="button" id="copy-btn" aria-label="Copy install command">Copy</button>
+        </div>
+        <a class="dmg-link" href="https://github.com/roshanshah11/murmur/releases/latest/download/Murmur.dmg">Download DMG</a>
       </div>
-      <a class="dmg-link" href="https://github.com/roshanshah11/murmur/releases/latest/download/Murmur.dmg">Download DMG</a>
-      <span class="byline-meta">macOS 13+ &nbsp;·&nbsp; Apple Silicon &amp; Intel &nbsp;·&nbsp; Free, forever</span>
+      <div class="row-meta">
+        <span class="byline-meta">macOS 13+ &nbsp;·&nbsp; Apple Silicon &amp; Intel &nbsp;·&nbsp; Free, forever</span>
+      </div>
     </div>
 
     <div class="demo-frame" aria-hidden="true">
       <div class="demo-row">
         <div class="demo-card idle">
-          <div class="menu-bar"><i></i><i></i><i></i><span class="clk">Sun 10:42</span></div>
+          <div class="menu-bar">
+            <i></i><i></i><i></i>
+            <span class="app">Notes</span>
+            <span class="app-menu"><span>File</span><span>Edit</span><span>View</span></span>
+            <span class="clk">100% &nbsp; Sun 10:42</span>
+          </div>
           <div class="notch"></div>
           <div class="pill"></div>
           <div class="demo-target">The cursor waits in your editor.<span class="caret"></span></div>
         </div>
         <div class="demo-card active">
-          <div class="menu-bar"><i></i><i></i><i></i><span class="clk">Sun 10:42</span></div>
+          <div class="menu-bar">
+            <i></i><i></i><i></i>
+            <span class="app">Notes</span>
+            <span class="app-menu"><span>File</span><span>Edit</span><span>View</span></span>
+            <span class="clk">100% &nbsp; Sun 10:42</span>
+          </div>
           <div class="notch"></div>
           <div class="pill">
             <span class="dot"></span>

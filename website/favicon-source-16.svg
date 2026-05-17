@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges">
+<style>
+.bg{fill:#FFFBF5}
+.ink{fill:#1C1814}
+@media (prefers-color-scheme: dark){
+.bg{fill:#1C1814}
+.ink{fill:#FFFBF5}
+}
+</style>
+<rect class="bg" width="16" height="16" rx="3"/>
+<g class="ink">
+<rect x="3" y="6" width="2" height="6"/>
+<rect x="6" y="6" width="2" height="6"/>
+<rect x="9" y="6" width="2" height="6"/>
+<rect x="3" y="5" width="8" height="1"/>
+</g>
+<rect x="13" y="10" width="2" height="2" fill="#B23A2A"/>
+</svg>
