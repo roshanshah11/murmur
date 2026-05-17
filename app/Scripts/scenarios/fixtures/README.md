@@ -129,3 +129,35 @@ afconvert -f WAVE -d LEI16@16000 -c 1 08-sam-q3-hiring.aiff 08-sam-q3-hiring.wav
   generation OR check fixtures into git LFS once stable.
 - Do NOT regenerate fixtures lightly. Once committed, treat them as test
   vectors. A regenerated fixture that "passes" hides regressions.
+
+## Generation provenance
+
+Generated on 2026-05-17 by `../render_fixtures.sh` on macOS 26.5 (build 25F71).
+
+Voices used:
+
+| Fixture                          | Requested | Actually used | Note |
+| -------------------------------- | --------- | ------------- | ---- |
+| 01-devraj-code-comment.wav       | Daniel    | Daniel        | en_GB |
+| 02-priya-motion.wav              | Samantha  | Samantha      | en_US |
+| 03-jordan-airpods.wav            | (any en)  | Samantha      | README pinned no voice; defaulted to en_US Samantha |
+| 04-tomas-linkedin.wav            | Paulina   | Paulina       | es_MX |
+| 05-eunji-coffee-shop.wav         | Karen     | Karen         | en_AU; **fixture-substituted**: voice-only — coffee-shop background bed not bundled (was sox-mixed from freesound.org in the spec); scenario 05 still validates artifact stripping but ambient-SNR coverage is reduced |
+| 08-sam-q3-hiring.wav             | Alex      | Samantha      | **fixture-substituted**: Alex voice not present on macOS 26.x by default |
+
+Fixtures 06 (`yusuf_permission_loss`) and 07 (`tabitha_first_launch`) are
+intentionally not generated — their adapters (`permissions_probe`,
+`installer_flow`) do not consume audio.
+
+Re-render with:
+
+```sh
+./app/Scripts/scenarios/render_fixtures.sh
+```
+
+Verify-only (no overwrite):
+
+```sh
+./app/Scripts/scenarios/render_fixtures.sh --check
+```
+
