@@ -75,7 +75,10 @@ struct Config: Codable {
             whisperThreads: nil,
             pasteDelayMs: 10,
             errorAutoClearSeconds: 3,
-            historyEnabled: true,
+            // Privacy-first: history is OFF by default. Users opt in via
+            // Settings → General. Decoding a config that pre-dates this key
+            // also defaults to false (see init(from:) below).
+            historyEnabled: false,
             historyMaxEntries: 1000,
             vocabulary: defaultVocabulary(),
             activeProfile: .casual

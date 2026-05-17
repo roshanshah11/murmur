@@ -48,6 +48,7 @@ final class ConfigTests: XCTestCase {
         XCTAssertFalse(cfg.debugRetainAudio)
         XCTAssertFalse(cfg.restoreClipboardAfterPaste)
         XCTAssertNil(cfg.whisperThreads)
+        XCTAssertFalse(cfg.historyEnabled, "history must default to OFF when key is missing (Phase 5 privacy carryover)")
         // Default vocabulary carries some seeded entries.
         let cajuEntry = cfg.vocabulary.entries.first { $0.from.lowercased() == "caju ai" }
         XCTAssertEqual(cajuEntry?.to, "Caju.ai")
@@ -96,6 +97,25 @@ final class ConfigTests: XCTestCase {
         let restored = try JSONDecoder().decode(Config.self, from: data)
         XCTAssertEqual(restored.vocabulary.entries.count, 1)
         XCTAssertEqual(restored.activeProfile, .formal)
+    }
+
+    func test_historyEnabled_defaultsFalse_andRoundTrips() throws {
+        // Default factory: opt-in only.
+        XCTAssertFalse(Config.defaultConfig().historyEnabled,
+                       "Phase 5 spec §7.2 — history must be OFF by default")
+
+        // Missing key in JSON should decode to false (not the legacy true).
+        let missing = "{}".data(using: .utf8)!
+        let decodedMissing = try JSONDecoder().decode(Config.self, from: missing)
+        XCTAssertFalse(decodedMissing.historyEnabled,
+                       "missing historyEnabled key must default to false")
+
+        // Explicit true round-trips intact.
+        var cfg = Config.defaultConfig()
+        cfg.historyEnabled = true
+        let data = try JSONEncoder().encode(cfg)
+        let decoded = try JSONDecoder().decode(Config.self, from: data)
+        XCTAssertTrue(decoded.historyEnabled, "historyEnabled=true must round-trip")
     }
 
     func testTempDirectoryUnderCaches() {
