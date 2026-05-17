@@ -9,9 +9,13 @@ let package = Package(
     products: [
         .executable(name: "Murmur", targets: ["Murmur"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0")
+    ],
     targets: [
         .executableTarget(
             name: "Murmur",
+            dependencies: [.product(name: "Sparkle", package: "Sparkle")],
             path: "Sources/Murmur",
             resources: [
                 .copy("Resources/model-manifest.json")
