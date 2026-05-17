@@ -190,7 +190,10 @@ final class AppState {
                 }
                 self.onPasteResult?(result)
                 let totalMs = Int(Date().timeIntervalSince(pipelineStart) * 1000)
-                self.history.append(
+                // Phase 5: history is opt-in. The HistoryStore itself also
+                // honors `enabled` (defense in depth), but the AppState gate
+                // here is the source of truth at the call site.
+                self.appendHistoryIfEnabled(
                     cleaned: cleaned,
                     raw: rawTranscript,
                     target: context,
@@ -208,6 +211,26 @@ final class AppState {
                 self?.setError(error)
             }
         }
+    }
+
+    /// Single decision point for whether a successful dictation result is
+    /// appended to history. Centralized so HistoryGateTests can exercise the
+    /// gate without standing up the full whisper + paste pipeline.
+    func appendHistoryIfEnabled(
+        cleaned: String,
+        raw: String,
+        target: AppContext,
+        durationMs: Int,
+        result: String
+    ) {
+        guard config.historyEnabled else { return }
+        history.append(
+            cleaned: cleaned,
+            raw: raw,
+            target: target,
+            durationMs: durationMs,
+            result: result
+        )
     }
 
     func cancelIfNeeded() {

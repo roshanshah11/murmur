@@ -6,6 +6,14 @@ set -euo pipefail
 # / Input Monitoring permissions to a stable identity instead of the
 # transient `.build/release/Murmur` path.
 #
+# Dependencies:
+#   - Swift / SwiftPM       (Xcode.app full install)
+#   - codesign / security   (built-in macOS)
+#   - iconutil              (built-in macOS, used by render_icons.sh)
+#   - rsvg-convert          (brew install librsvg; only required if
+#                            app/Resources/AppIcon.icns is missing and
+#                            needs to be regenerated from the SVG master)
+#
 # TODO(phase-12 signing): Sparkle's XPC services
 # (Frameworks/Sparkle.framework/Versions/B/XPCServices/{Installer,Downloader}.xpc)
 # and Updater.app/Autoupdate.app inside the framework must be code-signed
@@ -79,6 +87,25 @@ else
   echo "Warning: SwiftPM resource bundle not found at $RESOURCE_BUNDLE"
 fi
 
+# Copy AppIcon.icns into the bundle. The .icns is committed under
+# Resources/, but regenerate from the SVG master if missing (e.g. a
+# clean clone where the developer hasn't pulled the binary).
+ICON_SRC="Resources/AppIcon.icns"
+if [ ! -f "$ICON_SRC" ]; then
+  echo "AppIcon.icns missing — regenerating from SVG master..."
+  if [ -x "Scripts/render_icons.sh" ]; then
+    bash "Scripts/render_icons.sh"
+  else
+    echo "Warning: Scripts/render_icons.sh not found or not executable."
+    echo "         Bundle will ship without an app icon."
+  fi
+fi
+if [ -f "$ICON_SRC" ]; then
+  cp "$ICON_SRC" "${APP_DIR}/Contents/Resources/AppIcon.icns"
+else
+  echo "Warning: $ICON_SRC still missing after render attempt — bundle has no icon."
+fi
+
 # Sign with a stable identity so macOS TCC (Accessibility / Input
 # Monitoring / Microphone) treats every rebuild as the same app.
 # Falls back to ad-hoc if the local signer is missing; in that case
@@ -111,6 +138,8 @@ cat > "${APP_DIR}/Contents/Info.plist" <<'PLIST'
     <string>0.1.0</string>
     <key>CFBundleExecutable</key>
     <string>Murmur</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>LSMinimumSystemVersion</key>

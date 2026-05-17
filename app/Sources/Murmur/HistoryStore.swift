@@ -1,6 +1,6 @@
 import Foundation
 
-struct HistoryEntry: Codable {
+struct HistoryEntry: Codable, Identifiable, Equatable {
     let id: String
     let ts: String
     let cleaned: String
@@ -9,6 +9,9 @@ struct HistoryEntry: Codable {
     let targetBundle: String
     let durationMs: Int
     let result: String
+    /// Optional, decoded with a default of `false` so entries written before
+    /// Phase 5 (which added the favorite feature) keep decoding cleanly.
+    var favorite: Bool
 
     enum CodingKeys: String, CodingKey {
         case id, ts, cleaned, raw
@@ -16,6 +19,43 @@ struct HistoryEntry: Codable {
         case targetBundle = "target_bundle"
         case durationMs = "duration_ms"
         case result
+        case favorite
+    }
+
+    init(
+        id: String,
+        ts: String,
+        cleaned: String,
+        raw: String,
+        targetApp: String,
+        targetBundle: String,
+        durationMs: Int,
+        result: String,
+        favorite: Bool = false
+    ) {
+        self.id = id
+        self.ts = ts
+        self.cleaned = cleaned
+        self.raw = raw
+        self.targetApp = targetApp
+        self.targetBundle = targetBundle
+        self.durationMs = durationMs
+        self.result = result
+        self.favorite = favorite
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try c.decode(String.self, forKey: .id)
+        self.ts = try c.decode(String.self, forKey: .ts)
+        self.cleaned = try c.decode(String.self, forKey: .cleaned)
+        self.raw = try c.decode(String.self, forKey: .raw)
+        self.targetApp = try c.decode(String.self, forKey: .targetApp)
+        self.targetBundle = try c.decode(String.self, forKey: .targetBundle)
+        self.durationMs = try c.decode(Int.self, forKey: .durationMs)
+        self.result = try c.decode(String.self, forKey: .result)
+        // Defaults to false so pre-Phase-5 entries on disk decode without error.
+        self.favorite = try c.decodeIfPresent(Bool.self, forKey: .favorite) ?? false
     }
 }
 
@@ -90,13 +130,88 @@ final class HistoryStore {
         }
     }
 
+    /// Loads every persisted entry, newest first. Used by the History window
+    /// so users can search/scroll the full file (subject to `maxEntries`).
+    func loadAll() -> [HistoryEntry] {
+        loadRecent(limit: Int.max)
+    }
+
     func clear() {
         queue.sync {
             try? FileManager.default.removeItem(at: fileURL)
         }
     }
 
+    /// Removes a single entry by id and atomically rewrites the file. No-op
+    /// if the id isn't found. Returns true if a row was deleted.
+    @discardableResult
+    func delete(id: String) -> Bool {
+        queue.sync {
+            var entries = readAllUnlocked()
+            let before = entries.count
+            entries.removeAll { $0.id == id }
+            guard entries.count != before else { return false }
+            writeAllUnlocked(entries)
+            return true
+        }
+    }
+
+    /// Toggles or sets a row's favorite flag. Atomic rewrite. Returns true
+    /// if the row was found.
+    @discardableResult
+    func setFavorite(id: String, _ value: Bool) -> Bool {
+        queue.sync {
+            var entries = readAllUnlocked()
+            guard let idx = entries.firstIndex(where: { $0.id == id }) else { return false }
+            entries[idx].favorite = value
+            writeAllUnlocked(entries)
+            return true
+        }
+    }
+
     var fileURLPublic: URL { fileURL }
+
+    /// True if the on-disk file exists AND contains at least one decodable
+    /// entry. Used by the General settings tab to enable the "Clear now"
+    /// button only when there's something to clear.
+    func hasEntries() -> Bool {
+        !loadRecent(limit: 1).isEmpty
+    }
+
+    // MARK: - Private file IO (called inside `queue` only)
+
+    /// Caller must already be on `queue`. Returns entries in file order
+    /// (oldest first) so writes preserve the ordering convention.
+    private func readAllUnlocked() -> [HistoryEntry] {
+        guard let data = try? Data(contentsOf: fileURL),
+              let content = String(data: data, encoding: .utf8) else { return [] }
+        let decoder = JSONDecoder()
+        let lines = content.split(whereSeparator: { $0.isNewline })
+        var entries: [HistoryEntry] = []
+        for line in lines {
+            if let lineData = String(line).data(using: .utf8),
+               let entry = try? decoder.decode(HistoryEntry.self, from: lineData) {
+                entries.append(entry)
+            }
+        }
+        return entries
+    }
+
+    /// Caller must already be on `queue`. Writes atomically — temp file +
+    /// replace — to avoid partial truncations on crash mid-write.
+    private func writeAllUnlocked(_ entries: [HistoryEntry]) {
+        let fm = FileManager.default
+        try? fm.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        var buf = Data()
+        for entry in entries {
+            guard let line = try? encoder.encode(entry) else { continue }
+            buf.append(line)
+            buf.append(0x0A)  // \n
+        }
+        try? buf.write(to: fileURL, options: .atomic)
+    }
 
     private static func trimIfNeeded(fileURL: URL, maxEntries: Int) {
         guard let data = try? Data(contentsOf: fileURL),
