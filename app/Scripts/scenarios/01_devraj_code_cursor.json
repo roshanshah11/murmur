@@ -1,0 +1,25 @@
+{
+  "id": "01_devraj_code_cursor",
+  "type": "cli_transcribe",
+  "source_scenario": "#2 Devraj — Code profile in Cursor",
+  "summary": "Code profile preserves UPPER_SNAKE constants and numeric '401'",
+  "input_wav": "../fixtures/01-devraj-code-comment.wav",
+  "profile": "code",
+  "language": "en",
+  "model": "ggml-base.en",
+  "vocabulary_file": "../fixtures/01-devraj-vocab.json",
+  "expect_contains": [
+    "AUTH_EXP_MISSING",
+    "401",
+    "JWT"
+  ],
+  "expect_not_contains": [
+    "auth exp missing",
+    "Auth_Exp_Missing",
+    "four oh one",
+    "J.W.T."
+  ],
+  "expect_regex": "AUTH_EXP_MISSING",
+  "max_wall_seconds": 20,
+  "fail_hint": "code-profile regression OR vocabulary case-sensitivity broke. Inspect CleanupService.swift::CodeProfile.apply()."
+}

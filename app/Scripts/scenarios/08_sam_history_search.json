@@ -1,0 +1,28 @@
+{
+  "id": "08_sam_history_search",
+  "type": "cli_transcribe",
+  "source_scenario": "#20 Sam — History viewer search + copy-back",
+  "summary": "History DB stores raw+cleaned+timestamp+bundle id and is FTS-indexed",
+  "input_wav": "../fixtures/08-sam-q3-hiring.wav",
+  "profile": "casual",
+  "language": "en",
+  "model": "ggml-base.en",
+  "history_assertions": {
+    "search_query": "Q3 hiring",
+    "max_search_latency_ms": 300,
+    "must_return_count": 1,
+    "row_must_have_fields": ["raw_text", "cleaned_text", "timestamp", "frontmost_bundle_id"],
+    "copy_button_payload_equals": "cleaned_text"
+  },
+  "expect_contains": [
+    "Q3",
+    "hiring"
+  ],
+  "expect_not_contains": [
+    "Q three",
+    "quarter three"
+  ],
+  "max_wall_seconds": 20,
+  "fail_hint": "History DB only persisted last 100 rows (no FTS), OR stored raw whisper output instead of cleaned. Inspect HistoryStore.swift schema + insertOnPasteCommit().",
+  "notes": "cli_transcribe adapter is the entry, but the scenario also drives `Murmur --history-search 'Q3 hiring' --json` (added Phase 9) and asserts the JSON payload. Implementer extends cli_transcribe.sh OR adds a thin history adapter — punt that decision to Phase 13 task owner."
+}

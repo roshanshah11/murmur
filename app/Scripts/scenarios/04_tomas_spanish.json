@@ -1,0 +1,25 @@
+{
+  "id": "04_tomas_spanish",
+  "type": "cli_transcribe",
+  "source_scenario": "#8 Tomás — Spanish-language path",
+  "summary": "Spanish locale forces non-.en model; accents and '+' brand survive",
+  "input_wav": "../fixtures/04-tomas-linkedin.wav",
+  "profile": "formal",
+  "language": "es",
+  "model": "ggml-base",
+  "vocabulary_file": "../fixtures/04-tomas-brand-vocab.json",
+  "expect_contains": [
+    "campaña",
+    "orgulloso",
+    "Talento+",
+    "OKR"
+  ],
+  "expect_not_contains": [
+    "campana",
+    "Talento Plus",
+    "campania"
+  ],
+  "expect_regex": "Talento\\+",
+  "max_wall_seconds": 25,
+  "fail_hint": "(a) wrong model auto-picked — .en model on Spanish input. Inspect ModelResolver::languageGuard. (b) cleanup stripped '+'. Inspect VocabularySanitizer punctuation allowlist."
+}

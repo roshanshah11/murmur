@@ -1,0 +1,23 @@
+{
+  "id": "03_jordan_airpods",
+  "type": "cli_transcribe",
+  "source_scenario": "#5 Jordan — AirPods routing at start-of-recording",
+  "summary": "Recording resolves the live input device, not the launch-time one",
+  "input_wav": "../fixtures/03-jordan-airpods.wav",
+  "profile": "casual",
+  "language": "en",
+  "model": "ggml-base.en",
+  "input_device_hint": "AirPods",
+  "expect_contains": [
+    "CFS",
+    "IO bound",
+    "scheduler"
+  ],
+  "expect_not_contains": [
+    "[BLANK_AUDIO]",
+    "[silence]"
+  ],
+  "max_wall_seconds": 20,
+  "fail_hint": "AVAudioEngine cached the built-in mic at app launch and ignored AirPods. Inspect AudioInputResolver — must re-query default input at recordStart().",
+  "notes": "Fixture WAV is generated from an AirPods recording path (or a stereo-mic stand-in clearly different from built-in mic spectrum). The CLI mode bypasses live device selection but the spec acts as a regression guard for the cleanup of '[BLANK_AUDIO]' that whisper emits when the wrong mic is captured."
+}

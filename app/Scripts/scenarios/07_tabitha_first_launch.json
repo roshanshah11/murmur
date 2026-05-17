@@ -1,0 +1,13 @@
+{
+  "id": "07_tabitha_first_launch",
+  "type": "installer_flow",
+  "source_scenario": "#16 Tabitha — Brand-new user 90s after install",
+  "summary": "Fresh DMG install on a clean account reaches a working menubar agent",
+  "dmg_path": "../../../../app/build/Murmur-1.0.0.dmg",
+  "expected_bundle_id": "com.murmur.app",
+  "expected_min_version": "1.0.0",
+  "test_user": "_murmurtest",
+  "expect_menubar_item": "Try a test recording",
+  "max_time_to_first_dictation_seconds": 90,
+  "fail_hint": "Either Gatekeeper rejected (notarization failed), or the onboarding window didn't pre-request mic+accessibility, or the menubar discoverability item is missing. See OnboardingCoordinator + MenuBarController."
+}

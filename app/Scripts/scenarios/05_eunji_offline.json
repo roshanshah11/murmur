@@ -1,0 +1,27 @@
+{
+  "id": "05_eunji_offline",
+  "type": "cli_transcribe",
+  "source_scenario": "#12 Eun-ji — Offline + noisy-environment",
+  "summary": "Full record→transcribe loop leaks zero network egress; whisper artifacts stripped",
+  "input_wav": "../fixtures/05-eunji-coffee-shop.wav",
+  "profile": "raw",
+  "language": "en",
+  "model": "ggml-base.en",
+  "expect_contains": [
+    "contract was signed",
+    "audit"
+  ],
+  "expect_not_contains": [
+    "[Music]",
+    "[Applause]",
+    "[BLANK_AUDIO]",
+    "(music playing)"
+  ],
+  "max_wall_seconds": 25,
+  "network_egress_assertion": {
+    "tool": "lsof",
+    "command": "lsof -nP -iTCP -sTCP:ESTABLISHED -p $MURMUR_PID",
+    "must_match": "^$"
+  },
+  "fail_hint": "(a) outbound socket opened during transcription = trust-violating regression. Audit any analytics/telemetry. (b) artifacts in output = WhisperPostprocessor.swift artifact-stripping disabled. Note: Raw profile must STILL strip these — they're whisper.cpp markers, not user speech."
+}

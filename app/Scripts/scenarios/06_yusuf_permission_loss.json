@@ -1,0 +1,11 @@
+{
+  "id": "06_yusuf_permission_loss",
+  "type": "permissions_probe",
+  "source_scenario": "#15 Yusuf — Returning user after macOS update",
+  "summary": "Accessibility silently revoked; Murmur must detect within 200ms and surface a banner",
+  "bundle_id": "com.murmur.app",
+  "reset": ["Accessibility", "Microphone"],
+  "expect_flagged": ["accessibility"],
+  "max_detect_ms": 200,
+  "fail_hint": "PermissionService is checking at app launch only. It must re-check on every recordStart() — see scenario 15 'what we should test'."
+}

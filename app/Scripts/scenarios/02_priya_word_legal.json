@@ -1,0 +1,26 @@
+{
+  "id": "02_priya_word_legal",
+  "type": "cli_transcribe",
+  "source_scenario": "#3 Priya — Formal profile in Word with legal citations",
+  "summary": "Formal profile keeps Rule 12(b)(6) literal punctuation + Latin terms",
+  "input_wav": "../fixtures/02-priya-motion.wav",
+  "profile": "formal",
+  "language": "en",
+  "model": "ggml-base.en",
+  "vocabulary_file": "../fixtures/02-priya-legal-vocab.json",
+  "expect_contains": [
+    "12(b)(6)",
+    "res judicata",
+    "in pari delicto",
+    "Iqbal",
+    "Twombly"
+  ],
+  "expect_not_contains": [
+    "twelve b six",
+    "12 b 6",
+    "race judicata"
+  ],
+  "expect_regex": "12\\(b\\)\\(6\\)",
+  "max_wall_seconds": 20,
+  "fail_hint": "vocabulary substitution rules don't support literal parens, OR Formal profile rewrote citations. Inspect VocabularyEngine + FormalProfile."
+}
