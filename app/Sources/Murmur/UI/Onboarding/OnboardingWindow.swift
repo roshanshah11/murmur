@@ -68,6 +68,7 @@ final class OnboardingModel: ObservableObject {
     @Published var dictationConfirmed: Bool = false
 
     let modelManager = ModelManager()
+    private var cancellables: Set<AnyCancellable> = []
 
     init() {
         // Read current values so the wizard reflects whatever the user has
@@ -77,6 +78,17 @@ final class OnboardingModel: ObservableObject {
         // Default selection to Base.en — the recommended balance.
         self.selectedModelName = modelManager.manifest
             .entry(named: "ggml-base.en")?.name
+
+        // Bridge nested ObservableObject changes upstream. Without this,
+        // SwiftUI views observing OnboardingModel won't re-render when
+        // ModelManager publishes a download progress tick or finishes
+        // installation — meaning the "Continue" button on the model step
+        // would stay disabled even after the download lands.
+        modelManager.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
     }
 
     func goNext() {
@@ -137,8 +149,8 @@ private struct OnboardingHeader: View {
     }
 
     private func color(for step: OnboardingStep) -> Color {
-        if step.ordinal < current.ordinal { return .accentColor }
         if step == current                 { return .accentColor }
+        if step.ordinal < current.ordinal { return .accentColor.opacity(0.5) }
         return Color.secondary.opacity(0.25)
     }
 }
