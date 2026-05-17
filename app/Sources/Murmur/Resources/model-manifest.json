@@ -1,0 +1,54 @@
+{
+  "entries": [
+    {
+      "name": "ggml-tiny.en",
+      "displayName": "Tiny (English)",
+      "sizeMB": 75,
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin",
+      "sha256": "PENDING",
+      "language": "en",
+      "notes": "Fastest. Lower accuracy. Good for short utterances or older Intel Macs.",
+      "recommendedFor": ["Intel"]
+    },
+    {
+      "name": "ggml-base.en",
+      "displayName": "Base (English)",
+      "sizeMB": 142,
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin",
+      "sha256": "PENDING",
+      "language": "en",
+      "notes": "Default. Good balance of speed and accuracy.",
+      "recommendedFor": ["Apple Silicon", "Intel"]
+    },
+    {
+      "name": "ggml-small.en",
+      "displayName": "Small (English)",
+      "sizeMB": 466,
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin",
+      "sha256": "PENDING",
+      "language": "en",
+      "notes": "Better accuracy. Slightly slower.",
+      "recommendedFor": ["Apple Silicon"]
+    },
+    {
+      "name": "ggml-medium.en",
+      "displayName": "Medium (English)",
+      "sizeMB": 1500,
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.en.bin",
+      "sha256": "PENDING",
+      "language": "en",
+      "notes": "High accuracy. Needs >=16GB RAM.",
+      "recommendedFor": ["Apple Silicon"]
+    },
+    {
+      "name": "ggml-large-v3-turbo",
+      "displayName": "Large v3 Turbo (multilingual)",
+      "sizeMB": 1620,
+      "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin",
+      "sha256": "PENDING",
+      "language": "multilingual",
+      "notes": "Best multilingual accuracy. Apple Silicon required for real-time.",
+      "recommendedFor": ["Apple Silicon"]
+    }
+  ]
+}

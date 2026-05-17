@@ -13,6 +13,9 @@ let package = Package(
         .executableTarget(
             name: "Murmur",
             path: "Sources/Murmur",
+            resources: [
+                .copy("Resources/model-manifest.json")
+            ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
