@@ -15,6 +15,7 @@ final class NotchIndicator {
         case idle
         case recording
         case processing(label: String)
+        case downloading(progress: Double)
         case success(label: String)
         case error(label: String)
     }
@@ -76,6 +77,15 @@ final class NotchIndicator {
         applyState(.processing(label: label))
     }
 
+    /// Surface model-download progress (0…1) in place of the spectrum bars.
+    /// Auto-clamped to the valid range so a transient overshoot from the
+    /// download delegate doesn't violate the progress-bar invariant.
+    func setDownloading(progress: Double) {
+        ensureBuilt()
+        let clamped = max(0.0, min(1.0, progress))
+        applyState(.downloading(progress: clamped))
+    }
+
     func setSuccess(label: String) {
         ensureBuilt()
         applyState(.success(label: label))
@@ -126,6 +136,12 @@ final class NotchIndicator {
             stopElapsedTextTimer()
             stopLevelPoll()
             present(targetWidth: pill?.intrinsicWidth(for: .processing(label: label), hovered: false) ?? 290)
+        case .downloading(let progress):
+            pill?.downloadProgress = progress
+            pill?.applyState(.downloading(progress: progress), hovered: false, recordingStartedAt: nil)
+            stopElapsedTextTimer()
+            stopLevelPoll()
+            present(targetWidth: pill?.intrinsicWidth(for: .downloading(progress: progress), hovered: false) ?? 320)
         case .success(let label):
             pill?.successLabel = label
             pill?.applyState(.success(label: label), hovered: false, recordingStartedAt: nil)
@@ -371,6 +387,12 @@ final class NotchPillView: NSView {
     var processingLabel: String = "Transcribing…"
     var successLabel: String = "Inserted"
     var errorLabel: String = "Couldn't transcribe"
+    /// Current model-download progress (0…1) for `.downloading` state.
+    /// Stored so `layout()` can size the progress fill without re-receiving
+    /// the value through `applyState`.
+    var downloadProgress: Double = 0 {
+        didSet { needsLayout = true }
+    }
 
     // State-dependent intrinsic widths for the morph animation.
     func intrinsicWidth(for state: NotchIndicator.State, hovered: Bool) -> CGFloat {
@@ -383,6 +405,8 @@ final class NotchPillView: NSView {
             return hovered ? 400 : 300
         case .processing:
             return 300
+        case .downloading:
+            return 320
         case .success(let label):
             return max(220, 110 + estimatedWidth(label))
         case .error(let label):
@@ -406,6 +430,10 @@ final class NotchPillView: NSView {
     private let cancelButton = NotchPillButton(title: "Cancel")
     private let retryButton = NotchPillButton(title: "Retry")
     private let glowLayer = CALayer()
+    /// Track + fill views for the model-download progress bar. Two flat
+    /// NSViews so they can be alpha-crossfaded by the existing helper.
+    private let progressTrack = NSView()
+    private let progressFill = NSView()
     private var trackingArea: NSTrackingArea?
     private var currentState: NotchIndicator.State = .hidden
     private var hoveredNow = false
@@ -465,6 +493,20 @@ final class NotchPillView: NSView {
 
         addSubview(bars)
 
+        // Download progress bar: thin pill-shaped track with a red fill.
+        // Hidden until applyState swaps in the .downloading layout.
+        progressTrack.wantsLayer = true
+        progressTrack.layer?.backgroundColor = NSColor(white: 1.0, alpha: 0.16).cgColor
+        progressTrack.layer?.cornerRadius = 3
+        progressTrack.alphaValue = 0
+        addSubview(progressTrack)
+
+        progressFill.wantsLayer = true
+        progressFill.layer?.backgroundColor = Self.recColor.cgColor
+        progressFill.layer?.cornerRadius = 3
+        progressFill.alphaValue = 0
+        addSubview(progressFill)
+
         stopButton.onClick = { [weak self] in self?.onStop?() }
         cancelButton.onClick = { [weak self] in self?.onCancel?() }
         retryButton.onClick = { [weak self] in self?.onRetry?() }
@@ -505,7 +547,9 @@ final class NotchPillView: NSView {
 
         // Ensure all subviews are unhidden so alpha can animate. Hidden
         // views skip layout/animation, which would cause pops.
-        for v in [primaryLabel, secondaryLabel, timerLabel, micIcon, bars, stopButton, cancelButton, retryButton] as [NSView] {
+        for v in [primaryLabel, secondaryLabel, timerLabel, micIcon, bars,
+                  stopButton, cancelButton, retryButton,
+                  progressTrack, progressFill] as [NSView] {
             v.isHidden = false
         }
 
@@ -522,7 +566,8 @@ final class NotchPillView: NSView {
             crossfade(targets: [
                 (primaryLabel, 0), (secondaryLabel, 0), (timerLabel, 0),
                 (micIcon, 0), (bars, 0),
-                (stopButton, 0), (cancelButton, 0), (retryButton, 0)
+                (stopButton, 0), (cancelButton, 0), (retryButton, 0),
+                (progressTrack, 0), (progressFill, 0)
             ])
             return
 
@@ -536,7 +581,8 @@ final class NotchPillView: NSView {
             crossfade(targets: [
                 (micIcon, 1), (secondaryLabel, 1), (bars, 0.45),
                 (primaryLabel, 0), (timerLabel, 0),
-                (stopButton, 0), (cancelButton, 0), (retryButton, 0)
+                (stopButton, 0), (cancelButton, 0), (retryButton, 0),
+                (progressTrack, 0), (progressFill, 0)
             ])
 
         case .recording:
@@ -553,7 +599,8 @@ final class NotchPillView: NSView {
                 (micIcon, 1), (primaryLabel, 1), (bars, 1), (timerLabel, 1),
                 (secondaryLabel, 0), (retryButton, 0),
                 (stopButton, hovered ? 1 : 0),
-                (cancelButton, hovered ? 1 : 0)
+                (cancelButton, hovered ? 1 : 0),
+                (progressTrack, 0), (progressFill, 0)
             ])
 
         case .processing(let label):
@@ -566,7 +613,27 @@ final class NotchPillView: NSView {
             glowLayer.shadowOpacity = 0.0
             crossfade(targets: [
                 (micIcon, 1), (secondaryLabel, 1), (bars, 0.85), (timerLabel, 1),
-                (primaryLabel, 0), (stopButton, 0), (cancelButton, 0), (retryButton, 0)
+                (primaryLabel, 0), (stopButton, 0), (cancelButton, 0), (retryButton, 0),
+                (progressTrack, 0), (progressFill, 0)
+            ])
+
+        case .downloading(let progress):
+            // Bars get hidden in favor of a single thin progress strip.
+            // Mic icon flips to the download glyph; secondary label shows
+            // "Downloading model" so the notch never has anonymous progress.
+            micIcon.contentTintColor = Self.primaryTextColor
+            micIcon.image = NSImage(systemSymbolName: "arrow.down.circle",
+                                    accessibilityDescription: "Downloading model")
+            secondaryLabel.textColor = Self.primaryTextColor
+            secondaryLabel.stringValue = "Downloading model"
+            timerLabel.stringValue = "\(Int((progress * 100).rounded()))%"
+            downloadProgress = progress
+            glowLayer.shadowOpacity = 0.0
+            crossfade(targets: [
+                (micIcon, 1), (secondaryLabel, 1), (timerLabel, 1),
+                (progressTrack, 1), (progressFill, 1),
+                (primaryLabel, 0), (bars, 0),
+                (stopButton, 0), (cancelButton, 0), (retryButton, 0)
             ])
 
         case .success(let label):
@@ -580,7 +647,8 @@ final class NotchPillView: NSView {
             crossfade(targets: [
                 (micIcon, 1), (secondaryLabel, 1),
                 (primaryLabel, 0), (timerLabel, 0), (bars, 0),
-                (stopButton, 0), (cancelButton, 0), (retryButton, 0)
+                (stopButton, 0), (cancelButton, 0), (retryButton, 0),
+                (progressTrack, 0), (progressFill, 0)
             ])
 
         case .error(let label):
@@ -593,7 +661,8 @@ final class NotchPillView: NSView {
             crossfade(targets: [
                 (micIcon, 1), (secondaryLabel, 1), (retryButton, 1),
                 (primaryLabel, 0), (timerLabel, 0), (bars, 0),
-                (stopButton, 0), (cancelButton, 0)
+                (stopButton, 0), (cancelButton, 0),
+                (progressTrack, 0), (progressFill, 0)
             ])
         }
 
@@ -722,6 +791,26 @@ final class NotchPillView: NSView {
             let barsX = x + gap
             let barsW = max(40, (timerX - gap) - barsX)
             bars.frame = NSRect(x: barsX, y: visibleStripY + 6, width: barsW, height: visibleH - 12)
+
+        case .downloading:
+            // [mic] Downloading model …………────── 47%
+            secondaryLabel.sizeToFit()
+            secondaryLabel.frame = NSRect(x: x, y: stripCenterY - secondaryLabel.frame.height / 2,
+                                          width: secondaryLabel.frame.width, height: secondaryLabel.frame.height)
+            x += secondaryLabel.frame.width + gap
+
+            timerLabel.sizeToFit()
+            let pctW = max(36, timerLabel.frame.width)
+            let pctX = bounds.maxX - rightPad - pctW
+            timerLabel.frame = NSRect(x: pctX, y: stripCenterY - 9, width: pctW, height: 18)
+
+            let barX = x + gap
+            let barW = max(60, (pctX - gap) - barX)
+            let barH: CGFloat = 6
+            let barY = stripCenterY - barH / 2
+            progressTrack.frame = NSRect(x: barX, y: barY, width: barW, height: barH)
+            let fillW = max(0, min(barW, barW * CGFloat(downloadProgress)))
+            progressFill.frame = NSRect(x: barX, y: barY, width: fillW, height: barH)
 
         case .success:
             secondaryLabel.sizeToFit()

@@ -108,7 +108,9 @@ public final class ModelManager: ObservableObject {
 
     /// Returns the lower-case hex SHA-256 digest of the file at `url`.
     /// Streams the file in chunks so multi-GB models don't blow the heap.
-    public static func sha256Hex(of url: URL) throws -> String {
+    /// `nonisolated` so callers off the main actor (the download adapter)
+    /// can invoke it directly without an actor hop.
+    public nonisolated static func sha256Hex(of url: URL) throws -> String {
         let handle = try FileHandle(forReadingFrom: url)
         defer { try? handle.close() }
         var hasher = SHA256()

@@ -5,6 +5,7 @@ public enum MurmurState: Equatable {
     case recording
     case transcribing
     case pasting
+    case downloadingModel(progress: Double)
     case error(String)
 
     var displayName: String {
@@ -13,6 +14,8 @@ public enum MurmurState: Equatable {
         case .recording: return "Recording…"
         case .transcribing: return "Transcribing…"
         case .pasting: return "Pasting…"
+        case .downloadingModel(let progress):
+            return "Downloading model — \(Int((progress * 100).rounded()))%"
         case .error(let message): return "Error — \(message)"
         }
     }
@@ -23,6 +26,8 @@ public enum MurmurState: Equatable {
         case .recording: return "● Murmur"
         case .transcribing: return "… Murmur"
         case .pasting: return "↪ Murmur"
+        case .downloadingModel(let progress):
+            return "⤓ Murmur \(Int((progress * 100).rounded()))%"
         case .error: return "! Murmur"
         }
     }
@@ -94,8 +99,32 @@ final class AppState {
             startDictation()
         case .recording:
             stopAndProcessDictation()
-        case .transcribing, .pasting:
+        case .transcribing, .pasting, .downloadingModel:
             Log.event(state: "toggle_ignored_busy")
+        }
+    }
+
+    // MARK: - Model download bridge
+
+    /// Called by the Models settings tab while a download is in flight.
+    /// Drives the notch overlay's `.downloadingModel` UI through the same
+    /// `onStateChange` callback as every other state transition.
+    func setDownloadingModel(progress: Double) {
+        // Don't clobber an active dictation pipeline.
+        switch state {
+        case .recording, .transcribing, .pasting:
+            return
+        default:
+            break
+        }
+        state = .downloadingModel(progress: max(0, min(1, progress)))
+    }
+
+    /// Clears the `.downloadingModel` state if the manager is currently
+    /// showing one. No-op otherwise so we don't trample dictation state.
+    func clearDownloadingModel() {
+        if case .downloadingModel = state {
+            state = .idle
         }
     }
 

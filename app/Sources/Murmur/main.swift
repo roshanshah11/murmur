@@ -248,6 +248,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menuBarTitle = base
             menuLabel = "Murmur: \(appState.state.displayName)"
             notch.setError(label: message)
+        case .downloadingModel(let progress):
+            menuBarTitle = appState.state.shortTitle
+            menuLabel = "Murmur: \(appState.state.displayName)"
+            notch.setDownloading(progress: progress)
         }
         statusItem.button?.title = menuBarTitle
         stateItemRef?.title = menuLabel
