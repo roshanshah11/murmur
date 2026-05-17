@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!--
+    Murmur app icon — v3 Minimal
+    Ultra-spare: thinner italic m, single subtle wave undulation, tiny red dot.
+    Maximum negative space, quiet confidence. Reads as editorial mark.
+  -->
+  <defs>
+    <linearGradient id="bgGrad3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#FFFBF5"/>
+      <stop offset="100%" stop-color="#F3EBDF"/>
+    </linearGradient>
+
+    <radialGradient id="paperShade3" cx="0.5" cy="0.45" r="0.9">
+      <stop offset="65%" stop-color="#FFFBF5" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#2A1F12" stop-opacity="0.04"/>
+    </radialGradient>
+
+    <linearGradient id="tailGrad3" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"  stop-color="#1A1A1A" stop-opacity="0.95"/>
+      <stop offset="70%" stop-color="#1A1A1A" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#C2362F" stop-opacity="0.8"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#bgGrad3)"/>
+  <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#paperShade3)"/>
+
+  <!--
+    Thinner italic m — narrower verticals, hairline arches,
+    glyph centered around x=320..640, baseline y=700.
+    Slant ~11°.
+  -->
+  <g fill="#1A1A1A">
+    <!-- First stroke -->
+    <path d="
+      M 358 700
+      C 358 700, 362 686, 370 686
+      C 378 686, 384 690, 390 700
+      L 414 462
+      C 418 436, 428 422, 444 416
+      C 426 410, 414 412, 402 422
+      C 388 432, 380 450, 376 474
+      L 358 700
+      Z
+      M 346 700
+      C 346 712, 352 716, 362 716
+      L 392 716
+      C 402 716, 408 712, 410 700
+      Z"/>
+
+    <!-- Second stroke -->
+    <path d="
+      M 450 700
+      C 450 700, 454 686, 462 686
+      C 470 686, 476 690, 482 700
+      L 506 482
+      C 510 458, 506 446, 494 440
+      C 510 432, 528 436, 540 450
+      C 552 464, 556 482, 552 506
+      L 532 700
+      Z
+      M 438 700
+      C 438 712, 444 716, 454 716
+      L 484 716
+      C 494 716, 500 712, 502 700
+      Z"/>
+
+    <!-- Third stroke -->
+    <path d="
+      M 572 700
+      C 572 700, 576 686, 584 686
+      C 592 686, 598 690, 604 700
+      L 628 482
+      C 632 458, 628 446, 616 440
+      C 632 432, 650 436, 662 450
+      C 674 464, 678 482, 674 506
+      L 654 700
+      Z
+      M 560 700
+      C 560 712, 566 716, 576 716
+      L 606 716
+      C 616 716, 622 712, 624 700
+      Z"/>
+  </g>
+
+  <!--
+    Single subtle undulation — one gentle wave, then resolves.
+    Hairline-thin stroke to match the minimal weight.
+  -->
+  <g fill="none" stroke="url(#tailGrad3)" stroke-linecap="round">
+    <path
+      d="
+        M 654 700
+        C 686 698, 712 690, 732 678
+        C 754 664, 770 666, 780 680
+        C 788 692, 798 692, 808 680
+      "
+      stroke-width="8"
+    />
+  </g>
+
+  <!-- Tiny red dot — quiet punctuation -->
+  <circle cx="828" cy="678" r="8" fill="#C2362F"/>
+</svg>
