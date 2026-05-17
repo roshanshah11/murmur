@@ -119,10 +119,16 @@ section{padding:64px 0;border-top:var(--rule)}
   .hero-grid .demo-row{grid-template-columns:1fr;gap:18px}
 }
 .demo-frame::before{
-  content:"FIG. I — THE NOTCH OVERLAY, AT REST AND DURING DICTATION";
+  content:"FIG. II — THE DICTATION FLOW, FOUR BEATS";
   position:absolute;top:-9px;left:24px;background:var(--paper);padding:0 10px;
   font-family:var(--sans);font-size:10px;letter-spacing:0.22em;color:var(--ink-fade);
 }
+.demo-video{
+  display:block;width:100%;height:auto;border-radius:14px;
+  background:#EFE9DD;
+  box-shadow:0 1px 0 rgba(28,24,20,0.06), 0 8px 28px -16px rgba(28,24,20,0.18);
+}
+.demo-frame .demo-caption{margin-top:14px}
 .demo-row{
   display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;
 }
@@ -352,39 +358,26 @@ kbd{font-family:var(--mono);font-size:0.9em;background:color-mix(in srgb,var(--i
         </div>
       </div>
 
-      <div class="demo-frame" aria-hidden="true">
-        <div class="demo-row">
-          <div class="demo-card idle">
-            <div class="menu-bar">
-              <i></i><i></i><i></i>
-              <span class="app">Notes</span>
-              <span class="app-menu"><span>File</span><span>Edit</span><span>View</span></span>
-              <span class="clk">100% &nbsp; Sun 10:42</span>
-            </div>
-            <div class="notch"></div>
-            <div class="pill"></div>
-            <div class="demo-target">The cursor waits in your editor.<span class="caret"></span></div>
-          </div>
-          <div class="demo-card active">
-            <div class="menu-bar">
-              <i></i><i></i><i></i>
-              <span class="app">Notes</span>
-              <span class="app-menu"><span>File</span><span>Edit</span><span>View</span></span>
-              <span class="clk">100% &nbsp; Sun 10:42</span>
-            </div>
-            <div class="notch"></div>
-            <div class="pill">
-              <span class="dot"></span>
-              <span class="bars"><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span>
-              <span class="time">0:04</span>
-            </div>
-            <div class="demo-target">Three sentences of perfectly capitalised prose, just landed.<span class="caret"></span></div>
-          </div>
-        </div>
-        <div class="demo-caption">
-          <span>Idle</span><span>Recording &amp; transcribing</span>
-        </div>
-      </div>
+      <figure class="demo-frame" aria-label="Animated demo of the Murmur dictation flow">
+        <video
+          class="demo-video"
+          width="1280"
+          height="800"
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="metadata"
+          poster="demo-poster.webp"
+          aria-label="Cursor rests in the editor, a notch pill drops down, spectrum bars dance, and transcribed text lands at the caret with a green check. Six second loop.">
+          <source src="demo.webm" type="video/webm">
+          <source src="demo.mp4" type="video/mp4">
+          <img src="demo-poster.webp" width="1280" height="800" alt="Murmur dictation flow — cursor resting, notch pill, listening bars, and pasted text.">
+        </video>
+        <figcaption class="demo-caption">
+          <span>Cursor &middot; Pill &middot; Bars</span><span>Text lands at the caret</span>
+        </figcaption>
+      </figure>
     </div>
   </div>
 </section>
