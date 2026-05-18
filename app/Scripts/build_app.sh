@@ -160,11 +160,28 @@ cat > "${APP_DIR}/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-codesign --force --deep \
+# Sparkle requires inner-to-outer signing of every nested bundle — the XPC
+# services + Updater.app + framework MUST be signed individually before the
+# parent app. --deep alone does NOT do this correctly for Sparkle. Without
+# this, "Check for updates" fails with "The updater failed to start."
+SPARKLE_FW="$APP_DIR/Contents/Frameworks/Sparkle.framework"
+if [ -d "$SPARKLE_FW" ]; then
+  for xpc in "$SPARKLE_FW/Versions/B/XPCServices/"*.xpc; do
+    [ -d "$xpc" ] || continue
+    codesign --force --sign "$SIGN_ARG" --timestamp=none "$xpc"
+  done
+  if [ -d "$SPARKLE_FW/Versions/B/Updater.app" ]; then
+    codesign --force --sign "$SIGN_ARG" --timestamp=none --deep "$SPARKLE_FW/Versions/B/Updater.app"
+  fi
+  codesign --force --sign "$SIGN_ARG" --timestamp=none --deep "$SPARKLE_FW"
+fi
+
+codesign --force \
   --sign "$SIGN_ARG" \
   --identifier "com.murmur.app" \
   -r '=designated => identifier "com.murmur.app"' \
   "$APP_DIR"
+codesign --verify --deep --strict "$APP_DIR" 2>&1 | tail -3 || true
 codesign -dvv "$APP_DIR" 2>&1 | grep -E "^(Authority|Identifier)" || true
 
 # Install to /Applications so the app is launchable from Spotlight / Launchpad
