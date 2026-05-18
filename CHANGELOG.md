@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.0] — Unreleased
+## [1.0.0] — 2026-05-17
 
 First public release under the Murmur name. The date is set when the
 v1.0.0 tag is pushed (see `scripts/RELEASE-CHECKLIST.md`).
