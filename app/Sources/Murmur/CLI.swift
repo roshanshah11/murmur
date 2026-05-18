@@ -138,7 +138,7 @@ enum CLI {
     }
 
     static func runVersion() {
-        FileHandle.standardOutput.write(Data("Murmur v0\n".utf8))
+        FileHandle.standardOutput.write(Data("Murmur 1.0.0\n".utf8))
     }
 
     /// Headless transcribe + cleanup for smoke tests and scripting.
