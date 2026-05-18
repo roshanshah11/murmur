@@ -133,9 +133,9 @@ cat > "${APP_DIR}/Contents/Info.plist" <<'PLIST'
     <key>CFBundleIdentifier</key>
     <string>com.murmur.app</string>
     <key>CFBundleVersion</key>
-    <string>0.1</string>
+    <string>1.0.0</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.1.0</string>
+    <string>1.0.0</string>
     <key>CFBundleExecutable</key>
     <string>Murmur</string>
     <key>CFBundleIconFile</key>

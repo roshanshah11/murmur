@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Murmur</title>
+    <link>https://roshanshah11.github.io/murmur/appcast.xml</link>
+    <description>Most recent Murmur updates</description>
+    <language>en</language>
+    <item>
+      <title>Murmur 1.0.0</title>
+      <pubDate>Sun, 17 May 2026 18:00:00 -0400</pubDate>
+      <sparkle:version>1.0.0</sparkle:version>
+      <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[
+        <h2>Murmur 1.0.0</h2>
+        <p>First public release. Local-first dictation for macOS.</p>
+        <ul>
+          <li>Seven-tab Settings window (General, Recording, Vocabulary, Prompts, Models, Updates, About)</li>
+          <li>Opt-in History viewer with search, copy, re-paste, delete</li>
+          <li>Vocabulary editor with JSON import/export</li>
+          <li>Four cleanup profiles: Raw, Casual, Formal, Code</li>
+          <li>Five Whisper model sizes downloadable in-app</li>
+          <li>Six-step onboarding wizard on first launch</li>
+          <li>Sparkle in-app updates</li>
+        </ul>
+        <p><strong>Note:</strong> This 1.0.0 build is ad-hoc-signed. A Developer-ID-signed and notarized DMG will land in 1.0.1.</p>
+      ]]></description>
+      <enclosure
+        url="https://github.com/roshanshah11/murmur/releases/download/v1.0.0/Murmur-1.0.0.dmg"
+        sparkle:version="1.0.0"
+        sparkle:shortVersionString="1.0.0"
+        length="2099987"
+        type="application/octet-stream" />
+    </item>
+  </channel>
+</rss>

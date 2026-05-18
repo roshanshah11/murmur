@@ -32,7 +32,7 @@ jobs:
 
       - name: Fail if whisper.cpp cache is unreadable
         id: whisper-cache
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4 latest
         with:
           path: |
             app/.whisper
@@ -53,7 +53,7 @@ jobs:
         run: swift test --parallel
 
       - name: Fail if SwiftLint warnings are present
-        uses: realm/SwiftLint@d10b6dec0d54e94fc41f9c52c46808af49d22cee # 0.55.1 / v3.2.7 action
+        uses: realm/SwiftLint@b6e6c7e5eb02ebde94c64b8ccc31993b775f1eda # 0.63.2
         with:
           args: --strict --config .swiftlint.yml
 
@@ -63,8 +63,19 @@ jobs:
       - name: Fail if banned FlowLite terms reappear in tracked sources
         run: |
           set -euo pipefail
+          # Allowlist: Phase-0 migration code legitimately references the
+          # legacy ~/.flow-lite path; release/security docs cite the rename
+          # historically; PR template + CHANGELOG + SwiftLint config + this
+          # very CI step are meta-references not code drift.
           if git grep -nIE 'FlowLite|flow-lite|Flow Lite' \
-              -- ':!docs/specs/v0' ':!.superpowers' \
+              -- ':!docs/specs/v0' ':!docs/superpowers' ':!.superpowers' \
+              ':!app/Sources/Murmur/App/AppPaths.swift' \
+              ':!app/Sources/Murmur/Config/Migration.swift' \
+              ':!app/Tests/MurmurTests/AppPathsTests.swift' \
+              ':!app/Tests/MurmurTests/ConfigMigrationTests.swift' \
+              ':!CHANGELOG.md' ':!SECURITY.md' ':!docs/internal/sparkle-notes.md' \
+              ':!.github/PULL_REQUEST_TEMPLATE.md' ':!.github/workflows' \
+              ':!.swiftlint.yml' ':!docs/launch' ':!docs/development.md' \
               > /tmp/forbidden_terms.txt; then
             echo "::error::Banned terms found (see below). Rename to Murmur."
             cat /tmp/forbidden_terms.txt
