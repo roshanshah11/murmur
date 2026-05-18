@@ -124,14 +124,69 @@ section{padding:64px 0;border-top:var(--rule)}
   .hero-grid .demo-row{grid-template-columns:1fr;gap:18px}
 }
 .demo-frame::before{
-  content:"FIG. II — THE DICTATION FLOW, FOUR BEATS";
+  content:"FIG. — THE NOTCH OVERLAY, DURING DICTATION";
   position:absolute;top:-9px;left:24px;background:var(--paper);padding:0 10px;
   font-family:var(--sans);font-size:10px;letter-spacing:0.22em;color:var(--ink-fade);
 }
-.demo-video{
-  display:block;width:100%;height:auto;border-radius:14px;
-  background:#EFE9DD;
-  box-shadow:0 1px 0 rgba(28,24,20,0.06), 0 8px 28px -16px rgba(28,24,20,0.18);
+/* Mock MacBook screen — always-visible CSS replacement for the demo video */
+.mock-mac{
+  position:relative;aspect-ratio:16/10;border-radius:14px;overflow:hidden;
+  background:linear-gradient(180deg,#0F0C0A,#1C1814);
+  box-shadow:0 1px 0 rgba(28,24,20,0.08), 0 22px 60px -28px rgba(28,24,20,0.5);
+}
+.mock-menubar{
+  position:absolute;top:0;left:0;right:0;height:22px;
+  background:rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.07);
+  display:flex;align-items:center;gap:6px;padding:0 9px;
+}
+.mock-tl{width:8px;height:8px;border-radius:50%}
+.mock-menubar .mock-tl:nth-child(1){background:#FF5F57}
+.mock-menubar .mock-tl:nth-child(2){background:#FEBC2E}
+.mock-menubar .mock-tl:nth-child(3){background:#28C840}
+.mock-app{margin-left:14px;color:rgba(255,255,255,0.86);font-family:var(--sans);font-size:9.5px;letter-spacing:0.06em;font-weight:600}
+.mock-app-menu{margin-left:10px;color:rgba(255,255,255,0.42);font-family:var(--sans);font-size:9.5px;letter-spacing:0.06em;display:flex;gap:9px}
+.mock-clock{margin-left:auto;color:rgba(255,255,255,0.6);font-family:var(--sans);font-size:9.5px}
+.mock-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:140px;height:26px;background:#000;border-bottom-left-radius:14px;border-bottom-right-radius:14px}
+.mock-pill{
+  position:absolute;top:6px;left:50%;transform:translateX(-50%);
+  width:170px;height:30px;border-radius:99px;background:#FFFBF5;
+  box-shadow:0 8px 26px -6px rgba(178,58,42,0.45);
+  display:flex;align-items:center;gap:8px;padding:0 12px;z-index:2;
+}
+.mock-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex:none;box-shadow:0 0 0 0 rgba(178,58,42,0.6)}
+@media (prefers-reduced-motion: no-preference){
+  .mock-dot{animation:dotPulse 1.6s ease-in-out infinite}
+  @keyframes dotPulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(178,58,42,0.55)}
+    50%{box-shadow:0 0 0 6px rgba(178,58,42,0)}
+  }
+}
+.mock-bars{display:flex;align-items:center;gap:3px;flex:1;justify-content:center}
+.mock-bars b{display:inline-block;width:3px;border-radius:2px;background:#1C1814;height:8px}
+@media (prefers-reduced-motion: no-preference){
+  .mock-bars b{animation:bar 1100ms ease-in-out infinite}
+  .mock-bars b:nth-child(1){height:8px;animation-delay:0ms}
+  .mock-bars b:nth-child(2){height:14px;animation-delay:80ms}
+  .mock-bars b:nth-child(3){height:18px;animation-delay:160ms}
+  .mock-bars b:nth-child(4){height:13px;animation-delay:240ms}
+  .mock-bars b:nth-child(5){height:9px;animation-delay:320ms}
+  .mock-bars b:nth-child(6){height:16px;animation-delay:120ms}
+  .mock-bars b:nth-child(7){height:11px;animation-delay:200ms}
+  .mock-bars b:nth-child(8){height:15px;animation-delay:280ms}
+  @keyframes bar{0%,100%{transform:scaleY(0.55)}50%{transform:scaleY(1.2)}}
+}
+.mock-time{color:rgba(28,24,20,0.6);font-family:var(--mono);font-size:9.5px;letter-spacing:0.04em}
+.mock-target{
+  position:absolute;left:8%;right:8%;bottom:9%;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px;padding:12px 14px;color:rgba(255,255,255,0.85);
+  font-family:var(--serif);font-size:13px;line-height:1.42;
+}
+.mock-typed{}
+.mock-caret{display:inline-block;width:1.5px;height:0.95em;background:rgba(255,255,255,0.85);vertical-align:-1px;margin-left:2px}
+@media (prefers-reduced-motion: no-preference){
+  .mock-caret{animation:caretBlink 1s steps(2,end) infinite}
+  @keyframes caretBlink{50%{opacity:0}}
 }
 .demo-frame .demo-caption{margin-top:14px}
 .demo-row{
@@ -363,24 +418,26 @@ kbd{font-family:var(--mono);font-size:0.9em;background:color-mix(in srgb,var(--i
         </div>
       </div>
 
-      <figure class="demo-frame" aria-label="Animated demo of the Murmur dictation flow">
-        <video
-          class="demo-video"
-          width="1280"
-          height="800"
-          autoplay
-          loop
-          muted
-          playsinline
-          preload="metadata"
-          poster="demo-poster.webp"
-          aria-label="Cursor rests in the editor, a notch pill drops down, spectrum bars dance, and transcribed text lands at the caret with a green check. Six second loop.">
-          <source src="demo.webm" type="video/webm">
-          <source src="demo.mp4" type="video/mp4">
-          <img src="demo-poster.webp" width="1280" height="800" alt="Murmur dictation flow — cursor resting, notch pill, listening bars, and pasted text.">
-        </video>
+      <figure class="demo-frame" aria-label="Murmur's notch overlay during dictation">
+        <div class="mock-mac" role="img" aria-label="A MacBook screen showing Murmur's recording overlay in the notch area, with live spectrum bars and the transcribed sentence landing inside a Notes window.">
+          <div class="mock-menubar">
+            <span class="mock-tl"></span><span class="mock-tl"></span><span class="mock-tl"></span>
+            <span class="mock-app">Notes</span>
+            <span class="mock-app-menu"><span>File</span><span>Edit</span><span>View</span></span>
+            <span class="mock-clock">100% &nbsp; Sun 10:42</span>
+          </div>
+          <div class="mock-notch"></div>
+          <div class="mock-pill">
+            <span class="mock-dot"></span>
+            <span class="mock-bars"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span>
+            <span class="mock-time">0:04</span>
+          </div>
+          <div class="mock-target">
+            <span class="mock-typed">A quiet little app that listens only when you ask.</span><span class="mock-caret"></span>
+          </div>
+        </div>
         <figcaption class="demo-caption">
-          <span>Cursor &middot; Pill &middot; Bars</span><span>Text lands at the caret</span>
+          <span>Live overlay</span><span>Text lands at the caret</span>
         </figcaption>
       </figure>
     </div>
