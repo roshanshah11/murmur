@@ -42,7 +42,7 @@ brew install --cask roshanshah11/murmur/murmur
 https://github.com/roshanshah11/murmur/releases/latest/download/Murmur.dmg
 ```
 
-Drag **Murmur.app** into `/Applications`. On first launch macOS shows "cannot verify the developer" (1.0.x is signed but not yet Apple-notarised — notarisation lands in 1.1.x). To bypass once: right-click `Murmur.app` → **Open** → click **Open** in the dialog. macOS remembers; future launches are normal.
+Drag **Murmur.app** into `/Applications`. On first launch macOS shows *"Apple could not verify Murmur is free of malware"* — the 1.0.x DMG is signed but not yet Apple-notarised (notarisation lands in 1.1.x). One-time bypass on Sequoia: **System Settings → Privacy & Security → scroll down → click "Open Anyway"** next to the Murmur entry, enter password, click **Open** in the confirmation. macOS remembers; future launches are normal. Homebrew install above skips this dance entirely.
 
 | Requirement | Minimum |
 |---|---|
