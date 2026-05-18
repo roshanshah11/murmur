@@ -491,7 +491,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
 // MARK: - Entry point
 
-let mode = CLI.parse(CommandLine.arguments)
+let mode: CLIMode
+do {
+    mode = try CLI.parse(CommandLine.arguments)
+} catch {
+    let msg = "Murmur error: \(error.localizedDescription)\n"
+    FileHandle.standardError.write(Data(msg.utf8))
+    exit(2)
+}
 switch mode {
 case .help:
     CLI.runHelp()
@@ -499,7 +506,7 @@ case .help:
 case .version:
     CLI.runVersion()
     exit(0)
-case .transcribeOnly(let wav):
+case .transcribeOnly(let wav, _, _, _, _):
     exit(CLI.runTranscribeOnly(wav))
 case .recordOnce, .ui:
     let app = NSApplication.shared
