@@ -1,73 +1,47 @@
----
-title: Install
----
-
 # Install
 
-Get Murmur onto a Mac in under two minutes. Choose Homebrew if you already use it; otherwise grab the DMG.
+Two paths. Homebrew is recommended; it handles macOS's first-launch trust prompt for you.
 
-## System requirements
+## Homebrew (recommended)
 
-| Item | Minimum |
-|---|---|
-| macOS | 13 Ventura |
-| Architecture | Apple Silicon (M1/M2/M3/M4) or Intel x86_64 |
-| Disk | ~500 MB for the app + 75 MB to 3 GB per Whisper model |
-| RAM | 4 GB free during transcription (large model wants 8 GB) |
-| Mic | Any input device macOS recognizes |
-
-## Homebrew { #homebrew }
-
-The cask installs the signed and notarized app into `/Applications`.
-
-```bash
+```
 brew install --cask roshanshah11/murmur/murmur
 ```
 
-To upgrade later:
+That's it. Brew downloads the DMG, drags Murmur into `/Applications`, and registers it without any "unidentified developer" warning.
 
-```bash
-brew upgrade --cask murmur
-```
+To update later: `brew upgrade --cask murmur`. Murmur also has Sparkle in-app updates wired up; either path works.
 
-To uninstall:
+## Direct DMG
 
-```bash
-brew uninstall --cask murmur
-```
+If you'd rather not use Homebrew, download the signed DMG from the latest release:
 
-Brew handles Gatekeeper for you — the cask is signed with Murmur's Developer ID. Launch it from Spotlight or `/Applications`.
+[`Murmur.dmg`](https://github.com/roshanshah11/murmur/releases/latest/download/Murmur.dmg) · [release notes](https://github.com/roshanshah11/murmur/releases/latest)
 
-## DMG { #dmg }
+### On first launch you'll see "macOS cannot verify the developer"
 
-1. Download the latest `Murmur-<version>.dmg` from the [GitHub Releases page](https://github.com/roshanshah11/murmur/releases/latest).
-2. Open the DMG.
-3. Drag **Murmur.app** into the **Applications** alias.
-4. Eject the DMG.
-5. Open **Murmur** from `/Applications`.
+That's expected on this 1.0.x line. Murmur is signed but not yet **notarized** by Apple — notarization arrives in a 1.1.x update once we enroll in the Apple Developer Program. Until then, the first-launch bypass is two clicks:
 
-## First Gatekeeper prompt
-
-The signed DMG should pass Gatekeeper silently on stable macOS releases. You'll see *"Murmur is an app downloaded from the Internet. Are you sure you want to open it?"* once — click **Open**.
-
-### If macOS refuses to open it
-
-This usually happens on macOS betas where the Notary service is mid-update, or if the download was interrupted.
-
-Right-click → **Open** fallback:
-
-1. In Finder, right-click (or Control-click) **Murmur.app**.
+1. **Right-click** `Murmur.app` in your `/Applications` folder.
 2. Choose **Open** from the context menu.
-3. Confirm **Open** in the dialog.
+3. The dialog now offers an **Open** button (instead of just Cancel). Click it once.
 
-If that still fails, verify the download and re-grant quarantine override:
+macOS remembers your choice. Every future launch is normal.
 
-```bash
-xattr -d com.apple.quarantine /Applications/Murmur.app
-```
+If you'd rather use the Privacy panel:
 
-You should never need `sudo` for this; if you do, the app is in a system-protected location and you should reinstall it under `/Applications` for the current user.
+1. Try to double-click `Murmur.app`. macOS will block it.
+2. Open **System Settings → Privacy & Security**.
+3. Scroll to the security section. You'll see "Murmur.app was blocked." Click **Open Anyway**.
 
-## Next step
+## Requirements
 
-[Run Murmur for the first time](first-run.md) to disable Apple Dictation, grant permissions, and pick a model.
+- macOS 13 (Ventura) or later
+- Apple Silicon **or** Intel
+- ~150 MB free disk (75 MB for the default Whisper model, the rest for the app + caches)
+- A microphone (built-in is fine)
+- Permission to use the microphone and accessibility services (Murmur will prompt during [first run](first-run.md))
+
+## What's next
+
+Continue to [First run](first-run.md) to walk through permission prompts and the onboarding wizard.
