@@ -30,19 +30,19 @@ brew install --cask roshanshah11/murmur/murmur
 
 ## Install
 
-Murmur is signed and notarised; macOS will not warn you.
+**Homebrew (recommended)** — handles macOS first-launch trust for you:
 
 ```bash
 brew install --cask roshanshah11/murmur/murmur
 ```
 
-Prefer a direct download? Grab the latest signed DMG:
+**Direct DMG** — manual download:
 
 ```
 https://github.com/roshanshah11/murmur/releases/latest/download/Murmur.dmg
 ```
 
-Drag **Murmur.app** into `/Applications` and launch from Spotlight.
+Drag **Murmur.app** into `/Applications`. On first launch macOS shows "cannot verify the developer" (1.0.x is signed but not yet Apple-notarised — notarisation lands in 1.1.x). To bypass once: right-click `Murmur.app` → **Open** → click **Open** in the dialog. macOS remembers; future launches are normal.
 
 | Requirement | Minimum |
 |---|---|
