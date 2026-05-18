@@ -1,0 +1,11 @@
+{
+  "entries": [
+    { "from": "orth_exp_missing", "to": "AUTH_EXP_MISSING" },
+    { "from": "auth_exp_missing", "to": "AUTH_EXP_MISSING" },
+    { "from": "orth exp missing", "to": "AUTH_EXP_MISSING" },
+    { "from": "auth exp missing", "to": "AUTH_EXP_MISSING" },
+    { "from": "four oh one", "to": "401" },
+    { "from": "j w t", "to": "JWT" },
+    { "from": "orth middleweight", "to": "auth middleware" }
+  ]
+}

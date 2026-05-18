@@ -10,7 +10,7 @@
   "input_device_hint": "AirPods",
   "expect_contains": [
     "CFS",
-    "IO bound",
+    "I/O bound",
     "scheduler"
   ],
   "expect_not_contains": [

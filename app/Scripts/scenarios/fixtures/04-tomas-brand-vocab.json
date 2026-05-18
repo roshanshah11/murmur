@@ -1,0 +1,9 @@
+{
+  "entries": [
+    { "from": "talento más", "to": "Talento+" },
+    { "from": "talento mas", "to": "Talento+" },
+    { "from": "ocaes re", "to": "OKRs" },
+    { "from": "ocaes", "to": "OKRs" },
+    { "from": "OKR", "to": "OKR" }
+  ]
+}

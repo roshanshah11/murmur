@@ -1,0 +1,13 @@
+{
+  "entries": [
+    { "from": "12b6", "to": "12(b)(6)" },
+    { "from": "12 b 6", "to": "12(b)(6)" },
+    { "from": "twelve b six", "to": "12(b)(6)" },
+    { "from": "Twombli", "to": "Twombly" },
+    { "from": "impari de licto", "to": "in pari delicto" },
+    { "from": "impari delicto", "to": "in pari delicto" },
+    { "from": "race judicata", "to": "res judicata" },
+    { "from": "race juda cada", "to": "res judicata" },
+    { "from": "barre leave", "to": "bar relief" }
+  ]
+}
