@@ -156,6 +156,18 @@ cat > "${APP_DIR}/Contents/Info.plist" <<'PLIST'
     <string>PLACEHOLDER_REPLACE_BEFORE_FIRST_RELEASE</string>
     <key>SUEnableAutomaticChecks</key>
     <true/>
+    <!--
+      Disable Sparkle's XPC services for ad-hoc-signed dev builds. macOS
+      refuses to launch ad-hoc-signed XPC services, so the default XPC
+      installer + downloader paths fail with "the updater failed to start."
+      With these set to false, Sparkle uses the in-process legacy path.
+      Once we have a Developer ID and a notarized build, flip both back to
+      true (or remove these keys) to restore the more isolated XPC path.
+    -->
+    <key>SUEnableInstallerLauncherService</key>
+    <false/>
+    <key>SUEnableDownloaderService</key>
+    <false/>
 </dict>
 </plist>
 PLIST
