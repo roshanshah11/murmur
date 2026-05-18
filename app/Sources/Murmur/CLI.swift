@@ -142,8 +142,40 @@ enum CLI {
     }
 
     /// Headless transcribe + cleanup for smoke tests and scripting.
-    static func runTranscribeOnly(_ wav: URL) -> Int32 {
-        let config = Config.loadOrCreateDefault()
+    ///
+    /// Overrides are applied to an *in-memory* copy of the loaded `Config`;
+    /// the on-disk config is never mutated by this path so transient
+    /// scripting flags can't pollute the user's saved preferences.
+    static func runTranscribeOnly(
+        wav: URL,
+        profile: PromptLibrary.Profile? = nil,
+        language: String? = nil,
+        modelName: String? = nil,
+        vocabularyURL: URL? = nil
+    ) -> Int32 {
+        var config = Config.loadOrCreateDefault()
+
+        if let profile {
+            config.activeProfile = profile
+        }
+        if let language {
+            config.language = language
+        }
+        if let modelName {
+            let modelURL = AppPaths.modelsDirectory.appendingPathComponent("\(modelName).bin")
+            config.modelPath = modelURL.path
+        }
+        if let vocabularyURL {
+            do {
+                let data = try Data(contentsOf: vocabularyURL)
+                config.vocabulary = try JSONDecoder().decode(Vocabulary.self, from: data)
+            } catch {
+                let msg = "Murmur error: failed to load vocabulary at \(vocabularyURL.path): \(error)\n"
+                FileHandle.standardError.write(Data(msg.utf8))
+                return 1
+            }
+        }
+
         let whisper = WhisperRunner(config: config)
         let cleaner = TextCleaner(vocabulary: config.vocabulary, profile: config.activeProfile)
         do {

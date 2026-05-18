@@ -506,8 +506,14 @@ case .help:
 case .version:
     CLI.runVersion()
     exit(0)
-case .transcribeOnly(let wav, _, _, _, _):
-    exit(CLI.runTranscribeOnly(wav))
+case .transcribeOnly(let wav, let profile, let language, let modelName, let vocabularyURL):
+    exit(CLI.runTranscribeOnly(
+        wav: wav,
+        profile: profile,
+        language: language,
+        modelName: modelName,
+        vocabularyURL: vocabularyURL
+    ))
 case .recordOnce, .ui:
     let app = NSApplication.shared
     let delegate = AppDelegate()
