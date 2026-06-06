@@ -86,5 +86,17 @@ if [ ! -f "$OUT_DIR/appcast.xml" ]; then
   exit 70
 fi
 
+# Safety gate: refuse to publish a feed that lacks a minimum-OS floor. Sparkle's
+# generate_appcast derives <sparkle:minimumSystemVersion> from the app bundle's
+# LSMinimumSystemVersion; if it were absent the feed would offer this build to
+# older macOS versions it can't run on (FluidAudio needs macOS 14 → crash on
+# launch). Fail loudly rather than ship a feed that crashes older clients.
+MIN_OS="$(grep -o '<sparkle:minimumSystemVersion>[^<]*</sparkle:minimumSystemVersion>' "$OUT_DIR/appcast.xml" | head -1 | sed -E 's/<[^>]+>//g')"
+if [ -z "$MIN_OS" ]; then
+  echo "error: generated appcast has no <sparkle:minimumSystemVersion> — refusing to publish." >&2
+  echo "       Ensure the .app bundle's LSMinimumSystemVersion is set (see build_app.sh)." >&2
+  exit 70
+fi
+
 echo "==> Wrote $OUT_DIR/appcast.xml"
-echo "    (signed entries for $(basename "$DMG"))"
+echo "    (signed entries for $(basename "$DMG"); minimumSystemVersion=${MIN_OS})"

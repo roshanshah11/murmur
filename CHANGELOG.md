@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-06-06
+
+NVIDIA Parakeet becomes the default transcription engine on Apple Silicon.
+
+### Added
+
+- NVIDIA Parakeet (`parakeet-tdt-0.6b-v3`) transcription engine via the FluidAudio SDK, running in-process on the Apple Neural Engine (Core ML). Default on Apple Silicon — faster and more accurate for English than whisper.cpp.
+- Engine picker in **Settings → Models** with on-demand Parakeet model download (~470 MB) and progress.
+- `--engine parakeet|whisper` override for the `--transcribe-only` CLI path.
+
+### Changed
+
+- **Minimum macOS is now 14 (Sonoma)**, up from 13 — FluidAudio requires it. Intel Macs continue to default to whisper.cpp.
+- Transcription now runs behind a `TranscriptionEngine` abstraction; **whisper.cpp remains a fully supported, selectable fallback** covering 99 languages (and the default on Intel).
+
 ## [1.0.0] — 2026-05-17
 
 First public release under the Murmur name. The date is set when the

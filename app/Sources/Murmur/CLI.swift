@@ -157,7 +157,11 @@ enum CLI {
     }
 
     static func runVersion() {
-        FileHandle.standardOutput.write(Data("Murmur 1.0.0\n".utf8))
+        // Read the shipped bundle version so this tracks releases automatically.
+        // Falls back to the current dev version when run as a bare binary
+        // (e.g. `swift run`, where there's no Info.plist).
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.1.0"
+        FileHandle.standardOutput.write(Data("Murmur \(version)\n".utf8))
     }
 
     /// Headless transcribe + cleanup for smoke tests and scripting.

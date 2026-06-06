@@ -24,7 +24,11 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-echo "Building Murmur (release)..."
+# Marketing/build version stamped into the bundle. release.yml passes the tag's
+# version via MURMUR_VERSION; defaults to the current dev version otherwise.
+VERSION="${MURMUR_VERSION:-1.1.0}"
+
+echo "Building Murmur ${VERSION} (release)..."
 if ! swift build -c release; then
   cat >&2 <<EOF
 
@@ -171,6 +175,13 @@ cat > "${APP_DIR}/Contents/Info.plist" <<'PLIST'
 </dict>
 </plist>
 PLIST
+
+# Stamp the real version over the heredoc placeholder. CFBundleVersion and
+# CFBundleShortVersionString drive the DMG name (package_dmg.sh) and the Sparkle
+# appcast (generate_appcast reads them from the bundle), so they must match the
+# release tag.
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${VERSION}" "${APP_DIR}/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${VERSION}" "${APP_DIR}/Contents/Info.plist"
 
 # Sparkle requires inner-to-outer signing of every nested bundle — the XPC
 # services + Updater.app + framework MUST be signed individually before the

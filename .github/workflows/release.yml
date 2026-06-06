@@ -103,6 +103,8 @@ jobs:
         run: bash app/Scripts/bootstrap_whisper_cpp.sh
 
       - name: Fail if Murmur.app build is broken
+        env:
+          MURMUR_VERSION: ${{ steps.version.outputs.version }}
         run: bash app/Scripts/build_app.sh
 
       - name: Fail if codesign or notarization is broken
