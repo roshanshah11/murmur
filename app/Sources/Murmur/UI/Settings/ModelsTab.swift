@@ -1,4 +1,4 @@
-// Models tab: picks a Whisper model + a transcription language.
+// Models tab: picks the transcription engine, a Whisper model, and a language.
 //
 // Download progress is announced via NotificationCenter so the AppDelegate
 // can mirror it onto MurmurState.downloadingModel (which lights up the
@@ -15,19 +15,34 @@ extension Notification.Name {
 
 struct ModelsTab: View {
     @StateObject private var manager = ModelManager()
+    @StateObject private var parakeet = ParakeetModelManager()
     @AppStorage("settings.selectedModelName") private var selectedModelName: String = "ggml-base.en"
     @AppStorage("settings.selectedLanguage")  private var selectedLanguage: String = "auto"
+    // Initialized from the persisted Config so the control reflects reality on
+    // open; changes are written straight back to Config (the source of truth the
+    // pipeline reads), mirroring how model/language selection persist here.
+    @State private var selectedEngine: TranscriptionEngineKind = Config.loadOrCreateDefault().transcriptionEngine
     @State private var inFlightError: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Whisper Models").font(.headline)
-                Text("Pick a model. Larger means more accurate, slower, and more disk.")
+                Text("Transcription Engine").font(.headline)
+                Text("Parakeet runs on the Apple Neural Engine — fastest, and most accurate in English. Whisper.cpp covers 99 languages as a fallback.")
                     .font(.subheadline).foregroundStyle(.secondary)
             }
 
-            if manager.manifest.entries.isEmpty {
+            Picker("Engine", selection: $selectedEngine) {
+                Text("Parakeet").tag(TranscriptionEngineKind.parakeet)
+                Text("Whisper.cpp").tag(TranscriptionEngineKind.whisperCpp)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .onChange(of: selectedEngine) { newValue in persistEngine(newValue) }
+
+            if selectedEngine == .parakeet {
+                ParakeetModelRow(manager: parakeet)
+            } else if manager.manifest.entries.isEmpty {
                 Text("Bundled manifest unavailable.")
                     .font(.footnote).foregroundStyle(.red)
             } else {
@@ -151,6 +166,18 @@ struct ModelsTab: View {
         }
     }
 
+    /// Persists the engine choice to Config (the pipeline reads it on the next
+    /// dictation). Same load → mutate → save pattern as model/language above.
+    private func persistEngine(_ kind: TranscriptionEngineKind) {
+        do {
+            var cfg = Config.loadOrCreateDefault()
+            cfg.transcriptionEngine = kind
+            try cfg.save()
+        } catch {
+            inFlightError = "Couldn't save engine: \(error)"
+        }
+    }
+
     // Whisper-supported languages. Curated short list — keeps the picker
     // usable without a 99-item dropdown. Auto-detect is the default.
     private static let languages: [(code: String, label: String)] = [
@@ -234,6 +261,63 @@ private struct ModelRow: View {
             }
         } else {
             Button("Download", action: onDownload).buttonStyle(.bordered)
+        }
+    }
+}
+
+/// Row for the Parakeet (FluidAudio) model. FluidAudio owns the on-disk cache,
+/// so there's a single model (v3) rather than a selectable list — install state
+/// and an on-demand download with progress, mirroring the GGML rows.
+private struct ParakeetModelRow: View {
+    @ObservedObject var manager: ParakeetModelManager
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text("Parakeet TDT 0.6B v3").font(.body).bold()
+                    if manager.isInstalled {
+                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                    }
+                    Text("Active")
+                        .font(.caption2)
+                        .padding(.horizontal, 6).padding(.vertical, 1)
+                        .background(Color.accentColor.opacity(0.18))
+                        .foregroundStyle(.tint)
+                        .clipShape(Capsule())
+                }
+                Text("Multilingual — 25 European languages. Best English accuracy.")
+                    .font(.caption).foregroundStyle(.secondary)
+                HStack(spacing: 10) {
+                    Label("~\(ParakeetModelManager.approxSizeMB) MB", systemImage: "internaldrive")
+                    Label("Apple Neural Engine", systemImage: "cpu")
+                }
+                .font(.caption).foregroundStyle(.secondary)
+                if let error = manager.lastError {
+                    Text(error).font(.caption2).foregroundStyle(.red)
+                }
+            }
+            Spacer()
+            controls
+        }
+        .padding(.horizontal, 10).padding(.vertical, 8)
+        .background(Color.accentColor.opacity(0.07))
+        .cornerRadius(8)
+    }
+
+    @ViewBuilder
+    private var controls: some View {
+        if let p = manager.progress {
+            VStack(alignment: .trailing, spacing: 2) {
+                ProgressView(value: p).frame(width: 110)
+                Text("\(Int((p * 100).rounded()))%")
+                    .font(.caption2).foregroundStyle(.secondary).monospacedDigit()
+            }
+        } else if manager.isInstalled {
+            Text("Installed").font(.caption).foregroundStyle(.secondary)
+        } else {
+            Button("Download") { Task { await manager.download() } }
+                .buttonStyle(.bordered)
         }
     }
 }
