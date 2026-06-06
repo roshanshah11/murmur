@@ -13,7 +13,7 @@ Local-first dictation for macOS. Double-tap `fn`, talk, paste anywhere — witho
 
 ## 30-second pitch
 
-Murmur is a menubar app that turns your voice into text using a Whisper model that runs on your own Mac. Press `fn` twice, speak, release — the cleaned transcript pastes itself where the cursor already is. No account, no network, no telemetry. Open source under MIT. Works on macOS 13 and later, Apple Silicon and Intel.
+Murmur is a menubar app that turns your voice into text using an on-device speech model (Parakeet on the Neural Engine, or Whisper) that runs on your own Mac. Press `fn` twice, speak, release — the cleaned transcript pastes itself where the cursor already is. No account, no network, no telemetry. Open source under MIT. Works on macOS 14 and later, Apple Silicon and Intel.
 
 <div class="hero-cta" markdown>
 
@@ -25,7 +25,7 @@ Murmur is a menubar app that turns your voice into text using a Whisper model th
 
 ## Why Murmur
 
-- **Private by default.** Audio never leaves your Mac. The only network call Murmur ever makes is the Sparkle update check.
+- **Private by default.** Audio never leaves your Mac. The only outbound calls Murmur ever makes are model downloads (once, on demand) and the Sparkle update check. Transcription itself is fully on-device.
 - **Fast.** Whisper.cpp with Metal acceleration on Apple Silicon. Tiny model transcribes faster than you can talk.
 - **Paste-anywhere.** Works in any app that accepts text — Mail, Slack, VS Code, Notion, Terminal.
 - **Boring.** No "AI voice assistant" branding. No popups. It pastes text. That's the feature.

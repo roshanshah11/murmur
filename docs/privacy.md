@@ -41,7 +41,7 @@ flowchart LR
     class sparkle,github,models,hf net
 ```
 
-The only traffic that ever leaves your Mac is in the pink box: the Sparkle update check (~1 KB XML) and the initial Whisper model download. Nothing in the main flow touches the network.
+The only traffic that ever leaves your Mac is in the pink box: the Sparkle update check (~1 KB XML) and the initial model download (Parakeet or Whisper, whichever engine you're using). **Transcription itself never touches the network for either engine** — Parakeet runs entirely on the Apple Neural Engine and whisper.cpp runs as a local subprocess. Nothing in the main transcription flow touches the network.
 
 ## Files Murmur writes
 
@@ -64,9 +64,10 @@ The only outbound endpoints Murmur ever contacts:
 | Endpoint | Why | Frequency |
 |---|---|---|
 | `https://roshanshah11.github.io/murmur/appcast.xml` | Sparkle update check | Every 24 h (configurable) |
-| `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/...` | Model download | Only when you click **Download** |
+| `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/...` | Whisper GGML model download | Only when you click **Download** |
+| `https://huggingface.co/FluidInference/parakeet-tdt-0.6b-v3-coreml/...` | Parakeet model download (via FluidAudio SDK) | Only on first use, Apple Silicon only |
 
-Both are HTTPS, both validate certificates, and neither receives any data about you beyond the standard request headers.
+All three are HTTPS, all validate certificates, and none receives any data about you beyond the standard request headers. Once a model is downloaded, no further network calls occur for transcription — both engines run fully on-device.
 
 If you want a hard guarantee, block Murmur at the firewall layer. Murmur will continue to work fully offline for transcription.
 

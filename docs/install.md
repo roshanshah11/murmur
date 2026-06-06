@@ -39,9 +39,9 @@ This goes away in **Murmur 1.1.x** after Apple Developer Program enrollment. Unt
 
 ## Requirements
 
-- macOS 13 (Ventura) or later
+- macOS 14 (Sonoma) or later
 - Apple Silicon **or** Intel
-- ~150 MB free disk (75 MB for the default Whisper model, the rest for the app + caches)
+- ~700 MB free disk on Apple Silicon (~470 MB for the default Parakeet model; an Intel Mac needs less, e.g. 75 MB for a small Whisper model)
 - A microphone (built-in is fine)
 - Microphone + Accessibility permissions (Murmur will prompt during [first run](first-run.md))
 

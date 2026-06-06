@@ -4,9 +4,27 @@ title: Models
 
 # Models
 
-Pick the Whisper model that fits your Mac. Download, verify, switch, or delete from **Settings → Models**.
+Murmur supports two transcription engines. Switch between them in **Settings → Models**.
 
-Murmur uses [whisper.cpp](https://github.com/ggerganov/whisper.cpp) with Metal on Apple Silicon and OpenBLAS on Intel.
+## Transcription engines
+
+### Parakeet (default on Apple Silicon)
+
+NVIDIA `parakeet-tdt-0.6b-v3`, loaded through the [FluidAudio SDK](https://github.com/fluidaudio/fluidaudio) and executed on the **Apple Neural Engine** via Core ML. Requires macOS 14 (Sonoma) or later.
+
+- ~470 MB one-time download from Hugging Face (via FluidAudio), SHA-verified.
+- Covers **25 European languages** — including English, Spanish, French, German, Italian, Portuguese, Dutch, Polish, Czech, Slovak, Russian, Ukrainian, Bulgarian, Croatian, Serbian, Greek, Finnish, Swedish, Danish, and more.
+- Fastest and most accurate for English on Apple Silicon. Chosen automatically when you're on an M-series Mac.
+
+### Whisper.cpp (fallback / default on Intel)
+
+[whisper.cpp](https://github.com/ggerganov/whisper.cpp) with Metal acceleration on Apple Silicon and OpenBLAS on Intel. Covers **99 languages**. The right pick when you need a language Parakeet doesn't support, or when running on an Intel Mac.
+
+The GGML model sizing table below applies to the **Whisper engine**. You pick the Whisper model size in **Settings → Models**; the Parakeet engine has no size variants to choose.
+
+---
+
+Pick the Whisper model that fits your Mac. Download, verify, switch, or delete from **Settings → Models**.
 
 ## Sizing table
 
@@ -43,7 +61,7 @@ Murmur fetches from the official whisper.cpp Hugging Face mirror:
 https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-<model>.bin
 ```
 
-This is the only network call Murmur makes besides the Sparkle update check.
+These are the only network calls the Whisper engine makes besides the Sparkle update check. The Parakeet engine similarly downloads its model once from Hugging Face (via FluidAudio); see [Privacy](privacy.md) for the full network surface.
 
 ## Where they live
 

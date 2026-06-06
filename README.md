@@ -3,7 +3,7 @@
 # Murmur
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![macOS 13+](https://img.shields.io/badge/macOS-13%2B-blue.svg)](docs/install.md)
+[![macOS 14+](https://img.shields.io/badge/macOS-14%2B-blue.svg)](docs/install.md)
 [![GitHub stars](https://img.shields.io/github/stars/roshanshah11/murmur)](https://github.com/roshanshah11/murmur/stargazers)
 [![CI](https://github.com/roshanshah11/murmur/actions/workflows/ci.yml/badge.svg)](https://github.com/roshanshah11/murmur/actions/workflows/ci.yml)
 [![Latest release](https://img.shields.io/github/v/release/roshanshah11/murmur)](https://github.com/roshanshah11/murmur/releases/latest)
@@ -46,7 +46,7 @@ Drag **Murmur.app** into `/Applications`. On first launch macOS shows *"Apple co
 
 | Requirement | Minimum |
 |---|---|
-| macOS | 13 Ventura |
+| macOS | 14 Sonoma |
 | Architecture | Apple Silicon or Intel x86_64 |
 | Disk | ~500 MB app + 75 MB–3 GB per model |
 | RAM | 4 GB free (8 GB for the large model) |
@@ -71,7 +71,7 @@ Full walkthrough: [docs/first-run.md](docs/first-run.md).
 | **History** | Opt-in. Off by default. A separate window — not a Settings tab. Browse, search, and export past transcripts. |
 | **Vocabulary** | Teach Whisper your names, acronyms, and jargon. JSON import/export. |
 | **Prompts** | Deterministic cleanup profiles — Raw, Casual, Formal, Code. Switch per-recording or as a default. |
-| **Models** | Whisper.cpp models from tiny to large-v3. SHA-verified downloads with progress UI. |
+| **Models** | On Apple Silicon, Murmur defaults to the NVIDIA Parakeet engine (Apple Neural Engine). Whisper.cpp models from tiny to large-v3 are available as a fallback or for 99-language support. SHA-verified downloads with progress UI. |
 | **Updates** | Sparkle 2 with EdDSA-signed appcast. One click to update; no background phone-home. |
 
 ## Privacy
