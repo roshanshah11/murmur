@@ -529,13 +529,14 @@ case .help:
 case .version:
     CLI.runVersion()
     exit(0)
-case .transcribeOnly(let wav, let profile, let language, let modelName, let vocabularyURL):
+case .transcribeOnly(let wav, let profile, let language, let modelName, let vocabularyURL, let engine):
     exit(CLI.runTranscribeOnly(
         wav: wav,
         profile: profile,
         language: language,
         modelName: modelName,
-        vocabularyURL: vocabularyURL
+        vocabularyURL: vocabularyURL,
+        engine: engine
     ))
 case .recordOnce, .ui:
     let app = NSApplication.shared
