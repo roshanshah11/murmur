@@ -41,6 +41,21 @@ print(result.text, result.confidence, result.rtfx)
 The spike (Task 2) is the source of truth — finalize Parakeet-dependent task
 prompts only after it confirms exact names, cache path, and **offline** transcribe.
 
+### T2 spike findings (CONFIRMED on M3 Pro, macOS 26.5)
+
+- **API (exact, v0.15.1):**
+  - `try await AsrModels.downloadAndLoad(version: .v3, progressHandler: { (p: DownloadUtils.DownloadProgress) in p.fractionCompleted /* Double 0..1 */, p.phase })` → `AsrModels`. Handler "called on an unspecified queue" → hop to MainActor for UI.
+  - `let asr = AsrManager(config: .default)` (it's a `public actor`); `try await asr.loadModels(models)`.
+  - `var state = try TdtDecoderState()` — **the initializer throws**.
+  - `try await asr.transcribe(url, decoderState: &state, language: Language(rawValue: code))` → `ASRResult` (`.text`, `.confidence`, `.duration`, `.processingTime`, `.rtfx`). The **file-URL overload** resamples internally and auto-switches to disk-backed for long audio → ParakeetEngine passes the WAV directly; no manual `AudioConverter` needed.
+  - Language: shared `public enum Language: String` (`.english="en"`, 25 EU langs). `Language(rawValue: code)` maps directly; `""`/unknown → `nil`.
+  - Installed check: `AsrModels.modelsExist(at:)` / `modelsExist(at:version:)`.
+- **Result:** input `say "the quick brown fox jumps over the lazy dog"` → `The quick brown fox jumps over the lazy dog.` conf 0.99, **rtfx 26×**, Encoder on `cpuAndNeuralEngine` (ANE).
+- **Cache:** `~/Library/Application Support/FluidAudio/Models/parakeet-tdt-0.6b-v3` — **~470 MB** for v3 at default `int8` encoder precision (NOT 2.3 GB; that was fp32). Comparable to whisper-small (466 MB). FluidAudio-managed, outside Murmur's `AppPaths`.
+- **Offline:** cached load logs "Found … locally, no download needed"; inference is pure local Core ML. FluidAudio also exposes an `enforceOffline` mode that blocks re-download. → "no network at inference" holds once cached.
+- **BRIDGE DECISION:** the semaphore-blocking-a-DispatchQueue-worker-while-awaiting-the-actor pattern returned identical text with **no deadlock**. → **T3 keeps `AppState.runPipeline` synchronous** and calls the engine through an `AsyncBridge.runBlocking` helper. (Dispatch-queue worker threads are not Swift-concurrency cooperative threads, so blocking them doesn't starve the pool.)
+- **For T9 (advisor #3):** Parakeet output is **Truecased + punctuated**, unlike whisper's `-nt` lowercase style. TextCleaner Raw/Casual/Formal/Code profiles + Vocabulary must be verified on a Parakeet transcript.
+
 ## Architecture of the change
 
 `AppState.runPipeline` (background `DispatchQueue`, currently **synchronous**)
@@ -171,8 +186,7 @@ deadlock-free from a real `DispatchQueue`.
   "Downloading Parakeet model…" state. Reuse the `.murmurModelDownloadProgress`
   → notch bridge.
 - **First-run graceful fallback (advisor):** if Parakeet is default but the
-  ~2.3 GB model isn't downloaded yet, do NOT block the first dictation for
-  minutes — kick off a background download (progress in notch) and, until ready,
+  ~470 MB model isn't downloaded yet, do NOT block the first dictation — kick off a background download (progress in notch) and, until ready,
   fall back to an installed whisper model if one exists; otherwise show a clear
   "model still downloading — N%" notice.
 - Launch preload: `main.swift` fires `Task { try? await engine.prepare() }`.
