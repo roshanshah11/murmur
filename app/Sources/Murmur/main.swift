@@ -29,7 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         // compile-phase progress callbacks even for a cached model, which would
         // otherwise flash the notch on every launch.
         let parakeetNeedsDownload = (config.transcriptionEngine == .parakeet)
-            && !AsrModels.modelsExist(at: MLModelConfigurationUtils.defaultModelsDirectory(), version: .v3)
+            && !AsrModels.modelsExist(at: AsrModels.defaultCacheDirectory(for: .v3), version: .v3)
         let engine = TranscriptionEngineFactory.make(config: config, onModelDownloadProgress: { fraction in
             guard parakeetNeedsDownload else { return }
             NotificationCenter.default.post(name: .murmurModelDownloadProgress, object: fraction)

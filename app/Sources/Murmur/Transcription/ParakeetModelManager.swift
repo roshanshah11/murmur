@@ -20,7 +20,11 @@ final class ParakeetModelManager: ObservableObject {
 
     init() { refreshInstalled() }
 
-    private var modelsDirectory: URL { MLModelConfigurationUtils.defaultModelsDirectory() }
+    // Use FluidAudio's own per-version cache dir (.../Models/<repo-folder>).
+    // `modelsExist`/download resolve the repo via repoPath(deletingLastPathComponent
+    // + folderName), so passing the bare Models/ dir would check the WRONG path and
+    // always report "not installed". `defaultCacheDirectory(for:)` is the matching dir.
+    private var modelsDirectory: URL { AsrModels.defaultCacheDirectory(for: .v3) }
 
     func refreshInstalled() {
         isInstalled = AsrModels.modelsExist(at: modelsDirectory, version: .v3)

@@ -278,13 +278,13 @@ private struct ParakeetModelRow: View {
                     Text("Parakeet TDT 0.6B v3").font(.body).bold()
                     if manager.isInstalled {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                        Text("Active")
+                            .font(.caption2)
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(Color.accentColor.opacity(0.18))
+                            .foregroundStyle(.tint)
+                            .clipShape(Capsule())
                     }
-                    Text("Active")
-                        .font(.caption2)
-                        .padding(.horizontal, 6).padding(.vertical, 1)
-                        .background(Color.accentColor.opacity(0.18))
-                        .foregroundStyle(.tint)
-                        .clipShape(Capsule())
                 }
                 Text("Multilingual — 25 European languages. Best English accuracy.")
                     .font(.caption).foregroundStyle(.secondary)
