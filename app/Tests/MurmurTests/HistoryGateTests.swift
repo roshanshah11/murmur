@@ -5,6 +5,13 @@
 import XCTest
 @testable import Murmur
 
+/// Stand-in engine for tests that exercise AppState's history gate without
+/// running real transcription. Depends only on the protocol, so it's immune
+/// to concrete engine init-signature changes.
+private final class NullEngine: TranscriptionEngine {
+    func transcribe(wavURL: URL, language: String?) async throws -> String { "" }
+}
+
 final class HistoryGateTests: XCTestCase {
     private var tempURL: URL!
 
@@ -26,14 +33,14 @@ final class HistoryGateTests: XCTestCase {
         // we're testing the AppState-level gate in isolation.
         let store = HistoryStore(enabled: true, maxEntries: 50, fileURL: tempURL)
         let recorder = AudioRecorder()
-        let whisper = WhisperRunner(config: cfg)
+        let engine = NullEngine()
         let cleaner = TextCleaner(vocabulary: cfg.vocabulary, profile: cfg.activeProfile)
         let inserter = PasteboardInserter(config: cfg)
         let volume = VolumeController()
         let state = AppState(
             config: cfg,
             recorder: recorder,
-            whisper: whisper,
+            engine: engine,
             cleaner: cleaner,
             inserter: inserter,
             history: store,

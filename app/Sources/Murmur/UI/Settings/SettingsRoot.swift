@@ -34,6 +34,8 @@ struct SettingsRoot: View {
             UpdatesTab()    .tabItem { Label("Updates",    systemImage: SettingsTab.updates.systemImage) }    .tag(SettingsTab.updates)
             AboutTab()      .tabItem { Label("About",      systemImage: SettingsTab.about.systemImage) }      .tag(SettingsTab.about)
         }
-        .frame(width: 580, height: 420)
+        // Use minimums so a previously-autosaved larger window frame can't
+        // clip the tab strip rendered by TabView inside NSHostingController.
+        .frame(minWidth: 580, minHeight: 480)
     }
 }

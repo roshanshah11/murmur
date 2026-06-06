@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import FluidAudio
 import Foundation
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
@@ -23,7 +24,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         sweepStaleTemp(config: config)
 
         let recorder = AudioRecorder()
-        let whisper = WhisperRunner(config: config)
+        // First-run download gate: only mirror Parakeet download progress onto
+        // the notch when the model is actually absent. FluidAudio fires
+        // compile-phase progress callbacks even for a cached model, which would
+        // otherwise flash the notch on every launch.
+        let parakeetNeedsDownload = (config.transcriptionEngine == .parakeet)
+            && !AsrModels.modelsExist(at: AsrModels.defaultCacheDirectory(for: .v3), version: .v3)
+        let engine = TranscriptionEngineFactory.make(config: config, onModelDownloadProgress: { fraction in
+            guard parakeetNeedsDownload else { return }
+            NotificationCenter.default.post(name: .murmurModelDownloadProgress, object: fraction)
+        })
         let cleaner = TextCleaner(vocabulary: config.vocabulary, profile: config.activeProfile)
         let inserter = PasteboardInserter(config: config)
         // Pass enabled=true so the History window can always read/write
@@ -38,15 +48,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         HistoryWindowController.store = history
         HistoryWindowController.inserter = inserter
 
-        // Pre-validate whisper paths once so per-dictation transcribe() skips
-        // 4 stat syscalls. Validation failures are surfaced via the
-        // "Test Whisper Setup" menu item on first use.
-        try? whisper.validateSetup()
+        // Pre-warm the engine once at launch: whisper validates its paths;
+        // Parakeet loads (and on first run downloads ~470 MB) its Core ML model.
+        // When a Parakeet download is needed, the notch shows progress (via the
+        // sink wired above) and clears when prepare() returns. A fresh install
+        // has no whisper model either, so there is intentionally no
+        // fallback-to-whisper — a dictation issued before the model is ready
+        // simply awaits the in-flight load.
+        Task {
+            try? await engine.prepare()
+            if parakeetNeedsDownload {
+                await MainActor.run {
+                    NotificationCenter.default.post(name: .murmurModelDownloadFinished, object: nil)
+                }
+            }
+        }
 
         appState = AppState(
             config: config,
             recorder: recorder,
-            whisper: whisper,
+            engine: engine,
             cleaner: cleaner,
             inserter: inserter,
             history: history,
@@ -235,7 +256,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
             menu.addItem(warn)
         }
 
-        let testItem = NSMenuItem(title: "Test Whisper Setup", action: #selector(testWhisperSetup), keyEquivalent: "")
+        let testItem = NSMenuItem(title: "Test Setup", action: #selector(testWhisperSetup), keyEquivalent: "")
         testItem.target = self
         menu.addItem(testItem)
 
@@ -358,11 +379,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     }
 
     @objc private func testWhisperSetup() {
-        do {
-            try appState.whisper.validateSetup()
-            Notifier.success("Whisper setup looks valid.")
-        } catch {
-            Notifier.warn(String(describing: error))
+        Task {
+            do {
+                try await appState.engine.prepare()
+                await MainActor.run { Notifier.success("Transcription setup looks valid.") }
+            } catch {
+                await MainActor.run { Notifier.warn(String(describing: error)) }
+            }
         }
     }
 
@@ -506,13 +529,14 @@ case .help:
 case .version:
     CLI.runVersion()
     exit(0)
-case .transcribeOnly(let wav, let profile, let language, let modelName, let vocabularyURL):
+case .transcribeOnly(let wav, let profile, let language, let modelName, let vocabularyURL, let engine):
     exit(CLI.runTranscribeOnly(
         wav: wav,
         profile: profile,
         language: language,
         modelName: modelName,
-        vocabularyURL: vocabularyURL
+        vocabularyURL: vocabularyURL,
+        engine: engine
     ))
 case .recordOnce, .ui:
     let app = NSApplication.shared

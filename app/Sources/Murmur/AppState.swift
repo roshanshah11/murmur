@@ -42,7 +42,7 @@ final class AppState {
     /// after the user toggled it off — a privacy regression.
     var config: Config
     let recorder: AudioRecorder
-    let whisper: WhisperRunner
+    let engine: any TranscriptionEngine
     let cleaner: TextCleaner
     let inserter: PasteboardInserter
     let history: HistoryStore
@@ -89,7 +89,7 @@ final class AppState {
     init(
         config: Config,
         recorder: AudioRecorder,
-        whisper: WhisperRunner,
+        engine: any TranscriptionEngine,
         cleaner: TextCleaner,
         inserter: PasteboardInserter,
         history: HistoryStore,
@@ -98,7 +98,7 @@ final class AppState {
     ) {
         self.config = config
         self.recorder = recorder
-        self.whisper = whisper
+        self.engine = engine
         self.cleaner = cleaner
         self.inserter = inserter
         self.history = history
@@ -185,7 +185,9 @@ final class AppState {
     private func runPipeline(audioURL: URL, context: AppContext) {
         let pipelineStart = Date()
         do {
-            let rawTranscript = try whisper.transcribe(audioURL: audioURL)
+            let rawTranscript = try AsyncBridge.runBlocking { [engine, config] in
+                try await engine.transcribe(wavURL: audioURL, language: config.language.isEmpty ? nil : config.language)
+            }
             let cleaned = cleaner.clean(rawTranscript)
 
             DispatchQueue.main.async { [weak self] in

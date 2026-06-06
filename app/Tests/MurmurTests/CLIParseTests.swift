@@ -17,11 +17,17 @@ final class CLIParseTests: XCTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) -> (URL, PromptLibrary.Profile?, String?, String?, URL?)? {
-        guard case let .transcribeOnly(wav, profile, language, modelName, vocabularyURL) = mode else {
+        guard case let .transcribeOnly(wav, profile, language, modelName, vocabularyURL, _) = mode else {
             XCTFail("expected .transcribeOnly, got \(mode)", file: file, line: line)
             return nil
         }
         return (wav, profile, language, modelName, vocabularyURL)
+    }
+
+    /// Pull just the `engine` override slot.
+    private func engineOf(_ mode: CLIMode) -> TranscriptionEngineKind?? {
+        guard case let .transcribeOnly(_, _, _, _, _, engine) = mode else { return .none }
+        return .some(engine)
     }
 
     // MARK: minimal invocation
@@ -74,7 +80,34 @@ final class CLIParseTests: XCTestCase {
         XCTAssertEqual(vocabularyURL?.path, "/tmp/v.json")
     }
 
+    func test_transcribeOnly_engineDefaultsToNil() throws {
+        let mode = try CLI.parse(["Murmur", "--transcribe-only", "/tmp/foo.wav"])
+        XCTAssertEqual(engineOf(mode), .some(TranscriptionEngineKind?.none))
+    }
+
+    func test_transcribeOnly_acceptsEngineParakeet() throws {
+        let mode = try CLI.parse([
+            "Murmur", "--transcribe-only", "/tmp/foo.wav", "--engine", "parakeet"
+        ])
+        XCTAssertEqual(engineOf(mode), .some(.parakeet))
+    }
+
+    func test_transcribeOnly_acceptsEngineWhisperAlias() throws {
+        let mode = try CLI.parse([
+            "Murmur", "--transcribe-only", "/tmp/foo.wav", "--engine", "whisper"
+        ])
+        XCTAssertEqual(engineOf(mode), .some(.whisperCpp))
+    }
+
     // MARK: error path
+
+    func test_transcribeOnly_unknownEngine_throwsCLIError() {
+        XCTAssertThrowsError(
+            try CLI.parse(["Murmur", "--transcribe-only", "/tmp/foo.wav", "--engine", "gpt"])
+        ) { error in
+            XCTAssertEqual(error as? CLIError, .unknownEngine("gpt"))
+        }
+    }
 
     func test_transcribeOnly_unknownFlag_throwsCLIError() {
         XCTAssertThrowsError(

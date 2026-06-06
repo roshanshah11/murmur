@@ -2,7 +2,7 @@ import Foundation
 
 enum CLIMode: Equatable {
     case ui
-    case transcribeOnly(wavURL: URL, profile: PromptLibrary.Profile?, language: String?, modelName: String?, vocabularyURL: URL?)
+    case transcribeOnly(wavURL: URL, profile: PromptLibrary.Profile?, language: String?, modelName: String?, vocabularyURL: URL?, engine: TranscriptionEngineKind?)
     case recordOnce
     case help
     case version
@@ -12,6 +12,7 @@ public enum CLIError: Error, LocalizedError, Equatable {
     case unknownFlag(String)
     case missingValue(String)
     case unknownProfile(String)
+    case unknownEngine(String)
 
     public var errorDescription: String? {
         switch self {
@@ -21,6 +22,8 @@ public enum CLIError: Error, LocalizedError, Equatable {
             return "Missing value for flag: \(flag)"
         case .unknownProfile(let raw):
             return "Unknown profile '\(raw)'. Valid values: raw, casual, formal, code."
+        case .unknownEngine(let raw):
+            return "Unknown engine '\(raw)'. Valid values: parakeet, whisper."
         }
     }
 }
@@ -34,11 +37,12 @@ enum CLI {
 
     Usage:
       Murmur                            Launch menubar UI (default).
-      Murmur --transcribe-only <wav> [--profile P] [--language L] [--model M] [--vocabulary V]
+      Murmur --transcribe-only <wav> [--engine E] [--profile P] [--language L] [--model M] [--vocabulary V]
           Headless transcribe. Optional overrides skip the on-disk Config:
+            --engine      parakeet | whisper (default: per Config / hardware)
             --profile     raw | casual | formal | code
             --language    BCP-47 code (e.g. en, es) or "auto"
-            --model       installed model name (e.g. ggml-base.en)
+            --model       installed model name (e.g. ggml-base.en) — whisper engine only
             --vocabulary  path to a Vocabulary JSON file
       Murmur --record-once              Launch UI, exit after one dictation completes.
       Murmur --help                     Show this help.
@@ -79,7 +83,8 @@ enum CLI {
                     profile: overrides.profile,
                     language: overrides.language,
                     modelName: overrides.modelName,
-                    vocabularyURL: overrides.vocabularyURL
+                    vocabularyURL: overrides.vocabularyURL,
+                    engine: overrides.engine
                 )
             default:
                 i += 1
@@ -93,6 +98,16 @@ enum CLI {
         var language: String?
         var modelName: String?
         var vocabularyURL: URL?
+        var engine: TranscriptionEngineKind?
+    }
+
+    /// Maps the `--engine` value (with friendly aliases) to a `TranscriptionEngineKind`.
+    private static func parseEngine(_ raw: String) throws -> TranscriptionEngineKind {
+        switch raw.lowercased() {
+        case "parakeet": return .parakeet
+        case "whisper", "whispercpp", "whisper.cpp", "whisper-cpp": return .whisperCpp
+        default: throw CLIError.unknownEngine(raw)
+        }
     }
 
     /// Strict walker for the override flags that may follow `--transcribe-only <wav>`.
@@ -125,6 +140,10 @@ enum CLI {
                 let path = (args[i + 1] as NSString).expandingTildeInPath
                 out.vocabularyURL = URL(fileURLWithPath: path)
                 i += 2
+            case "--engine":
+                guard i + 1 < args.count else { throw CLIError.missingValue(flag) }
+                out.engine = try parseEngine(args[i + 1])
+                i += 2
             default:
                 throw CLIError.unknownFlag(flag)
             }
@@ -151,10 +170,14 @@ enum CLI {
         profile: PromptLibrary.Profile? = nil,
         language: String? = nil,
         modelName: String? = nil,
-        vocabularyURL: URL? = nil
+        vocabularyURL: URL? = nil,
+        engine: TranscriptionEngineKind? = nil
     ) -> Int32 {
         var config = Config.loadOrCreateDefault()
 
+        if let engine {
+            config.transcriptionEngine = engine
+        }
         if let profile {
             config.activeProfile = profile
         }
@@ -176,10 +199,10 @@ enum CLI {
             }
         }
 
-        let whisper = WhisperRunner(config: config)
+        let engine = TranscriptionEngineFactory.make(config: config)
         let cleaner = TextCleaner(vocabulary: config.vocabulary, profile: config.activeProfile)
         do {
-            let raw = try whisper.transcribe(audioURL: wav)
+            let raw = try AsyncBridge.runBlocking { try await engine.transcribe(wavURL: wav, language: config.language.isEmpty ? nil : config.language) }
             let cleaned = cleaner.clean(raw)
             FileHandle.standardOutput.write(Data((cleaned + "\n").utf8))
             return 0

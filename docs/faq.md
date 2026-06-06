@@ -59,9 +59,9 @@ Yes — the paste path uses the clipboard. Murmur saves your previous clipboard 
 
 Yes if you leave Apple Dictation on — both watch for `fn`+`fn`. Disable Apple Dictation (see [First run](first-run.md#1-disable-apple-dictation)) or rebind Murmur's chord.
 
-## Can I run it on macOS 12?
+## Can I run it on macOS 12 or 13?
 
-No. Murmur uses APIs that landed in macOS 13 (Ventura) — `SMAppService`, the modern AVAudio session model, and the notch overlay logic. We don't backport.
+No. The minimum is macOS 14 (Sonoma). The default transcription engine — NVIDIA Parakeet via the FluidAudio SDK — uses Core ML features that require macOS 14. Murmur also relies on `SMAppService`, the modern AVAudio session model, and the notch overlay logic that shipped in 13, but Parakeet is now the binding constraint. We don't backport.
 
 ## How big is the model?
 

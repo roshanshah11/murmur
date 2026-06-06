@@ -145,6 +145,46 @@ final class ConfigTests: XCTestCase {
         XCTAssertNil(decoded2.onboardingCompletedVersion)
     }
 
+    // MARK: - TranscriptionEngine tests (T4)
+
+    func test_transcriptionEngine_roundTrips() throws {
+        // Use .whisperCpp — a non-default value on Apple Silicon — so the test
+        // is meaningful regardless of which architecture runs CI.
+        var cfg = Config.defaultConfig()
+        cfg.transcriptionEngine = .whisperCpp
+        let data = try JSONEncoder().encode(cfg)
+        let decoded = try JSONDecoder().decode(Config.self, from: data)
+        XCTAssertEqual(decoded.transcriptionEngine, .whisperCpp,
+                       "transcriptionEngine=.whisperCpp must survive a JSON round-trip")
+    }
+
+    func test_transcriptionEngine_defaultsToDeviceDefault_whenKeyMissing() throws {
+        // Build a JSON blob that omits the transcriptionEngine key by encoding
+        // a default config, parsing to a dictionary, stripping the key, and
+        // re-serialising.
+        let fullData = try JSONEncoder().encode(Config.defaultConfig())
+        var dict = try JSONSerialization.jsonObject(with: fullData) as! [String: Any]
+        dict.removeValue(forKey: "transcriptionEngine")
+        let stripped = try JSONSerialization.data(withJSONObject: dict)
+        let decoded = try JSONDecoder().decode(Config.self, from: stripped)
+        XCTAssertEqual(decoded.transcriptionEngine, TranscriptionEngineKind.deviceDefault,
+                       "missing transcriptionEngine key must decode to .deviceDefault")
+    }
+
+    func test_transcriptionEngineKind_deviceDefault_isArchDependent() {
+        // On Apple Silicon the default should be .parakeet; on Intel .whisperCpp.
+        let expected: TranscriptionEngineKind = TranscriptionEngineKind.isAppleSilicon ? .parakeet : .whisperCpp
+        XCTAssertEqual(TranscriptionEngineKind.deviceDefault, expected)
+    }
+
+    func test_transcriptionEngineKind_allCasesAreRoundTrippable() throws {
+        for kind in TranscriptionEngineKind.allCases {
+            let data = try JSONEncoder().encode(kind)
+            let decoded = try JSONDecoder().decode(TranscriptionEngineKind.self, from: data)
+            XCTAssertEqual(decoded, kind, "\(kind.rawValue) must round-trip through JSON")
+        }
+    }
+
     func testTempDirectoryUnderCaches() {
         let path = Config.tempDirectoryURL().path
         XCTAssertTrue(

@@ -24,6 +24,9 @@ struct Config: Codable {
     /// re-prompt only users whose previous completion is older than the
     /// new revision.
     var onboardingCompletedVersion: String?
+    /// Which speech-to-text backend the dictation pipeline uses.
+    /// Defaults to `.deviceDefault` (Parakeet on Apple Silicon, whisper.cpp on Intel).
+    var transcriptionEngine: TranscriptionEngineKind
 
     static func defaultConfigURL() -> URL {
         AppPaths.configFile
@@ -89,7 +92,8 @@ struct Config: Codable {
             historyMaxEntries: 1000,
             vocabulary: defaultVocabulary(),
             activeProfile: .casual,
-            onboardingCompletedVersion: nil
+            onboardingCompletedVersion: nil,
+            transcriptionEngine: .deviceDefault
         )
     }
 
@@ -110,7 +114,8 @@ struct Config: Codable {
         historyMaxEntries: Int,
         vocabulary: Vocabulary,
         activeProfile: PromptLibrary.Profile,
-        onboardingCompletedVersion: String? = nil
+        onboardingCompletedVersion: String? = nil,
+        transcriptionEngine: TranscriptionEngineKind = .deviceDefault
     ) {
         self.whisperBinaryPath = whisperBinaryPath
         self.modelPath = modelPath
@@ -129,6 +134,7 @@ struct Config: Codable {
         self.vocabulary = vocabulary
         self.activeProfile = activeProfile
         self.onboardingCompletedVersion = onboardingCompletedVersion
+        self.transcriptionEngine = transcriptionEngine
     }
 
     /// Coding keys are listed explicitly so we can decode the legacy
@@ -152,6 +158,7 @@ struct Config: Codable {
         case vocabulary
         case activeProfile
         case onboardingCompletedVersion
+        case transcriptionEngine
         case customVocabulary  // legacy — migrated into `vocabulary`
     }
 
@@ -174,6 +181,7 @@ struct Config: Codable {
         self.historyMaxEntries = try c.decodeIfPresent(Int.self, forKey: .historyMaxEntries) ?? d.historyMaxEntries
         self.activeProfile = try c.decodeIfPresent(PromptLibrary.Profile.self, forKey: .activeProfile) ?? d.activeProfile
         self.onboardingCompletedVersion = try c.decodeIfPresent(String.self, forKey: .onboardingCompletedVersion)
+        self.transcriptionEngine = try c.decodeIfPresent(TranscriptionEngineKind.self, forKey: .transcriptionEngine) ?? d.transcriptionEngine
 
         // Vocabulary precedence: modern `vocabulary` key wins. If absent, fall
         // back to legacy `customVocabulary: [String: String]` (sorted-key order
@@ -210,6 +218,7 @@ struct Config: Codable {
         try c.encode(vocabulary, forKey: .vocabulary)
         try c.encode(activeProfile, forKey: .activeProfile)
         try c.encodeIfPresent(onboardingCompletedVersion, forKey: .onboardingCompletedVersion)
+        try c.encode(transcriptionEngine, forKey: .transcriptionEngine)
         // Deliberately do not emit `customVocabulary` — the field is decode-only
         // for legacy migration.
     }
