@@ -215,6 +215,32 @@ deadlock-free from a real `DispatchQueue`.
   transcript reaches the clipboard (`deleteTempAudio`); only transient cache used.
 - **Done when:** both engines produce good cleaned text and privacy invariants hold.
 
+## Verification results (T9 — done)
+
+Run on the dev box (M3 Pro, macOS 26.5) via the real app binary
+(`.build/debug/Murmur --transcribe-only <wav> --engine <e> --profile <p>`):
+
+| Engine | raw profile | casual profile |
+|---|---|---|
+| Whisper (`ggml-base.en`) | `the quick brown fox jumps over the lazy dog.` | `The quick brown fox jumps over the lazy dog.` |
+| Parakeet (v3, ANE) | `The quick brown fox jumps over the lazy dog.` | `The quick brown fox jumps over the lazy dog.` |
+
+- **Both engines** transcribe correctly end-to-end and exit 0.
+- **TextCleaner profiles work on both** (advisor #3): Casual sentence-cases
+  whisper's lowercase output and preserves Parakeet's native truecasing — no
+  mangling, identical clean Casual result. Vocabulary substitution rides the
+  same `TextCleaner.clean` path for both engines (unit-tested).
+- **Privacy:** grep of the logs for the transcript text → nothing; transcription
+  log events carry only `chars`/`transcription_ms`, never the text. Whisper's
+  temp `.txt` is deleted unless `debugRetainAudio`; Parakeet writes no temp file;
+  GUI path deletes the recording after paste (`AppState.cleanup`).
+- **Installed-dir fix confirmed:** the cached Parakeet run logged "ASR models
+  already present at …/parakeet-tdt-0.6b-v3", i.e. FluidAudio's own
+  `modelsExist(at: defaultCacheDirectory)` returns true — exactly the call
+  `ParakeetModelManager`/`main.swift` now use.
+- **Suite:** `swift build` clean, `swift test` = 115 tests, 0 failures.
+- Encoder ran on `cpuAndNeuralEngine` (ANE).
+
 ## Out of scope (explicit)
 - Float32 direct-capture / skip-WAV (contradicts the mandated `wavURL` protocol;
   revisit only with an explicit protocol change).
