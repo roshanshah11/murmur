@@ -23,7 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         sweepStaleTemp(config: config)
 
         let recorder = AudioRecorder()
-        let whisper = WhisperRunner(config: config)
+        let engine = TranscriptionEngineFactory.make(config: config)
         let cleaner = TextCleaner(vocabulary: config.vocabulary, profile: config.activeProfile)
         let inserter = PasteboardInserter(config: config)
         // Pass enabled=true so the History window can always read/write
@@ -38,15 +38,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         HistoryWindowController.store = history
         HistoryWindowController.inserter = inserter
 
-        // Pre-validate whisper paths once so per-dictation transcribe() skips
+        // Pre-warm the engine once at launch so per-dictation transcribe() skips
         // 4 stat syscalls. Validation failures are surfaced via the
         // "Test Whisper Setup" menu item on first use.
-        try? whisper.validateSetup()
+        Task { try? await engine.prepare() }
 
         appState = AppState(
             config: config,
             recorder: recorder,
-            whisper: whisper,
+            engine: engine,
             cleaner: cleaner,
             inserter: inserter,
             history: history,
@@ -358,11 +358,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     }
 
     @objc private func testWhisperSetup() {
-        do {
-            try appState.whisper.validateSetup()
-            Notifier.success("Whisper setup looks valid.")
-        } catch {
-            Notifier.warn(String(describing: error))
+        Task {
+            do {
+                try await appState.engine.prepare()
+                await MainActor.run { Notifier.success("Transcription setup looks valid.") }
+            } catch {
+                await MainActor.run { Notifier.warn(String(describing: error)) }
+            }
         }
     }
 

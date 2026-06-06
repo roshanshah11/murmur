@@ -176,10 +176,10 @@ enum CLI {
             }
         }
 
-        let whisper = WhisperRunner(config: config)
+        let engine = TranscriptionEngineFactory.make(config: config)
         let cleaner = TextCleaner(vocabulary: config.vocabulary, profile: config.activeProfile)
         do {
-            let raw = try whisper.transcribe(audioURL: wav)
+            let raw = try AsyncBridge.runBlocking { try await engine.transcribe(wavURL: wav, language: config.language.isEmpty ? nil : config.language) }
             let cleaned = cleaner.clean(raw)
             FileHandle.standardOutput.write(Data((cleaned + "\n").utf8))
             return 0
