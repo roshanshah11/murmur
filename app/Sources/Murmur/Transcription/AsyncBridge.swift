@@ -16,10 +16,17 @@ enum AsyncBridge {
             semaphore.signal()
         }
         semaphore.wait()
-        return try box.result!.get()
+        switch box.result {
+        case .success(let value): return value
+        case .failure(let error): throw error
+        case nil: preconditionFailure("AsyncBridge: Task exited without setting a result — programmer error")
+        }
     }
 }
 
+/// Access is serialized by the semaphore: the Task writes `result` before
+/// `signal()`, and the caller reads it only after `wait()` returns. No
+/// concurrent access is possible, so `@unchecked Sendable` is sound here.
 private final class ResultBox<T>: @unchecked Sendable {
     var result: Result<T, Error>?
 }

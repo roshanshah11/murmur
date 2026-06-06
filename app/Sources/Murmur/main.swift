@@ -40,7 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
         // Pre-warm the engine once at launch so per-dictation transcribe() skips
         // 4 stat syscalls. Validation failures are surfaced via the
-        // "Test Whisper Setup" menu item on first use.
+        // "Test Setup" menu item on first use.
         Task { try? await engine.prepare() }
 
         appState = AppState(
@@ -235,7 +235,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
             menu.addItem(warn)
         }
 
-        let testItem = NSMenuItem(title: "Test Whisper Setup", action: #selector(testWhisperSetup), keyEquivalent: "")
+        let testItem = NSMenuItem(title: "Test Setup", action: #selector(testWhisperSetup), keyEquivalent: "")
         testItem.target = self
         menu.addItem(testItem)
 

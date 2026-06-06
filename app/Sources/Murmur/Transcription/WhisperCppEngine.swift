@@ -9,8 +9,8 @@ final class WhisperCppEngine: TranscriptionEngine {
     func prepare() async throws { try runner.validateSetup() }
 
     func transcribe(wavURL: URL, language: String?) async throws -> String {
-        // language is intentionally ignored: WhisperRunner reads config.language,
-        // preserving the pre-refactor behavior verbatim.
-        try runner.transcribe(audioURL: wavURL)
+        // Honor the protocol's language hint when provided; WhisperRunner falls
+        // back to config.language when it's nil, preserving prior behavior.
+        try runner.transcribe(audioURL: wavURL, language: language)
     }
 }

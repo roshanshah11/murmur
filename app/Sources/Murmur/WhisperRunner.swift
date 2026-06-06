@@ -74,7 +74,7 @@ final class WhisperRunner {
         cachedModelPath = modelPath
     }
 
-    func transcribe(audioURL: URL) throws -> String {
+    func transcribe(audioURL: URL, language: String? = nil) throws -> String {
         // Use cached validated paths if available — avoids 4 stat syscalls per
         // dictation. Falls back to a fresh validate on first call.
         if cachedBinaryPath == nil || cachedModelPath == nil {
@@ -97,7 +97,7 @@ final class WhisperRunner {
         var args = [
             "-m", modelPath,
             "-f", audioURL.path,
-            "-l", config.language,
+            "-l", language ?? config.language,
             "-nt",
             "-bs", "1",
             "-bo", "1",
