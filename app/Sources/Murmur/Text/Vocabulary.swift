@@ -19,8 +19,8 @@ public struct Vocabulary: Codable, Equatable {
 
     public mutating func upsert(from: String, to: String) {
         let key = from.lowercased()
-        if let i = entries.firstIndex(where: { $0.from.lowercased() == key }) {
-            entries[i].to = to
+        if let idx = entries.firstIndex(where: { $0.from.lowercased() == key }) {
+            entries[idx].to = to
         } else {
             entries.append(Entry(from: from, to: to))
         }
@@ -33,14 +33,14 @@ public struct Vocabulary: Codable, Equatable {
 
     public func apply(to text: String) -> String {
         var out = text
-        for e in entries {
-            let pattern = "\\b" + NSRegularExpression.escapedPattern(for: e.from) + "\\b"
+        for entry in entries {
+            let pattern = "\\b" + NSRegularExpression.escapedPattern(for: entry.from) + "\\b"
             guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { continue }
             let range = NSRange(out.startIndex..., in: out)
             out = regex.stringByReplacingMatches(
                 in: out,
                 range: range,
-                withTemplate: NSRegularExpression.escapedTemplate(for: e.to)
+                withTemplate: NSRegularExpression.escapedTemplate(for: entry.to)
             )
         }
         return out

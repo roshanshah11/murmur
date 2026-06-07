@@ -1,9 +1,9 @@
+@testable import Murmur
 // Phase 5: opt-in history. These tests exercise the `Config.historyEnabled`
 // gate at the AppState call site and the round-trip of the new
 // `HistoryEntry.favorite` field — without involving the whisper/paste
 // pipeline (which can't run in a unit-test environment).
 import XCTest
-@testable import Murmur
 
 /// Stand-in engine for tests that exercise AppState's history gate without
 /// running real transcription. Depends only on the protocol, so it's immune
@@ -143,11 +143,11 @@ final class HistoryGateTests: XCTestCase {
 
         // Pre-Phase-5 JSON (no `favorite` key) must decode with favorite=false
         // so existing user history files keep working.
-        let legacyJSON = """
+        let legacyJSON = Data("""
         {"id":"x","ts":"2026-05-17T12:00:00.000Z","cleaned":"old","raw":"old",
          "target_app":"TextEdit","target_bundle":"com.apple.TextEdit",
          "duration_ms":1,"result":"pasted"}
-        """.data(using: .utf8)!
+        """.utf8)
         let legacy = try JSONDecoder().decode(HistoryEntry.self, from: legacyJSON)
         XCTAssertFalse(legacy.favorite,
                        "missing favorite key must default to false for backward compat")

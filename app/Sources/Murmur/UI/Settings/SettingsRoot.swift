@@ -26,13 +26,27 @@ struct SettingsRoot: View {
             get: { SettingsTab(rawValue: selectedRaw) ?? .general },
             set: { selectedRaw = $0.rawValue }
         )) {
-            GeneralTab()    .tabItem { Label("General",    systemImage: SettingsTab.general.systemImage) }    .tag(SettingsTab.general)
-            RecordingTab()  .tabItem { Label("Recording",  systemImage: SettingsTab.recording.systemImage) }  .tag(SettingsTab.recording)
-            VocabularyTab() .tabItem { Label("Vocabulary", systemImage: SettingsTab.vocabulary.systemImage) } .tag(SettingsTab.vocabulary)
-            PromptsTab()    .tabItem { Label("Prompts",    systemImage: SettingsTab.prompts.systemImage) }    .tag(SettingsTab.prompts)
-            ModelsTab()     .tabItem { Label("Models",     systemImage: SettingsTab.models.systemImage) }     .tag(SettingsTab.models)
-            UpdatesTab()    .tabItem { Label("Updates",    systemImage: SettingsTab.updates.systemImage) }    .tag(SettingsTab.updates)
-            AboutTab()      .tabItem { Label("About",      systemImage: SettingsTab.about.systemImage) }      .tag(SettingsTab.about)
+            GeneralTab()
+                .tabItem { Label("General", systemImage: SettingsTab.general.systemImage) }
+                .tag(SettingsTab.general)
+            RecordingTab()
+                .tabItem { Label("Recording", systemImage: SettingsTab.recording.systemImage) }
+                .tag(SettingsTab.recording)
+            VocabularyTab()
+                .tabItem { Label("Vocabulary", systemImage: SettingsTab.vocabulary.systemImage) }
+                .tag(SettingsTab.vocabulary)
+            PromptsTab()
+                .tabItem { Label("Prompts", systemImage: SettingsTab.prompts.systemImage) }
+                .tag(SettingsTab.prompts)
+            ModelsTab()
+                .tabItem { Label("Models", systemImage: SettingsTab.models.systemImage) }
+                .tag(SettingsTab.models)
+            UpdatesTab()
+                .tabItem { Label("Updates", systemImage: SettingsTab.updates.systemImage) }
+                .tag(SettingsTab.updates)
+            AboutTab()
+                .tabItem { Label("About", systemImage: SettingsTab.about.systemImage) }
+                .tag(SettingsTab.about)
         }
         // Use minimums so a previously-autosaved larger window frame can't
         // clip the tab strip rendered by TabView inside NSHostingController.

@@ -1,14 +1,14 @@
-import XCTest
 @testable import Murmur
+import XCTest
 
 /// Helper: build a Vocabulary from a `[from: to]` dictionary literal,
 /// inserted in sorted-key order for deterministic substitution ordering.
 private func vocabulary(_ entries: [String: String]) -> Vocabulary {
-    var v = Vocabulary()
+    var vocab = Vocabulary()
     for key in entries.keys.sorted() {
-        v.upsert(from: key, to: entries[key]!)
+        vocab.upsert(from: key, to: entries[key] ?? "")
     }
-    return v
+    return vocab
 }
 
 final class TextCleanerTests: XCTestCase {

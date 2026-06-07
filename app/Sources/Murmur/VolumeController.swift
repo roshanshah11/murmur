@@ -85,33 +85,33 @@ final class VolumeController {
 
     @discardableResult
     private func runRead(_ script: String) -> String? {
-        let p = Process()
-        p.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        p.arguments = ["-e", script]
-        let out = Pipe(); p.standardOutput = out
-        p.standardError = Pipe()
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        process.arguments = ["-e", script]
+        let out = Pipe(); process.standardOutput = out
+        process.standardError = Pipe()
         do {
-            try p.run()
-            p.waitUntilExit()
+            try process.run()
+            process.waitUntilExit()
         } catch { return nil }
         let data = out.fileHandleForReading.readDataToEndOfFile()
         return String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func run(_ script: String) {
-        let p = Process()
-        p.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        p.arguments = ["-e", script]
-        p.standardOutput = Pipe()
-        p.standardError = Pipe()
-        try? p.run()
-        p.waitUntilExit()
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        process.arguments = ["-e", script]
+        process.standardOutput = Pipe()
+        process.standardError = Pipe()
+        try? process.run()
+        process.waitUntilExit()
     }
 }
 
 private extension Bool {
-    init?(fromAppleScript s: String) {
-        switch s.lowercased() {
+    init?(fromAppleScript script: String) {
+        switch script.lowercased() {
         case "true": self = true
         case "false": self = false
         default: return nil

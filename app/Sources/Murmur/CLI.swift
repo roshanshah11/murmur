@@ -2,7 +2,14 @@ import Foundation
 
 enum CLIMode: Equatable {
     case ui
-    case transcribeOnly(wavURL: URL, profile: PromptLibrary.Profile?, language: String?, modelName: String?, vocabularyURL: URL?, engine: TranscriptionEngineKind?)
+    case transcribeOnly(
+        wavURL: URL,
+        profile: PromptLibrary.Profile?,
+        language: String?,
+        modelName: String?,
+        vocabularyURL: URL?,
+        engine: TranscriptionEngineKind?
+    )
     case recordOnce
     case help
     case version
@@ -63,10 +70,10 @@ enum CLI {
         let tail = Array(args.dropFirst())
         guard !tail.isEmpty else { return .ui }
 
-        var i = 0
-        while i < tail.count {
-            let a = tail[i]
-            switch a {
+        var idx = 0
+        while idx < tail.count {
+            let arg = tail[idx]
+            switch arg {
             case "--help", "-h":
                 return .help
             case "--version", "-v":
@@ -74,10 +81,10 @@ enum CLI {
             case "--record-once":
                 return .recordOnce
             case "--transcribe-only":
-                guard i + 1 < tail.count else { return .help }
-                let path = (tail[i + 1] as NSString).expandingTildeInPath
+                guard idx + 1 < tail.count else { return .help }
+                let path = (tail[idx + 1] as NSString).expandingTildeInPath
                 let wavURL = URL(fileURLWithPath: path)
-                let overrides = try parseTranscribeOnlyOverrides(Array(tail.suffix(from: i + 2)))
+                let overrides = try parseTranscribeOnlyOverrides(Array(tail.suffix(from: idx + 2)))
                 return .transcribeOnly(
                     wavURL: wavURL,
                     profile: overrides.profile,
@@ -87,7 +94,7 @@ enum CLI {
                     engine: overrides.engine
                 )
             default:
-                i += 1
+                idx += 1
             }
         }
         return .ui
@@ -110,40 +117,42 @@ enum CLI {
         }
     }
 
-    /// Strict walker for the override flags that may follow `--transcribe-only <wav>`.
-    /// Throws `CLIError.unknownFlag` for anything it doesn't recognise so the
-    /// caller can fail fast rather than silently dropping arguments.
+    // sequential flag parser; the per-flag switch is clearer than splitting into helpers
+    // swiftlint:disable:next cyclomatic_complexity
     private static func parseTranscribeOnlyOverrides(_ args: [String]) throws -> TranscribeOverrides {
+        // Strict walker for the override flags that may follow `--transcribe-only <wav>`.
+        // Throws `CLIError.unknownFlag` for anything it doesn't recognise so the
+        // caller can fail fast rather than silently dropping arguments.
         var out = TranscribeOverrides()
-        var i = 0
-        while i < args.count {
-            let flag = args[i]
+        var idx = 0
+        while idx < args.count {
+            let flag = args[idx]
             switch flag {
             case "--profile":
-                guard i + 1 < args.count else { throw CLIError.missingValue(flag) }
-                let raw = args[i + 1]
+                guard idx + 1 < args.count else { throw CLIError.missingValue(flag) }
+                let raw = args[idx + 1]
                 guard let profile = PromptLibrary.Profile(rawValue: raw) else {
                     throw CLIError.unknownProfile(raw)
                 }
                 out.profile = profile
-                i += 2
+                idx += 2
             case "--language":
-                guard i + 1 < args.count else { throw CLIError.missingValue(flag) }
-                out.language = args[i + 1]
-                i += 2
+                guard idx + 1 < args.count else { throw CLIError.missingValue(flag) }
+                out.language = args[idx + 1]
+                idx += 2
             case "--model":
-                guard i + 1 < args.count else { throw CLIError.missingValue(flag) }
-                out.modelName = args[i + 1]
-                i += 2
+                guard idx + 1 < args.count else { throw CLIError.missingValue(flag) }
+                out.modelName = args[idx + 1]
+                idx += 2
             case "--vocabulary":
-                guard i + 1 < args.count else { throw CLIError.missingValue(flag) }
-                let path = (args[i + 1] as NSString).expandingTildeInPath
+                guard idx + 1 < args.count else { throw CLIError.missingValue(flag) }
+                let path = (args[idx + 1] as NSString).expandingTildeInPath
                 out.vocabularyURL = URL(fileURLWithPath: path)
-                i += 2
+                idx += 2
             case "--engine":
-                guard i + 1 < args.count else { throw CLIError.missingValue(flag) }
-                out.engine = try parseEngine(args[i + 1])
-                i += 2
+                guard idx + 1 < args.count else { throw CLIError.missingValue(flag) }
+                out.engine = try parseEngine(args[idx + 1])
+                idx += 2
             default:
                 throw CLIError.unknownFlag(flag)
             }
@@ -206,7 +215,12 @@ enum CLI {
         let engine = TranscriptionEngineFactory.make(config: config)
         let cleaner = TextCleaner(vocabulary: config.vocabulary, profile: config.activeProfile)
         do {
-            let raw = try AsyncBridge.runBlocking { try await engine.transcribe(wavURL: wav, language: config.language.isEmpty ? nil : config.language) }
+            let raw = try AsyncBridge.runBlocking {
+                try await engine.transcribe(
+                    wavURL: wav,
+                    language: config.language.isEmpty ? nil : config.language
+                )
+            }
             let cleaned = cleaner.clean(raw)
             FileHandle.standardOutput.write(Data((cleaned + "\n").utf8))
             return 0

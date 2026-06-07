@@ -1,6 +1,6 @@
 import AppKit
-import XCTest
 @testable import Murmur
+import XCTest
 
 final class AppearanceModeTests: XCTestCase {
     func test_nsAppearance_mapping() {
@@ -33,7 +33,7 @@ final class AppearanceModeTests: XCTestCase {
     /// transcriptionEngine missing-key test.
     func test_appearance_defaultsToAuto_whenKeyMissing() throws {
         let fullData = try JSONEncoder().encode(Config.defaultConfig())
-        var dict = try JSONSerialization.jsonObject(with: fullData) as! [String: Any]
+        var dict = try XCTUnwrap(JSONSerialization.jsonObject(with: fullData) as? [String: Any])
         dict.removeValue(forKey: "appearance")
         let stripped = try JSONSerialization.data(withJSONObject: dict)
         let decoded = try JSONDecoder().decode(Config.self, from: stripped)

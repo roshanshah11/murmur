@@ -35,7 +35,9 @@ struct UpdatesTab: View {
                 .controlSize(.regular)
             }
             Section("How updates work") {
-                Text("Murmur downloads signed updates from a public appcast hosted on GitHub Pages. The download is verified against an EdDSA public key embedded in the app bundle. No telemetry is sent during the check.")
+                Text("Murmur downloads signed updates from a public appcast hosted on GitHub Pages. "
+                    + "The download is verified against an EdDSA public key embedded in the app bundle. "
+                    + "No telemetry is sent during the check.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
         }

@@ -1,5 +1,5 @@
-import XCTest
 @testable import Murmur
+import XCTest
 
 /// Decision logic of `OnboardingWindowController.shouldShow(for:)`. The
 /// real `openIfNeeded()` is left untested because it has an AppKit side

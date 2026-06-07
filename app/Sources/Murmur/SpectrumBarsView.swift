@@ -70,20 +70,20 @@ final class SpectrumBarsView: NSView {
         guard let host = layer else { return }
         for sub in host.sublayers ?? [] { sub.removeFromSuperlayer() }
         bars.removeAll()
-        for i in 0..<barCount {
-            let b = CALayer()
-            b.cornerRadius = barWidth / 2
-            b.backgroundColor = Self.colorForIndex(i, of: barCount).cgColor
-            host.addSublayer(b)
-            bars.append(b)
+        for idx in 0..<barCount {
+            let bar = CALayer()
+            bar.cornerRadius = barWidth / 2
+            bar.backgroundColor = Self.colorForIndex(idx, of: barCount).cgColor
+            host.addSublayer(bar)
+            bars.append(bar)
         }
     }
 
     private func updateColors() {
-        for (i, bar) in bars.enumerated() {
+        for (idx, bar) in bars.enumerated() {
             switch mode {
             case .live, .idle, .processing:
-                bar.backgroundColor = Self.colorForIndex(i, of: barCount).cgColor
+                bar.backgroundColor = Self.colorForIndex(idx, of: barCount).cgColor
             case .error:
                 bar.backgroundColor = NSColor(red: 1.0, green: 0.35, blue: 0.35, alpha: 0.85).cgColor
             }
@@ -103,10 +103,15 @@ final class SpectrumBarsView: NSView {
         let centerY = bounds.midY
         CATransaction.begin()
         CATransaction.setDisableActions(!animated)
-        for i in 0..<barCount {
-            let h = max(minBarHeight, heights[i])
-            let x = startX + CGFloat(i) * (barWidth + barSpacing)
-            bars[i].frame = NSRect(x: x, y: centerY - h / 2, width: barWidth, height: min(h, maxHeight))
+        for idx in 0..<barCount {
+            let barHeight = max(minBarHeight, heights[idx])
+            let xPos = startX + CGFloat(idx) * (barWidth + barSpacing)
+            bars[idx].frame = NSRect(
+                x: xPos,
+                y: centerY - barHeight / 2,
+                width: barWidth,
+                height: min(barHeight, maxHeight)
+            )
         }
         CATransaction.commit()
     }
@@ -114,11 +119,11 @@ final class SpectrumBarsView: NSView {
     private func startTimer() {
         stopTimer()
         // 30Hz is enough — frame-perfect motion not required.
-        let t = Timer(timeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
             self?.tick()
         }
-        RunLoop.main.add(t, forMode: .common)
-        pollTimer = t
+        RunLoop.main.add(timer, forMode: .common)
+        pollTimer = timer
     }
 
     private func stopTimer() {
@@ -130,8 +135,8 @@ final class SpectrumBarsView: NSView {
         let maxH = max(2, bounds.height - 2)
         phase += 0.18
 
-        for i in 0..<barCount {
-            let n = CGFloat(i) / CGFloat(max(1, barCount - 1))   // 0..1 across the row
+        for idx in 0..<barCount {
+            let normalized = CGFloat(idx) / CGFloat(max(1, barCount - 1))   // 0..1 across the row
             let target: CGFloat
             switch mode {
             case .live:
@@ -141,7 +146,7 @@ final class SpectrumBarsView: NSView {
                 } else {
                     // Each bar has a phase offset so motion feels wave-like.
                     let env = CGFloat(level)
-                    let wave = sin(phase + n * 5.2) * 0.25 + 0.75   // 0.5..1.0
+                    let wave = sin(phase + normalized * 5.2) * 0.25 + 0.75   // 0.5..1.0
                     let base = env * maxH * wave
                     let jitter = (CGFloat.random(in: -1...1)) * 1.2 * env
                     target = max(minBarHeight, min(maxH, base + jitter))
@@ -151,7 +156,7 @@ final class SpectrumBarsView: NSView {
                     target = minBarHeight
                 } else {
                     // Very low amplitude shimmer.
-                    let wave = sin(phase * 0.6 + n * 4.0) * 0.5 + 0.5
+                    let wave = sin(phase * 0.6 + normalized * 4.0) * 0.5 + 0.5
                     target = minBarHeight + wave * 1.6
                 }
             case .processing:
@@ -159,46 +164,46 @@ final class SpectrumBarsView: NSView {
                     target = maxH * 0.35
                 } else {
                     // Moving wave from left to right.
-                    let wave = sin(phase * 1.4 - n * 1.2) * 0.5 + 0.5
+                    let wave = sin(phase * 1.4 - normalized * 1.2) * 0.5 + 0.5
                     target = minBarHeight + wave * maxH * 0.55
                 }
             case .error:
                 target = minBarHeight + 2
             }
-            targets[i] = target
+            targets[idx] = target
             // Peak-hold: rise fast, fall slow.
-            let delta = targets[i] - heights[i]
-            heights[i] += delta * (delta > 0 ? attack : decay)
+            let delta = targets[idx] - heights[idx]
+            heights[idx] += delta * (delta > 0 ? attack : decay)
         }
         layoutBars(animated: false)
     }
 
     // MARK: - Palette helper
 
-    static func colorForIndex(_ i: Int, of n: Int) -> NSColor {
+    static func colorForIndex(_ index: Int, of count: Int) -> NSColor {
         // Single-color palette → all bars share the base color. Slight
         // alpha variation across the row keeps the row visually grouped
         // without re-introducing a gradient.
         let base = color(palette[0])
-        let t = n > 1 ? Float(i) / Float(n - 1) : 0
-        let alpha: CGFloat = 0.82 + CGFloat(sin(Float.pi * t)) * 0.18
+        let fraction = count > 1 ? Float(index) / Float(count - 1) : 0
+        let alpha: CGFloat = 0.82 + CGFloat(sin(Float.pi * fraction)) * 0.18
         return base.withAlphaComponent(alpha)
     }
 
     static func color(_ hex: UInt32) -> NSColor {
-        let r = CGFloat((hex >> 16) & 0xFF) / 255
-        let g = CGFloat((hex >> 8) & 0xFF) / 255
-        let b = CGFloat(hex & 0xFF) / 255
-        return NSColor(srgbRed: r, green: g, blue: b, alpha: 1)
+        let red = CGFloat((hex >> 16) & 0xFF) / 255
+        let green = CGFloat((hex >> 8) & 0xFF) / 255
+        let blue = CGFloat(hex & 0xFF) / 255
+        return NSColor(srgbRed: red, green: green, blue: blue, alpha: 1)
     }
 
-    static func lerp(_ a: NSColor, _ b: NSColor, _ t: CGFloat) -> NSColor {
-        let ac = a.usingColorSpace(.sRGB) ?? a
-        let bc = b.usingColorSpace(.sRGB) ?? b
+    static func lerp(_ from: NSColor, _ to: NSColor, _ fraction: CGFloat) -> NSColor {
+        let fromColor = from.usingColorSpace(.sRGB) ?? from
+        let toColor = to.usingColorSpace(.sRGB) ?? to
         return NSColor(
-            srgbRed: ac.redComponent + (bc.redComponent - ac.redComponent) * t,
-            green: ac.greenComponent + (bc.greenComponent - ac.greenComponent) * t,
-            blue: ac.blueComponent + (bc.blueComponent - ac.blueComponent) * t,
+            srgbRed: fromColor.redComponent + (toColor.redComponent - fromColor.redComponent) * fraction,
+            green: fromColor.greenComponent + (toColor.greenComponent - fromColor.greenComponent) * fraction,
+            blue: fromColor.blueComponent + (toColor.blueComponent - fromColor.blueComponent) * fraction,
             alpha: 1
         )
     }

@@ -285,9 +285,9 @@ final class AppState {
     }
 
     private func shortErrorMessage(_ error: Error) -> String {
-        if let w = error as? WhisperRunnerError { return w.shortMessage }
-        if let a = error as? AudioRecorderError {
-            switch a {
+        if let whisperError = error as? WhisperRunnerError { return whisperError.shortMessage }
+        if let audioError = error as? AudioRecorderError {
+            switch audioError {
             case .microphonePermissionDenied: return "Mic permission denied"
             case .failedToCreateRecorder: return "Recorder failed"
             case .recorderNotRunning: return "Recorder not running"

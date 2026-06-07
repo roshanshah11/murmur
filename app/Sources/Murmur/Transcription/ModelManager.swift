@@ -1,3 +1,4 @@
+import CryptoKit
 // Download + verify + select Whisper models.
 //
 // Downloads are persisted to AppPaths.modelsDirectory. SHA-256 verification
@@ -9,7 +10,6 @@
 // adapter wrapped in a continuation to expose progress without leaking the
 // delegate to callers.
 import Foundation
-import CryptoKit
 
 @MainActor
 public final class ModelManager: ObservableObject {
@@ -55,8 +55,8 @@ public final class ModelManager: ObservableObject {
     /// from 0...1 as bytes arrive, then verifies SHA-256 (when pinned) before
     /// atomically moving the file into place.
     public func download(_ entry: ModelManifest.Entry,
-                          downloader: ModelDownloading = URLSessionModelDownloader(),
-                          shaProvider: @escaping (URL) throws -> String = ModelManager.sha256Hex(of:)) async throws {
+                         downloader: ModelDownloading = URLSessionModelDownloader(),
+                         shaProvider: @escaping (URL) throws -> String = ModelManager.sha256Hex(of:)) async throws {
         downloads[entry.name] = 0
         defer { downloads.removeValue(forKey: entry.name) }
 
@@ -138,7 +138,8 @@ public protocol ModelDownloading: Sendable {
 /// URLSession-backed implementation. Bridges a `URLSessionDownloadDelegate`'s
 /// progress callbacks into a single `async throws -> URL` so callers don't
 /// have to manage delegate lifetimes.
-public final class URLSessionModelDownloader: NSObject, ModelDownloading, URLSessionDownloadDelegate, @unchecked Sendable {
+public final class URLSessionModelDownloader: NSObject, ModelDownloading,
+    URLSessionDownloadDelegate, @unchecked Sendable {
     private let configuration: URLSessionConfiguration
     private var continuations: [Int: CheckedContinuation<URL, Error>] = [:]
     private var progressCallbacks: [Int: @Sendable (Double) -> Void] = [:]
@@ -150,7 +151,7 @@ public final class URLSessionModelDownloader: NSObject, ModelDownloading, URLSes
     }
 
     public func download(from url: URL,
-                          progress: @escaping @Sendable (Double) -> Void) async throws -> URL {
+                         progress: @escaping @Sendable (Double) -> Void) async throws -> URL {
         // A fresh session per download keeps delegate state simple and avoids
         // continuations leaking between concurrent downloads.
         let session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
@@ -169,10 +170,10 @@ public final class URLSessionModelDownloader: NSObject, ModelDownloading, URLSes
     // MARK: URLSessionDownloadDelegate
 
     public func urlSession(_ session: URLSession,
-                            downloadTask: URLSessionDownloadTask,
-                            didWriteData bytesWritten: Int64,
-                            totalBytesWritten: Int64,
-                            totalBytesExpectedToWrite: Int64) {
+                           downloadTask: URLSessionDownloadTask,
+                           didWriteData bytesWritten: Int64,
+                           totalBytesWritten: Int64,
+                           totalBytesExpectedToWrite: Int64) {
         guard totalBytesExpectedToWrite > 0 else { return }
         let fraction = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
         lock.lock()
@@ -182,8 +183,8 @@ public final class URLSessionModelDownloader: NSObject, ModelDownloading, URLSes
     }
 
     public func urlSession(_ session: URLSession,
-                            downloadTask: URLSessionDownloadTask,
-                            didFinishDownloadingTo location: URL) {
+                           downloadTask: URLSessionDownloadTask,
+                           didFinishDownloadingTo location: URL) {
         // Move the file out of the system temp dir; URLSession deletes the
         // original as soon as this delegate returns.
         let tmpDir = FileManager.default.temporaryDirectory
@@ -206,8 +207,8 @@ public final class URLSessionModelDownloader: NSObject, ModelDownloading, URLSes
     }
 
     public func urlSession(_ session: URLSession,
-                            task: URLSessionTask,
-                            didCompleteWithError error: Error?) {
+                           task: URLSessionTask,
+                           didCompleteWithError error: Error?) {
         guard let error else { return }
         lock.lock()
         let cont = continuations.removeValue(forKey: task.taskIdentifier)

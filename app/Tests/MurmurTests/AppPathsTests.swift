@@ -1,5 +1,7 @@
-import XCTest
+// swiftlint:disable banned_flowlite
+// legitimate legacy ~/.flow-lite migration path (mirrors the CI grep allowlist)
 @testable import Murmur
+import XCTest
 
 final class AppPathsTests: XCTestCase {
     func test_appSupportDirectory_isUnderLibrary() {
@@ -22,3 +24,4 @@ final class AppPathsTests: XCTestCase {
         XCTAssertTrue(AppPaths.legacyFlowLiteDirectory.path.hasSuffix("/.flow-lite"))
     }
 }
+// swiftlint:enable banned_flowlite

@@ -1,8 +1,11 @@
+// app entry point + menu wiring; the delegate is cohesive launch glue
+// swiftlint:disable file_length
 import AppKit
 import ApplicationServices
 import FluidAudio
 import Foundation
 
+// swiftlint:disable:next type_body_length
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     private var statusItem: NSStatusItem!
     private var appState: AppState!
@@ -13,6 +16,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     private let notch = NotchIndicator()
     private lazy var settingsWindow = SettingsWindowController()
 
+    // launch wiring; splitting hurts readability of the startup sequence
+    // swiftlint:disable:next function_body_length
     func applicationDidFinishLaunching(_ notification: Notification) {
         ConfigMigration.runDefaultMigration()
         // Touch the Sparkle adapter so SPUStandardUpdaterController initialises
@@ -331,9 +336,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     }
 
     private func formatElapsed(_ seconds: TimeInterval) -> String {
-        let s = max(0, Int(seconds))
-        if s < 60 { return String(format: "0:%02d", s) }
-        return String(format: "%d:%02d", s / 60, s % 60)
+        let elapsed = max(0, Int(seconds))
+        if elapsed < 60 { return String(format: "0:%02d", elapsed) }
+        return String(format: "%d:%02d", elapsed / 60, elapsed % 60)
     }
 
     private func applyLiveTitle() {
@@ -397,7 +402,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
                 durationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
                     self?.applyLiveTitle()
                 }
-                if let t = durationTimer { RunLoop.main.add(t, forMode: .common) }
+                if let timer = durationTimer { RunLoop.main.add(timer, forMode: .common) }
             }
         } else {
             durationTimer?.invalidate()
@@ -516,7 +521,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         }
         submenu.addItem(NSMenuItem.separator())
 
-        let openItem = NSMenuItem(title: "Open Full History File…", action: #selector(openHistoryFile), keyEquivalent: "")
+        let openItem = NSMenuItem(
+            title: "Open Full History File…",
+            action: #selector(openHistoryFile),
+            keyEquivalent: ""
+        )
         openItem.target = self
         submenu.addItem(openItem)
 
@@ -620,3 +629,4 @@ case .recordOnce, .ui:
     }
     app.run()
 }
+// swiftlint:enable file_length

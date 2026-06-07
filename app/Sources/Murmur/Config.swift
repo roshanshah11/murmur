@@ -65,11 +65,11 @@ struct Config: Codable {
     ]
 
     static func defaultVocabulary() -> Vocabulary {
-        var v = Vocabulary()
+        var vocab = Vocabulary()
         for (from, to) in defaultVocabularySeed {
-            v.upsert(from: from, to: to)
+            vocab.upsert(from: from, to: to)
         }
-        return v
+        return vocab
     }
 
     static func defaultConfig() -> Config {
@@ -171,64 +171,82 @@ struct Config: Codable {
     }
 
     init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        let d = Config.defaultConfig()
-        self.whisperBinaryPath = try c.decodeIfPresent(String.self, forKey: .whisperBinaryPath) ?? d.whisperBinaryPath
-        self.modelPath = try c.decodeIfPresent(String.self, forKey: .modelPath) ?? d.modelPath
-        self.language = try c.decodeIfPresent(String.self, forKey: .language) ?? d.language
-        self.rawTranscriptMode = try c.decodeIfPresent(Bool.self, forKey: .rawTranscriptMode) ?? d.rawTranscriptMode
-        self.restoreClipboardAfterPaste = try c.decodeIfPresent(Bool.self, forKey: .restoreClipboardAfterPaste) ?? d.restoreClipboardAfterPaste
-        self.clipboardRestoreDelayMs = try c.decodeIfPresent(Int.self, forKey: .clipboardRestoreDelayMs) ?? d.clipboardRestoreDelayMs
-        self.deleteTempAudio = try c.decodeIfPresent(Bool.self, forKey: .deleteTempAudio) ?? d.deleteTempAudio
-        self.debugRetainAudio = try c.decodeIfPresent(Bool.self, forKey: .debugRetainAudio) ?? d.debugRetainAudio
-        self.transcriptionTimeoutSeconds = try c.decodeIfPresent(Int.self, forKey: .transcriptionTimeoutSeconds) ?? d.transcriptionTimeoutSeconds
-        self.whisperThreads = try c.decodeIfPresent(Int.self, forKey: .whisperThreads) ?? d.whisperThreads
-        self.pasteDelayMs = try c.decodeIfPresent(Int.self, forKey: .pasteDelayMs) ?? d.pasteDelayMs
-        self.errorAutoClearSeconds = try c.decodeIfPresent(Int.self, forKey: .errorAutoClearSeconds) ?? d.errorAutoClearSeconds
-        self.historyEnabled = try c.decodeIfPresent(Bool.self, forKey: .historyEnabled) ?? d.historyEnabled
-        self.historyMaxEntries = try c.decodeIfPresent(Int.self, forKey: .historyMaxEntries) ?? d.historyMaxEntries
-        self.activeProfile = try c.decodeIfPresent(PromptLibrary.Profile.self, forKey: .activeProfile) ?? d.activeProfile
-        self.onboardingCompletedVersion = try c.decodeIfPresent(String.self, forKey: .onboardingCompletedVersion)
-        self.transcriptionEngine = try c.decodeIfPresent(TranscriptionEngineKind.self, forKey: .transcriptionEngine) ?? d.transcriptionEngine
-        self.appearance = try c.decodeIfPresent(AppearanceMode.self, forKey: .appearance) ?? d.appearance
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let defaults = Config.defaultConfig()
+        self.whisperBinaryPath = try container.decodeIfPresent(String.self, forKey: .whisperBinaryPath)
+            ?? defaults.whisperBinaryPath
+        self.modelPath = try container.decodeIfPresent(String.self, forKey: .modelPath) ?? defaults.modelPath
+        self.language = try container.decodeIfPresent(String.self, forKey: .language) ?? defaults.language
+        self.rawTranscriptMode = try container.decodeIfPresent(Bool.self, forKey: .rawTranscriptMode)
+            ?? defaults.rawTranscriptMode
+        self.restoreClipboardAfterPaste = try container.decodeIfPresent(Bool.self, forKey: .restoreClipboardAfterPaste)
+            ?? defaults.restoreClipboardAfterPaste
+        self.clipboardRestoreDelayMs = try container.decodeIfPresent(Int.self, forKey: .clipboardRestoreDelayMs)
+            ?? defaults.clipboardRestoreDelayMs
+        self.deleteTempAudio = try container.decodeIfPresent(Bool.self, forKey: .deleteTempAudio)
+            ?? defaults.deleteTempAudio
+        self.debugRetainAudio = try container.decodeIfPresent(Bool.self, forKey: .debugRetainAudio)
+            ?? defaults.debugRetainAudio
+        self.transcriptionTimeoutSeconds = try container.decodeIfPresent(Int.self, forKey: .transcriptionTimeoutSeconds)
+            ?? defaults.transcriptionTimeoutSeconds
+        self.whisperThreads = try container.decodeIfPresent(Int.self, forKey: .whisperThreads)
+            ?? defaults.whisperThreads
+        self.pasteDelayMs = try container.decodeIfPresent(Int.self, forKey: .pasteDelayMs) ?? defaults.pasteDelayMs
+        self.errorAutoClearSeconds = try container.decodeIfPresent(Int.self, forKey: .errorAutoClearSeconds)
+            ?? defaults.errorAutoClearSeconds
+        self.historyEnabled = try container.decodeIfPresent(Bool.self, forKey: .historyEnabled)
+            ?? defaults.historyEnabled
+        self.historyMaxEntries = try container.decodeIfPresent(Int.self, forKey: .historyMaxEntries)
+            ?? defaults.historyMaxEntries
+        self.activeProfile = try container.decodeIfPresent(PromptLibrary.Profile.self, forKey: .activeProfile)
+            ?? defaults.activeProfile
+        self.onboardingCompletedVersion = try container.decodeIfPresent(
+            String.self,
+            forKey: .onboardingCompletedVersion
+        )
+        self.transcriptionEngine = try container.decodeIfPresent(
+            TranscriptionEngineKind.self,
+            forKey: .transcriptionEngine
+        ) ?? defaults.transcriptionEngine
+        self.appearance = try container.decodeIfPresent(AppearanceMode.self, forKey: .appearance) ?? defaults.appearance
 
         // Vocabulary precedence: modern `vocabulary` key wins. If absent, fall
         // back to legacy `customVocabulary: [String: String]` (sorted-key order
         // for deterministic migration). If both absent, use defaults.
-        if let modern = try c.decodeIfPresent(Vocabulary.self, forKey: .vocabulary) {
+        if let modern = try container.decodeIfPresent(Vocabulary.self, forKey: .vocabulary) {
             self.vocabulary = modern
-        } else if let legacy = try c.decodeIfPresent([String: String].self, forKey: .customVocabulary) {
-            var v = Vocabulary()
+        } else if let legacy = try container.decodeIfPresent([String: String].self, forKey: .customVocabulary) {
+            var vocab = Vocabulary()
             for key in legacy.keys.sorted() {
-                v.upsert(from: key, to: legacy[key]!)
+                vocab.upsert(from: key, to: legacy[key] ?? "")
             }
-            self.vocabulary = v
+            self.vocabulary = vocab
         } else {
-            self.vocabulary = d.vocabulary
+            self.vocabulary = defaults.vocabulary
         }
     }
 
     func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
-        try c.encode(whisperBinaryPath, forKey: .whisperBinaryPath)
-        try c.encode(modelPath, forKey: .modelPath)
-        try c.encode(language, forKey: .language)
-        try c.encode(rawTranscriptMode, forKey: .rawTranscriptMode)
-        try c.encode(restoreClipboardAfterPaste, forKey: .restoreClipboardAfterPaste)
-        try c.encode(clipboardRestoreDelayMs, forKey: .clipboardRestoreDelayMs)
-        try c.encode(deleteTempAudio, forKey: .deleteTempAudio)
-        try c.encode(debugRetainAudio, forKey: .debugRetainAudio)
-        try c.encode(transcriptionTimeoutSeconds, forKey: .transcriptionTimeoutSeconds)
-        try c.encodeIfPresent(whisperThreads, forKey: .whisperThreads)
-        try c.encode(pasteDelayMs, forKey: .pasteDelayMs)
-        try c.encode(errorAutoClearSeconds, forKey: .errorAutoClearSeconds)
-        try c.encode(historyEnabled, forKey: .historyEnabled)
-        try c.encode(historyMaxEntries, forKey: .historyMaxEntries)
-        try c.encode(vocabulary, forKey: .vocabulary)
-        try c.encode(activeProfile, forKey: .activeProfile)
-        try c.encodeIfPresent(onboardingCompletedVersion, forKey: .onboardingCompletedVersion)
-        try c.encode(transcriptionEngine, forKey: .transcriptionEngine)
-        try c.encode(appearance, forKey: .appearance)
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(whisperBinaryPath, forKey: .whisperBinaryPath)
+        try container.encode(modelPath, forKey: .modelPath)
+        try container.encode(language, forKey: .language)
+        try container.encode(rawTranscriptMode, forKey: .rawTranscriptMode)
+        try container.encode(restoreClipboardAfterPaste, forKey: .restoreClipboardAfterPaste)
+        try container.encode(clipboardRestoreDelayMs, forKey: .clipboardRestoreDelayMs)
+        try container.encode(deleteTempAudio, forKey: .deleteTempAudio)
+        try container.encode(debugRetainAudio, forKey: .debugRetainAudio)
+        try container.encode(transcriptionTimeoutSeconds, forKey: .transcriptionTimeoutSeconds)
+        try container.encodeIfPresent(whisperThreads, forKey: .whisperThreads)
+        try container.encode(pasteDelayMs, forKey: .pasteDelayMs)
+        try container.encode(errorAutoClearSeconds, forKey: .errorAutoClearSeconds)
+        try container.encode(historyEnabled, forKey: .historyEnabled)
+        try container.encode(historyMaxEntries, forKey: .historyMaxEntries)
+        try container.encode(vocabulary, forKey: .vocabulary)
+        try container.encode(activeProfile, forKey: .activeProfile)
+        try container.encodeIfPresent(onboardingCompletedVersion, forKey: .onboardingCompletedVersion)
+        try container.encode(transcriptionEngine, forKey: .transcriptionEngine)
+        try container.encode(appearance, forKey: .appearance)
         // Deliberately do not emit `customVocabulary` — the field is decode-only
         // for legacy migration.
     }

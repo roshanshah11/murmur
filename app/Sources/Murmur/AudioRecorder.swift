@@ -31,9 +31,9 @@ final class AudioRecorder: NSObject, AVAudioRecorderDelegate {
     /// Normalized mic level 0..1 derived from AVAudioRecorder.averagePower.
     /// Returns 0 when not recording. Cheap to poll at 30Hz.
     func currentLevel() -> Float {
-        guard let r = recorder else { return 0 }
-        r.updateMeters()
-        let dB = r.averagePower(forChannel: 0)   // -160 (silence) .. 0 (max)
+        guard let activeRecorder = recorder else { return 0 }
+        activeRecorder.updateMeters()
+        let dB = activeRecorder.averagePower(forChannel: 0)   // -160 (silence) .. 0 (max)
         let clamped = max(-50, min(0, dB))
         return (clamped + 50) / 50
     }
@@ -137,20 +137,20 @@ final class AudioRecorder: NSObject, AVAudioRecorderDelegate {
 
         Log.event(state: "wav_header_invalid", fields: ["path": url.lastPathComponent])
         let converted = url.deletingPathExtension().appendingPathExtension("conv.wav")
-        let p = Process()
-        p.executableURL = URL(fileURLWithPath: "/usr/bin/afconvert")
-        p.arguments = ["-d", "LEI16@16000", "-c", "1", "-f", "WAVE", url.path, converted.path]
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/afconvert")
+        process.arguments = ["-d", "LEI16@16000", "-c", "1", "-f", "WAVE", url.path, converted.path]
         let err = Pipe()
-        p.standardError = err
+        process.standardError = err
         do {
-            try p.run()
-            p.waitUntilExit()
+            try process.run()
+            process.waitUntilExit()
         } catch {
             throw AudioRecorderError.wavConversionFailed(error.localizedDescription)
         }
-        guard p.terminationStatus == 0 else {
+        guard process.terminationStatus == 0 else {
             let stderr = String(data: err.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-            throw AudioRecorderError.wavConversionFailed("afconvert exit \(p.terminationStatus): \(stderr)")
+            throw AudioRecorderError.wavConversionFailed("afconvert exit \(process.terminationStatus): \(stderr)")
         }
         try? FileManager.default.removeItem(at: url)
         return converted

@@ -107,11 +107,11 @@ final class VocabularyTabModel: ObservableObject {
         if let modern = try? JSONDecoder().decode(Vocabulary.self, from: data) {
             entries = modern.entries
         } else if let legacy = try? JSONDecoder().decode([String: String].self, from: data) {
-            var v = Vocabulary()
+            var vocab = Vocabulary()
             for key in legacy.keys.sorted() {
-                v.upsert(from: key, to: legacy[key]!)
+                vocab.upsert(from: key, to: legacy[key] ?? "")
             }
-            entries = v.entries
+            entries = vocab.entries
         } else {
             struct ImportFormatError: LocalizedError {
                 var errorDescription: String? {
@@ -207,7 +207,8 @@ struct VocabularyTab: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Vocabulary").font(.headline)
-            Text("Replace mishearings with the real spelling. Matching is case-insensitive and respects word boundaries.")
+            Text("Replace mishearings with the real spelling. "
+                + "Matching is case-insensitive and respects word boundaries.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

@@ -1,3 +1,5 @@
+// swiftlint:disable banned_flowlite
+// legitimate legacy ~/.flow-lite migration path (mirrors the CI grep allowlist)
 // One-time copy of legacy ~/.flow-lite contents into the Murmur app-support directory.
 import Foundation
 
@@ -35,3 +37,4 @@ public enum ConfigMigration {
         }
     }
 }
+// swiftlint:enable banned_flowlite

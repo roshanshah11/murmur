@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 // SwiftUI root + step views for the first-launch wizard.
 //
 // The window is sized 640×520 and non-resizable (style mask in
@@ -61,7 +62,7 @@ final class OnboardingModel: ObservableObject {
     @Published var step: OnboardingStep = .welcome
     @Published var microphoneStatus: PermissionStatus = .notDetermined
     @Published var accessibilityStatus: PermissionStatus = .notDetermined
-    @Published var selectedModelName: String? = nil
+    @Published var selectedModelName: String?
     @Published var modelDownloadInFlight: Bool = false
     @Published var modelDownloadProgress: Double = 0
     @Published var lastDictationText: String = ""
@@ -149,7 +150,7 @@ private struct OnboardingHeader: View {
     }
 
     private func color(for step: OnboardingStep) -> Color {
-        if step == current                 { return .accentColor }
+        if step == current { return .accentColor }
         if step.ordinal < current.ordinal { return .accentColor.opacity(0.5) }
         return Color.secondary.opacity(0.25)
     }
@@ -215,14 +216,15 @@ private struct WelcomeStepView: View {
                 }
             }
 
-            Text("Murmur listens, transcribes, and pastes — all on this Mac. Nothing ever leaves the machine. Set it up once and double-tap fn to dictate into any app.")
+            Text("Murmur listens, transcribes, and pastes — all on this Mac. Nothing ever leaves the machine. "
+                + "Set it up once and double-tap fn to dictate into any app.")
                 .font(.body)
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
 
             VStack(alignment: .leading, spacing: 6) {
-                BulletRow(icon: "lock.fill",      text: "100% offline — no cloud, no telemetry")
-                BulletRow(icon: "keyboard",       text: "Hold-to-talk hotkey works in every app")
+                BulletRow(icon: "lock.fill", text: "100% offline — no cloud, no telemetry")
+                BulletRow(icon: "keyboard", text: "Hold-to-talk hotkey works in every app")
                 BulletRow(icon: "speaker.wave.2", text: "Music auto-mutes while you dictate")
             }
 
@@ -313,7 +315,8 @@ private struct MicrophoneStepView: View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Microphone access")
                 .font(.title2).bold()
-            Text("Murmur needs the microphone to capture your voice. Audio stays local — it's transcribed on this Mac and discarded.")
+            Text("Murmur needs the microphone to capture your voice. "
+                + "Audio stays local — it's transcribed on this Mac and discarded.")
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -324,7 +327,8 @@ private struct MicrophoneStepView: View {
             }
 
             if model.microphoneStatus == .denied {
-                Text("If you previously declined, open System Settings → Privacy & Security → Microphone and toggle Murmur back on.")
+                Text("If you previously declined, open System Settings → Privacy & Security → Microphone "
+                    + "and toggle Murmur back on.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Button("Open Microphone settings") {
@@ -344,9 +348,9 @@ private struct MicrophoneStepView: View {
         case .granted:
             StatusPill(text: "Granted", systemImage: "checkmark.seal.fill", color: .green)
         case .denied:
-            StatusPill(text: "Denied",  systemImage: "xmark.seal.fill",     color: .red)
+            StatusPill(text: "Denied", systemImage: "xmark.seal.fill", color: .red)
         case .notDetermined:
-            StatusPill(text: "Not granted", systemImage: "circle.dashed",  color: .secondary)
+            StatusPill(text: "Not granted", systemImage: "circle.dashed", color: .secondary)
         }
     }
 
@@ -406,7 +410,8 @@ private struct AccessibilityStepView: View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Accessibility access")
                 .font(.title2).bold()
-            Text("Accessibility lets Murmur paste transcribed text into the app you're using. It's also how the global double-tap-fn hotkey works.")
+            Text("Accessibility lets Murmur paste transcribed text into the app you're using. "
+                + "It's also how the global double-tap-fn hotkey works.")
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -447,9 +452,9 @@ private struct AccessibilityStepView: View {
         case .granted:
             StatusPill(text: "Granted", systemImage: "checkmark.seal.fill", color: .green)
         case .denied:
-            StatusPill(text: "Waiting…", systemImage: "hourglass",          color: .orange)
+            StatusPill(text: "Waiting…", systemImage: "hourglass", color: .orange)
         case .notDetermined:
-            StatusPill(text: "Not granted", systemImage: "circle.dashed",  color: .secondary)
+            StatusPill(text: "Not granted", systemImage: "circle.dashed", color: .secondary)
         }
     }
 
@@ -475,7 +480,7 @@ private struct AccessibilityStepView: View {
                 }
             }
         }
-        if let t = pollTimer { RunLoop.main.add(t, forMode: .common) }
+        if let timer = pollTimer { RunLoop.main.add(timer, forMode: .common) }
     }
 
     private func stopPolling() {
@@ -498,7 +503,8 @@ private struct ModelStepView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Pick a model")
                 .font(.title2).bold()
-            Text("Choose the Whisper model that best matches your Mac. Bigger is more accurate; smaller is faster. You can change this later in Settings → Models.")
+            Text("Choose the Whisper model that best matches your Mac. Bigger is more accurate; smaller is faster. "
+                + "You can change this later in Settings → Models.")
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -614,10 +620,10 @@ private struct ModelCard: View {
 
     @ViewBuilder
     private var controls: some View {
-        if let p = progress {
+        if let fraction = progress {
             VStack(alignment: .trailing, spacing: 2) {
-                ProgressView(value: p).frame(width: 100)
-                Text("\(Int((p * 100).rounded()))%")
+                ProgressView(value: fraction).frame(width: 100)
+                Text("\(Int((fraction * 100).rounded()))%")
                     .font(.caption2).monospacedDigit().foregroundStyle(.secondary)
             }
         } else if isInstalled {
@@ -712,7 +718,8 @@ private struct DoneStepView: View {
                 .foregroundStyle(.green)
             Text("You're all set.")
                 .font(.title).bold()
-            Text("Double-tap fn anywhere on your Mac to dictate. You can revisit this guide from Settings → About → Run setup again.")
+            Text("Double-tap fn anywhere on your Mac to dictate. "
+                + "You can revisit this guide from Settings → About → Run setup again.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 24)
@@ -721,3 +728,4 @@ private struct DoneStepView: View {
         .frame(maxWidth: .infinity)
     }
 }
+// swiftlint:enable file_length

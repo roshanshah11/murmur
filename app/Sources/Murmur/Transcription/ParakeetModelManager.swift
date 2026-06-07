@@ -1,5 +1,5 @@
-import Foundation
 import FluidAudio
+import Foundation
 
 /// Settings-facing model state for the Parakeet (FluidAudio, v3) engine.
 ///
@@ -39,8 +39,8 @@ final class ParakeetModelManager: ObservableObject {
         progress = 0
         NotificationCenter.default.post(name: .murmurModelDownloadProgress, object: 0.0)
         do {
-            _ = try await AsrModels.download(to: nil, version: .v3) { p in
-                let fraction = p.fractionCompleted
+            _ = try await AsrModels.download(to: nil, version: .v3) { progressUpdate in
+                let fraction = progressUpdate.fractionCompleted
                 Task { @MainActor in
                     self.progress = fraction
                     NotificationCenter.default.post(name: .murmurModelDownloadProgress, object: fraction)

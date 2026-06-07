@@ -1,5 +1,5 @@
-import Foundation
 import FluidAudio
+import Foundation
 
 /// NVIDIA Parakeet (parakeet-tdt-0.6b-v3) via FluidAudio. In-process Core ML,
 /// runs on the Apple Neural Engine. Loads the AsrManager once and reuses it.

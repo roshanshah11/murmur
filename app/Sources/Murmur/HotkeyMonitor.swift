@@ -45,7 +45,7 @@ final class HotkeyMonitor {
         guard !wasDown && nowFn else { return }
 
         let otherFlags: NSEvent.ModifierFlags = [.command, .shift, .control, .option, .capsLock]
-        if !event.modifierFlags.intersection(otherFlags).isEmpty {
+        if !event.modifierFlags.isDisjoint(with: otherFlags) {
             lastPressAt = .distantPast
             return
         }

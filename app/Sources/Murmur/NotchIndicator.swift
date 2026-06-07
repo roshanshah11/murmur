@@ -1,3 +1,5 @@
+// self-contained notch overlay; splitting the view + animation helpers hurts readability
+// swiftlint:disable file_length
 import AppKit
 import QuartzCore
 
@@ -228,21 +230,21 @@ final class NotchIndicator {
         // visibleHeight. Concave top corners (drawn at the panel's top
         // edge) sit exactly at the notch's bottom edge and visually mate
         // with the notch's outer curves.
-        let w = max(geo.notchWidth + Self.extraOverhang * 2, width)
+        let panelWidth = max(geo.notchWidth + Self.extraOverhang * 2, width)
         return NSRect(
-            x: geo.centerX - w / 2,
+            x: geo.centerX - panelWidth / 2,
             y: geo.topY - geo.safeTop - Self.visibleHeight,
-            width: w,
+            width: panelWidth,
             height: Self.visibleHeight
         )
     }
 
     private func collapsedFrame(width: CGFloat, geo: NotchGeometry) -> NSRect {
-        let w = max(geo.notchWidth + Self.extraOverhang * 2, width)
+        let panelWidth = max(geo.notchWidth + Self.extraOverhang * 2, width)
         return NSRect(
-            x: geo.centerX - w / 2,
+            x: geo.centerX - panelWidth / 2,
             y: geo.topY - geo.safeTop,
-            width: w,
+            width: panelWidth,
             height: 0
         )
     }
@@ -287,11 +289,11 @@ final class NotchIndicator {
 
     private func startElapsedTextTimerIfNeeded() {
         if elapsedTextTimer != nil { return }
-        let t = Timer(timeInterval: 0.5, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 0.5, repeats: true) { [weak self] _ in
             self?.pill?.refreshLiveText(recordingStartedAt: self?.recordingStartedAt)
         }
-        RunLoop.main.add(t, forMode: .common)
-        elapsedTextTimer = t
+        RunLoop.main.add(timer, forMode: .common)
+        elapsedTextTimer = timer
     }
 
     private func stopElapsedTextTimer() {
@@ -303,13 +305,13 @@ final class NotchIndicator {
         if levelPollTimer != nil { return }
         // SpectrumBarsView has its own 30Hz tick; we just need to feed it the
         // current mic level. 30Hz is plenty.
-        let t = Timer(timeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
             guard let self else { return }
             let lvl = self.levelProvider?() ?? 0
             self.pill?.updateLevel(lvl)
         }
-        RunLoop.main.add(t, forMode: .common)
-        levelPollTimer = t
+        RunLoop.main.add(timer, forMode: .common)
+        levelPollTimer = timer
         pill?.startBars()
     }
 
@@ -320,9 +322,9 @@ final class NotchIndicator {
 
     // MARK: - Hover handling
 
-    fileprivate func setHovered(_ h: Bool) {
-        guard hovered != h else { return }
-        hovered = h
+    fileprivate func setHovered(_ isHovered: Bool) {
+        guard hovered != isHovered else { return }
+        hovered = isHovered
         guard case .recording = state else { return }
         // Re-apply recording state with new hover flag so layout + width change.
         applyState(.recording)
@@ -332,33 +334,33 @@ final class NotchIndicator {
 
     private func ensureBuilt() {
         guard panel == nil else { return }
-        let p = NSPanel(
+        let newPanel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 280, height: 80),
             styleMask: [.borderless, .nonactivatingPanel, .utilityWindow, .hudWindow],
             backing: .buffered,
             defer: false
         )
-        p.isFloatingPanel = true
-        p.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)) + 3)
-        p.collectionBehavior = [.fullScreenAuxiliary, .stationary, .canJoinAllSpaces, .ignoresCycle]
-        p.isOpaque = false
-        p.backgroundColor = .clear
-        p.hasShadow = false
-        p.ignoresMouseEvents = false   // need hover detection
-        p.isMovable = false
-        p.animationBehavior = .none
+        newPanel.isFloatingPanel = true
+        newPanel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)) + 3)
+        newPanel.collectionBehavior = [.fullScreenAuxiliary, .stationary, .canJoinAllSpaces, .ignoresCycle]
+        newPanel.isOpaque = false
+        newPanel.backgroundColor = .clear
+        newPanel.hasShadow = false
+        newPanel.ignoresMouseEvents = false   // need hover detection
+        newPanel.isMovable = false
+        newPanel.animationBehavior = .none
 
         let view = NotchPillView()
         view.visibleHeight = Self.visibleHeight
         view.translatesAutoresizingMaskIntoConstraints = true
         view.autoresizingMask = [.width, .height]
-        view.frame = NSRect(origin: .zero, size: p.frame.size)
-        view.onHover = { [weak self] h in self?.setHovered(h) }
+        view.frame = NSRect(origin: .zero, size: newPanel.frame.size)
+        view.onHover = { [weak self] isHovered in self?.setHovered(isHovered) }
         view.onStop = { [weak self] in self?.onStopRequested?() }
         view.onCancel = { [weak self] in self?.onCancelRequested?() }
         view.onRetry = { [weak self] in self?.onRetryRequested?() }
-        p.contentView = view
-        self.panel = p
+        newPanel.contentView = view
+        self.panel = newPanel
         self.pill = view
     }
 }
@@ -372,6 +374,8 @@ private extension NotchIndicator.State {
 
 // MARK: - NotchPillView
 
+// cohesive notch pill view; the layout/state logic belongs together
+// swiftlint:disable:next type_body_length
 final class NotchPillView: NSView {
 
     // External hooks
@@ -462,10 +466,10 @@ final class NotchPillView: NSView {
         // mate with the notch's outer curves; bottom corners are convex
         // round. Path is rebuilt every layout pass so it tracks the
         // panel's animated height.
-        let m = CAShapeLayer()
-        m.fillColor = NSColor.black.cgColor
-        layer?.mask = m
-        maskShape = m
+        let maskLayer = CAShapeLayer()
+        maskLayer.fillColor = NSColor.black.cgColor
+        layer?.mask = maskLayer
+        maskShape = maskLayer
 
         glowLayer.cornerRadius = 18
         glowLayer.shadowColor = Self.recColor.cgColor
@@ -531,15 +535,15 @@ final class NotchPillView: NSView {
 
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
-        if let t = trackingArea { removeTrackingArea(t) }
-        let t = NSTrackingArea(
+        if let existing = trackingArea { removeTrackingArea(existing) }
+        let area = NSTrackingArea(
             rect: bounds,
             options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
             owner: self,
             userInfo: nil
         )
-        addTrackingArea(t)
-        trackingArea = t
+        addTrackingArea(area)
+        trackingArea = area
     }
 
     override func mouseEntered(with event: NSEvent) {
@@ -552,6 +556,8 @@ final class NotchPillView: NSView {
         onHover?(false)
     }
 
+    // per-state layout switch; splitting hurts readability of the state machine
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     func applyState(_ state: NotchIndicator.State, hovered: Bool, recordingStartedAt: Date?) {
         let previousState = currentState
         currentState = state
@@ -559,10 +565,10 @@ final class NotchPillView: NSView {
 
         // Ensure all subviews are unhidden so alpha can animate. Hidden
         // views skip layout/animation, which would cause pops.
-        for v in [primaryLabel, secondaryLabel, timerLabel, micIcon, bars,
-                  stopButton, cancelButton, retryButton,
-                  progressTrack, progressFill] as [NSView] {
-            v.isHidden = false
+        for subview in [primaryLabel, secondaryLabel, timerLabel, micIcon, bars,
+                        stopButton, cancelButton, retryButton,
+                        progressTrack, progressFill] as [NSView] {
+            subview.isHidden = false
         }
 
         // Mic-pulse: on for recording, off elsewhere. Triggered AFTER the
@@ -665,7 +671,10 @@ final class NotchPillView: NSView {
 
         case .error(let label):
             micIcon.contentTintColor = Self.errorColor
-            micIcon.image = NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: "Error")
+            micIcon.image = NSImage(
+                systemSymbolName: "exclamationmark.triangle.fill",
+                accessibilityDescription: "Error"
+            )
             secondaryLabel.textColor = Self.primaryTextColor
             secondaryLabel.stringValue = label
             glowLayer.shadowColor = Self.errorColor.cgColor
@@ -709,11 +718,15 @@ final class NotchPillView: NSView {
     }
 
     private func elapsed(from date: Date?) -> String {
-        guard let d = date else { return "0:00" }
-        let s = max(0, Int(Date().timeIntervalSince(d)))
-        return s < 60 ? String(format: "0:%02d", s) : String(format: "%d:%02d", s / 60, s % 60)
+        guard let date else { return "0:00" }
+        let seconds = max(0, Int(Date().timeIntervalSince(date)))
+        return seconds < 60
+            ? String(format: "0:%02d", seconds)
+            : String(format: "%d:%02d", seconds / 60, seconds % 60)
     }
 
+    // single layout pass building the animated notch silhouette
+    // swiftlint:disable:next function_body_length
     override func layout() {
         super.layout()
         guard let host = layer else { return }
@@ -878,8 +891,8 @@ final class NotchPillButton: NSButton {
 
     func intrinsicSize() -> NSSize {
         sizeToFit()
-        let s = fittingSize
-        return NSSize(width: s.width + 18, height: 22)
+        let fitted = fittingSize
+        return NSSize(width: fitted.width + 18, height: 22)
     }
 }
 
@@ -890,29 +903,29 @@ extension NotchPillView {
     /// Builds a pill silhouette with concave top corners (small inward
     /// indents that mate with the notch's outer curves) and convex
     /// rounded bottom corners (standard pill shape).
-    static func makeNotchPath(width w: CGFloat, height h: CGFloat,
+    static func makeNotchPath(width: CGFloat, height: CGFloat,
                               topR: CGFloat, bottomR: CGFloat) -> CGPath {
-        let p = CGMutablePath()
-        guard w > 0, h > 0 else { return p }
+        let path = CGMutablePath()
+        guard width > 0, height > 0 else { return path }
         // Start on the top edge, just inside the top-left concave indent.
-        p.move(to: CGPoint(x: topR, y: h))
+        path.move(to: CGPoint(x: topR, y: height))
         // Concave top-left: control inside the body so the curve dips in.
-        p.addQuadCurve(to: CGPoint(x: 0, y: h - topR),
-                       control: CGPoint(x: topR, y: h - topR))
-        p.addLine(to: CGPoint(x: 0, y: bottomR))
+        path.addQuadCurve(to: CGPoint(x: 0, y: height - topR),
+                          control: CGPoint(x: topR, y: height - topR))
+        path.addLine(to: CGPoint(x: 0, y: bottomR))
         // Convex bottom-left: control at the corner.
-        p.addQuadCurve(to: CGPoint(x: bottomR, y: 0),
-                       control: CGPoint(x: 0, y: 0))
-        p.addLine(to: CGPoint(x: w - bottomR, y: 0))
+        path.addQuadCurve(to: CGPoint(x: bottomR, y: 0),
+                          control: CGPoint(x: 0, y: 0))
+        path.addLine(to: CGPoint(x: width - bottomR, y: 0))
         // Convex bottom-right.
-        p.addQuadCurve(to: CGPoint(x: w, y: bottomR),
-                       control: CGPoint(x: w, y: 0))
-        p.addLine(to: CGPoint(x: w, y: h - topR))
+        path.addQuadCurve(to: CGPoint(x: width, y: bottomR),
+                          control: CGPoint(x: width, y: 0))
+        path.addLine(to: CGPoint(x: width, y: height - topR))
         // Concave top-right.
-        p.addQuadCurve(to: CGPoint(x: w - topR, y: h),
-                       control: CGPoint(x: w - topR, y: h - topR))
-        p.closeSubpath()
-        return p
+        path.addQuadCurve(to: CGPoint(x: width - topR, y: height),
+                          control: CGPoint(x: width - topR, y: height - topR))
+        path.closeSubpath()
+        return path
     }
 
     /// Continuous gentle scale pulse on the mic icon while recording.
@@ -975,3 +988,4 @@ extension NotchPillView {
         }, completionHandler: nil)
     }
 }
+// swiftlint:enable file_length

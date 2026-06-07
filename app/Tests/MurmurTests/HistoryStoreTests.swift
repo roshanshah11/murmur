@@ -1,5 +1,5 @@
-import XCTest
 @testable import Murmur
+import XCTest
 
 final class HistoryStoreTests: XCTestCase {
     private var tempURL: URL!
@@ -30,7 +30,13 @@ final class HistoryStoreTests: XCTestCase {
 
     func testAppendThenLoadReturnsEntry() {
         let store = makeStore()
-        store.append(cleaned: "Hello world.", raw: "hello world", target: ctx(), durationMs: 500, result: "pasted:com.apple.TextEdit")
+        store.append(
+            cleaned: "Hello world.",
+            raw: "hello world",
+            target: ctx(),
+            durationMs: 500,
+            result: "pasted:com.apple.TextEdit"
+        )
         // Allow async append to flush.
         Thread.sleep(forTimeInterval: 0.1)
         let entries = store.loadRecent(limit: 10)
@@ -50,8 +56,8 @@ final class HistoryStoreTests: XCTestCase {
 
     func testLoadRecentReturnsNewestFirst() {
         let store = makeStore()
-        for i in 1...3 {
-            store.append(cleaned: "entry \(i)", raw: "raw \(i)", target: ctx(), durationMs: i, result: "pasted")
+        for idx in 1...3 {
+            store.append(cleaned: "entry \(idx)", raw: "raw \(idx)", target: ctx(), durationMs: idx, result: "pasted")
             Thread.sleep(forTimeInterval: 0.05)
         }
         let entries = store.loadRecent(limit: 10)
@@ -72,8 +78,8 @@ final class HistoryStoreTests: XCTestCase {
 
     func testTrimEnforcesMaxEntries() {
         let store = makeStore(max: 3)
-        for i in 1...10 {
-            store.append(cleaned: "e\(i)", raw: "r\(i)", target: ctx(), durationMs: i, result: "pasted")
+        for idx in 1...10 {
+            store.append(cleaned: "e\(idx)", raw: "r\(idx)", target: ctx(), durationMs: idx, result: "pasted")
         }
         Thread.sleep(forTimeInterval: 0.3)
         let entries = store.loadRecent(limit: 100)

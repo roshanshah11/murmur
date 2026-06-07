@@ -1,5 +1,5 @@
-import XCTest
 @testable import Murmur
+import XCTest
 
 final class ConfigTests: XCTestCase {
     func testDefaultConfigHasSensiblePaths() {
@@ -28,12 +28,12 @@ final class ConfigTests: XCTestCase {
     }
 
     func testDecodeFromMinimalJSON() throws {
-        let json = """
+        let json = Data("""
         {
           "whisperBinaryPath": "/tmp/x",
           "modelPath": "/tmp/y"
         }
-        """.data(using: .utf8)!
+        """.utf8)
 
         let cfg = try JSONDecoder().decode(Config.self, from: json)
         XCTAssertEqual(cfg.whisperBinaryPath, "/tmp/x")
@@ -48,7 +48,10 @@ final class ConfigTests: XCTestCase {
         XCTAssertFalse(cfg.debugRetainAudio)
         XCTAssertFalse(cfg.restoreClipboardAfterPaste)
         XCTAssertNil(cfg.whisperThreads)
-        XCTAssertFalse(cfg.historyEnabled, "history must default to OFF when key is missing (Phase 5 privacy carryover)")
+        XCTAssertFalse(
+            cfg.historyEnabled,
+            "history must default to OFF when key is missing (Phase 5 privacy carryover)"
+        )
         // Default vocabulary carries some seeded entries.
         let cajuEntry = cfg.vocabulary.entries.first { $0.from.lowercased() == "caju ai" }
         XCTAssertEqual(cajuEntry?.to, "Caju.ai")
@@ -79,19 +82,19 @@ final class ConfigTests: XCTestCase {
     }
 
     func test_legacyCustomVocabularyDecodesIntoVocabulary() throws {
-        let legacyJSON = """
+        let legacyJSON = Data("""
         {"customVocabulary":{"API":"A P I","ChatGPT":"chat gee pee tee"}}
-        """.data(using: .utf8)!
+        """.utf8)
         let cfg = try JSONDecoder().decode(Config.self, from: legacyJSON)
         XCTAssertEqual(cfg.vocabulary.entries.count, 2)
         XCTAssertEqual(cfg.activeProfile, .casual)
     }
 
     func test_modernConfigDecodesIntactWithProfile() throws {
-        var v = Vocabulary()
-        v.upsert(from: "ok", to: "okay")
+        var vocab = Vocabulary()
+        vocab.upsert(from: "ok", to: "okay")
         var cfg = Config.defaultConfig()
-        cfg.vocabulary = v
+        cfg.vocabulary = vocab
         cfg.activeProfile = .formal
         let data = try JSONEncoder().encode(cfg)
         let restored = try JSONDecoder().decode(Config.self, from: data)
@@ -105,7 +108,7 @@ final class ConfigTests: XCTestCase {
                        "Phase 5 spec §7.2 — history must be OFF by default")
 
         // Missing key in JSON should decode to false (not the legacy true).
-        let missing = "{}".data(using: .utf8)!
+        let missing = Data("{}".utf8)
         let decodedMissing = try JSONDecoder().decode(Config.self, from: missing)
         XCTAssertFalse(decodedMissing.historyEnabled,
                        "missing historyEnabled key must default to false")
@@ -125,7 +128,7 @@ final class ConfigTests: XCTestCase {
                      "onboardingCompletedVersion must default to nil so first launch shows the wizard")
 
         // Missing key in JSON should also decode to nil.
-        let missing = "{}".data(using: .utf8)!
+        let missing = Data("{}".utf8)
         let decodedMissing = try JSONDecoder().decode(Config.self, from: missing)
         XCTAssertNil(decodedMissing.onboardingCompletedVersion,
                      "missing onboardingCompletedVersion key must decode to nil")
@@ -163,7 +166,7 @@ final class ConfigTests: XCTestCase {
         // a default config, parsing to a dictionary, stripping the key, and
         // re-serialising.
         let fullData = try JSONEncoder().encode(Config.defaultConfig())
-        var dict = try JSONSerialization.jsonObject(with: fullData) as! [String: Any]
+        var dict = try XCTUnwrap(JSONSerialization.jsonObject(with: fullData) as? [String: Any])
         dict.removeValue(forKey: "transcriptionEngine")
         let stripped = try JSONSerialization.data(withJSONObject: dict)
         let decoded = try JSONDecoder().decode(Config.self, from: stripped)

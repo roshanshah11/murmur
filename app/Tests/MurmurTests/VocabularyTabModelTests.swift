@@ -1,5 +1,5 @@
-import XCTest
 @testable import Murmur
+import XCTest
 
 @MainActor
 final class VocabularyTabModelTests: XCTestCase {
@@ -45,9 +45,9 @@ final class VocabularyTabModelTests: XCTestCase {
         let (model, store) = makeModel()
         model.addEntry(from: "old", to: "stale")
 
-        let importPayload = """
+        let importPayload = Data("""
         {"entries":[{"from":"api","to":"A P I"},{"from":"gpt","to":"ChatGPT"}]}
-        """.data(using: .utf8)!
+        """.utf8)
         try model.importJSON(data: importPayload)
 
         XCTAssertEqual(model.entries.count, 2, "import should fully replace existing entries")
@@ -61,7 +61,7 @@ final class VocabularyTabModelTests: XCTestCase {
         let (model, _) = makeModel()
         // Legacy customVocabulary shape — must still import for users who
         // exported during the dict-only era.
-        let legacy = #"{"API":"A P I","ChatGPT":"chat gee pee tee"}"#.data(using: .utf8)!
+        let legacy = Data(#"{"API":"A P I","ChatGPT":"chat gee pee tee"}"#.utf8)
         try model.importJSON(data: legacy)
         XCTAssertEqual(model.entries.count, 2)
         XCTAssertTrue(model.entries.contains { $0.from == "API" && $0.to == "A P I" })

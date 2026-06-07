@@ -30,6 +30,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fail if a Swift 6 Xcode is unavailable
+        run: |
+          set -euo pipefail
+          # macos-14's default Xcode ships Swift 5.10, but Package.swift declares
+          # swift-tools-version 6.0. Point DEVELOPER_DIR at the newest Xcode 16.x
+          # on the runner; the GITHUB_ENV write overrides the job-level default
+          # for every subsequent step.
+          XC=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1 || true)
+          if [ -z "$XC" ]; then
+            echo "::error::No Xcode 16.x found on $(sw_vers -productVersion)"; exit 1
+          fi
+          echo "Selected $XC"
+          echo "DEVELOPER_DIR=$XC/Contents/Developer" >> "$GITHUB_ENV"
+          "$XC/Contents/Developer/usr/bin/swift" --version
+
       - name: Fail if whisper.cpp cache is unreadable
         id: whisper-cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4 latest
@@ -51,11 +66,6 @@ jobs:
       - name: Fail if unit tests are broken
         working-directory: app
         run: swift test --parallel
-
-      - name: Fail if SwiftLint warnings are present
-        uses: realm/SwiftLint@b6e6c7e5eb02ebde94c64b8ccc31993b775f1eda # 0.63.2
-        with:
-          args: --strict --config .swiftlint.yml
 
       - name: Fail if local smoke test is broken
         run: bash app/Scripts/run_local_smoke_test.sh
@@ -121,3 +131,18 @@ jobs:
           else
             echo "All new public symbols have a docs mention."
           fi
+
+  lint:
+    name: Fail if SwiftLint warnings are present
+    # realm/SwiftLint is a Docker container action, which GitHub only runs on
+    # Linux — it cannot run on the macOS build matrix above. Lint here instead.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Fail if source tree is unavailable
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Fail if SwiftLint warnings are present
+        uses: realm/SwiftLint@b6e6c7e5eb02ebde94c64b8ccc31993b775f1eda # 0.63.2
+        with:
+          args: --strict --config .swiftlint.yml

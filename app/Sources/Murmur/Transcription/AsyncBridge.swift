@@ -11,8 +11,7 @@ enum AsyncBridge {
         let semaphore = DispatchSemaphore(value: 0)
         let box = ResultBox<T>()
         Task {
-            do { box.result = .success(try await operation()) }
-            catch { box.result = .failure(error) }
+            do { box.result = .success(try await operation()) } catch { box.result = .failure(error) }
             semaphore.signal()
         }
         semaphore.wait()

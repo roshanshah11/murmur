@@ -1,3 +1,5 @@
+import AppKit
+import ApplicationServices
 // Reads microphone + accessibility permission status. Pure observation
 // (with one explicit prompt-trigger helper). The wizard polls these between
 // step transitions to know when the user has flipped the system toggle.
@@ -6,8 +8,6 @@
 // `AXIsProcessTrustedWithOptions(kAXTrustedCheckOptionPrompt: true)` would
 // pop System Settings open, which we don't want during a poll.
 import AVFoundation
-import AppKit
-import ApplicationServices
 
 public enum PermissionStatus: String, Equatable {
     case notDetermined

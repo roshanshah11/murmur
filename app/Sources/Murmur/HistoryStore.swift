@@ -45,17 +45,17 @@ struct HistoryEntry: Codable, Identifiable, Equatable {
     }
 
     init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        self.id = try c.decode(String.self, forKey: .id)
-        self.ts = try c.decode(String.self, forKey: .ts)
-        self.cleaned = try c.decode(String.self, forKey: .cleaned)
-        self.raw = try c.decode(String.self, forKey: .raw)
-        self.targetApp = try c.decode(String.self, forKey: .targetApp)
-        self.targetBundle = try c.decode(String.self, forKey: .targetBundle)
-        self.durationMs = try c.decode(Int.self, forKey: .durationMs)
-        self.result = try c.decode(String.self, forKey: .result)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(String.self, forKey: .id)
+        self.ts = try container.decode(String.self, forKey: .ts)
+        self.cleaned = try container.decode(String.self, forKey: .cleaned)
+        self.raw = try container.decode(String.self, forKey: .raw)
+        self.targetApp = try container.decode(String.self, forKey: .targetApp)
+        self.targetBundle = try container.decode(String.self, forKey: .targetBundle)
+        self.durationMs = try container.decode(Int.self, forKey: .durationMs)
+        self.result = try container.decode(String.self, forKey: .result)
         // Defaults to false so pre-Phase-5 entries on disk decode without error.
-        self.favorite = try c.decodeIfPresent(Bool.self, forKey: .favorite) ?? false
+        self.favorite = try container.decodeIfPresent(Bool.self, forKey: .favorite) ?? false
     }
 }
 
@@ -66,9 +66,9 @@ final class HistoryStore {
     private let enabled: Bool
 
     private static let iso: ISO8601DateFormatter = {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return f
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
     }()
 
     init(enabled: Bool, maxEntries: Int, fileURL: URL = HistoryStore.defaultURL()) {

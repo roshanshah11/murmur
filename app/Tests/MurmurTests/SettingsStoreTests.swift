@@ -1,6 +1,6 @@
 import Combine
-import XCTest
 @testable import Murmur
+import XCTest
 
 @MainActor
 final class SettingsStoreTests: XCTestCase {
@@ -31,7 +31,7 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(store2.config.language, "es")
     }
 
-    func test_update_debouncesWrites_thenPostsNotification() {
+    func test_update_debouncesWrites_thenPostsNotification() throws {
         let url = tempURL()
         let store = SettingsStore(configURL: url, debounceMs: 80)
 
@@ -55,12 +55,12 @@ final class SettingsStoreTests: XCTestCase {
         wait(for: [saveExpectation, notifExpectation], timeout: 1.0)
 
         // Round-trip from disk to prove the write landed.
-        let data = try! Data(contentsOf: url)
-        let onDisk = try! JSONDecoder().decode(Config.self, from: data)
+        let data = try Data(contentsOf: url)
+        let onDisk = try JSONDecoder().decode(Config.self, from: data)
         XCTAssertEqual(onDisk.activeProfile, .code)
     }
 
-    func test_concurrentUpdates_collapseToOneSave() {
+    func test_concurrentUpdates_collapseToOneSave() throws {
         let url = tempURL()
         let store = SettingsStore(configURL: url, debounceMs: 80)
 
@@ -88,7 +88,7 @@ final class SettingsStoreTests: XCTestCase {
 
         XCTAssertEqual(saveCount, 1, "rapid updates must coalesce into a single save")
 
-        let onDisk = try! JSONDecoder().decode(Config.self, from: try! Data(contentsOf: url))
+        let onDisk = try JSONDecoder().decode(Config.self, from: try Data(contentsOf: url))
         XCTAssertEqual(onDisk.activeProfile, .raw, "last write wins for the same key")
         XCTAssertEqual(onDisk.language, "fr")
     }

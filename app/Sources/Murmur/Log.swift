@@ -3,9 +3,9 @@ import Foundation
 enum Log {
     private static let queue = DispatchQueue(label: "murmur.log", qos: .utility)
     private static let iso: ISO8601DateFormatter = {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return f
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
     }()
 
     private static var fileURL: URL {
@@ -18,12 +18,12 @@ enum Log {
     static func event(state: String, fields: [String: String] = [:]) {
         let timestamp = iso.string(from: Date())
         var line: [String: String] = ["ts": timestamp, "state": state]
-        for (k, v) in fields { line[k] = v }
+        for (key, value) in fields { line[key] = value }
 
         let json: String
         if let data = try? JSONSerialization.data(withJSONObject: line, options: [.sortedKeys]),
-           let s = String(data: data, encoding: .utf8) {
-            json = s
+           let jsonString = String(data: data, encoding: .utf8) {
+            json = jsonString
         } else {
             json = "{\"ts\":\"\(timestamp)\",\"state\":\"\(state)\"}"
         }

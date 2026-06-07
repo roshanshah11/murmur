@@ -74,6 +74,8 @@ final class WhisperRunner {
         cachedModelPath = modelPath
     }
 
+    // external-process transcription pipeline; the linear flow reads better as one function
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     func transcribe(audioURL: URL, language: String? = nil) throws -> String {
         // Use cached validated paths if available — avoids 4 stat syscalls per
         // dictation. Falls back to a fresh validate on first call.
@@ -145,7 +147,8 @@ final class WhisperRunner {
                 process?.terminate()
             }
         }
-        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + .seconds(timeoutSeconds), execute: timeoutItem)
+        DispatchQueue.global(qos: .utility)
+            .asyncAfter(deadline: .now() + .seconds(timeoutSeconds), execute: timeoutItem)
 
         let startedAt = Date()
         Log.event(state: "transcription_started", fields: [
@@ -185,7 +188,8 @@ final class WhisperRunner {
             throw WhisperRunnerError.outputMissing(outputTXT.path)
         }
 
-        let transcript = try String(contentsOf: outputTXT, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+        let transcript = try String(contentsOf: outputTXT, encoding: .utf8)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
         if !config.debugRetainAudio {
             try? FileManager.default.removeItem(at: outputTXT)
         }
@@ -210,19 +214,19 @@ final class WhisperRunner {
     static func defaultThreads() -> Int { cachedThreads }
 
     private static func computeDefaultThreads() -> Int {
-        let p = Process()
-        p.executableURL = URL(fileURLWithPath: "/usr/sbin/sysctl")
-        p.arguments = ["-n", "hw.perflevel0.physicalcpu"]
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/sysctl")
+        process.arguments = ["-n", "hw.perflevel0.physicalcpu"]
         let out = Pipe()
-        p.standardOutput = out
-        p.standardError = Pipe()
+        process.standardOutput = out
+        process.standardError = Pipe()
         do {
-            try p.run()
-            p.waitUntilExit()
+            try process.run()
+            process.waitUntilExit()
             let data = out.fileHandleForReading.readDataToEndOfFile()
-            if let s = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
-               let n = Int(s), n > 0 {
-                return min(n, 8)
+            if let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+               let count = Int(output), count > 0 {
+                return min(count, 8)
             }
         } catch {}
         return max(2, min(ProcessInfo.processInfo.activeProcessorCount / 2, 8))

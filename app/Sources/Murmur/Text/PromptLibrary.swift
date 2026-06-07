@@ -127,14 +127,16 @@ public enum PromptLibrary {
 
         static func apply(to text: String) -> String {
             var out = Casual.apply(to: text)
-            for (k, v) in contractions {
-                let pattern = NSRegularExpression.escapedPattern(for: k)
-                guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { continue }
+            for (phrase, replacement) in contractions {
+                let pattern = NSRegularExpression.escapedPattern(for: phrase)
+                guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
+                    continue
+                }
                 let range = NSRange(out.startIndex..., in: out)
                 out = regex.stringByReplacingMatches(
                     in: out,
                     range: range,
-                    withTemplate: NSRegularExpression.escapedTemplate(for: v)
+                    withTemplate: NSRegularExpression.escapedTemplate(for: replacement)
                 )
             }
             // Re-capitalize after substitutions (e.g. "i" → "I am" handled above,
@@ -164,14 +166,16 @@ public enum PromptLibrary {
 
         static func apply(to text: String) -> String {
             var out = text
-            for (k, v) in operators {
-                let pattern = "\\b" + NSRegularExpression.escapedPattern(for: k) + "\\b"
-                guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { continue }
+            for (phrase, replacement) in operators {
+                let pattern = "\\b" + NSRegularExpression.escapedPattern(for: phrase) + "\\b"
+                guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
+                    continue
+                }
                 let range = NSRange(out.startIndex..., in: out)
                 out = regex.stringByReplacingMatches(
                     in: out,
                     range: range,
-                    withTemplate: NSRegularExpression.escapedTemplate(for: v)
+                    withTemplate: NSRegularExpression.escapedTemplate(for: replacement)
                 )
             }
             return out

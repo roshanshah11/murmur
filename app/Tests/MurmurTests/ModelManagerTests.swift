@@ -1,16 +1,16 @@
-import XCTest
 import CryptoKit
 @testable import Murmur
+import XCTest
 
 @MainActor
 final class ModelManagerTests: XCTestCase {
     private func makeEntry(name: String = "ggml-base.en",
-                           sha256: String = "PENDING") -> ModelManifest.Entry {
+                           sha256: String = "PENDING") throws -> ModelManifest.Entry {
         ModelManifest.Entry(
             name: name,
             displayName: "Base",
             sizeMB: 142,
-            url: URL(string: "https://example.com/\(name).bin")!,
+            url: try XCTUnwrap(URL(string: "https://example.com/\(name).bin")),
             sha256: sha256,
             language: "en",
             notes: "",
@@ -25,7 +25,7 @@ final class ModelManagerTests: XCTestCase {
 
     func test_localURL_isUnderAppSupportModels() throws {
         let manager = ModelManager(manifest: ModelManifest(entries: []))
-        let entry = makeEntry()
+        let entry = try makeEntry()
         let url = manager.localURL(for: entry)
         XCTAssertTrue(
             url.path.contains("Application Support/Murmur/Models"),
@@ -48,7 +48,7 @@ final class ModelManagerTests: XCTestCase {
     func test_delete_removesFileAndUpdatesInstalled() throws {
         let dir = AppPaths.modelsDirectory
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let entry = makeEntry(name: "ggml-test-delete")
+        let entry = try makeEntry(name: "ggml-test-delete")
         let fake = dir.appendingPathComponent("\(entry.name).bin")
         try Data().write(to: fake)
         defer { try? FileManager.default.removeItem(at: fake) }
@@ -89,7 +89,7 @@ final class ModelManagerTests: XCTestCase {
 
     func test_download_movesFileIntoModelsDirectory_andMarksInstalled() async throws {
         // Use a unique entry name so we don't collide with real installed models.
-        let entry = makeEntry(name: "ggml-test-download-\(UUID().uuidString.prefix(8))")
+        let entry = try makeEntry(name: "ggml-test-download-\(UUID().uuidString.prefix(8))")
         let manager = ModelManager(manifest: ModelManifest(entries: [entry]))
         let stub = StubDownloader(payload: Data("fake model bytes".utf8),
                                   progressSteps: [0.25, 0.5, 1.0])
@@ -103,7 +103,7 @@ final class ModelManagerTests: XCTestCase {
     }
 
     func test_download_shaMismatch_deletesTempAndThrows() async throws {
-        let entry = makeEntry(
+        let entry = try makeEntry(
             name: "ggml-test-sha-\(UUID().uuidString.prefix(8))",
             sha256: "00000000000000000000000000000000000000000000000000000000deadbeef"
         )

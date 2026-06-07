@@ -1,5 +1,7 @@
-import XCTest
+// swiftlint:disable banned_flowlite
+// legitimate legacy ~/.flow-lite migration path (mirrors the CI grep allowlist)
 @testable import Murmur
+import XCTest
 
 final class ConfigMigrationTests: XCTestCase {
     var sandbox: URL!
@@ -45,3 +47,4 @@ final class ConfigMigrationTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: newDir.appendingPathComponent("config.json")), existing)
     }
 }
+// swiftlint:enable banned_flowlite

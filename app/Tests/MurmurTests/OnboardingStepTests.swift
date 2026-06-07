@@ -1,5 +1,5 @@
-import XCTest
 @testable import Murmur
+import XCTest
 
 final class OnboardingStepTests: XCTestCase {
     func test_allStepsHaveTitle() {
@@ -25,7 +25,7 @@ final class OnboardingStepTests: XCTestCase {
             // Guard against an infinite loop if next() ever returns the
             // current step by accident.
             XCTAssertLessThanOrEqual(visited.count, OnboardingStep.allCases.count + 1,
-                                      "next() did not terminate; visited: \(visited)")
+                                     "next() did not terminate; visited: \(visited)")
         }
         XCTAssertEqual(visited, OnboardingStep.allCases,
                        "next() must visit every case in declaration order")

@@ -1,5 +1,5 @@
-import XCTest
 @testable import Murmur
+import XCTest
 
 final class PromptLibraryTests: XCTestCase {
     func test_raw_returnsInputUntouched() {

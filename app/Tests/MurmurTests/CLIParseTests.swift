@@ -1,5 +1,5 @@
-import XCTest
 @testable import Murmur
+import XCTest
 
 /// Coverage for the `--transcribe-only` argv parser. Each test feeds a
 /// realistic argv (executable name in position 0 so `CLI.parse`'s
@@ -9,6 +9,8 @@ final class CLIParseTests: XCTestCase {
 
     // MARK: helpers
 
+    // deliberate 5-slot test fixture mirroring the CLIMode.transcribeOnly payload
+    // swiftlint:disable large_tuple
     /// Pull the five override slots out of a `CLIMode` we expect to be
     /// `.transcribeOnly`. Fails the test with a clear message otherwise so
     /// downstream assertions don't have to repeat the guard.
@@ -17,6 +19,7 @@ final class CLIParseTests: XCTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) -> (URL, PromptLibrary.Profile?, String?, String?, URL?)? {
+        // swiftlint:enable large_tuple
         guard case let .transcribeOnly(wav, profile, language, modelName, vocabularyURL, _) = mode else {
             XCTFail("expected .transcribeOnly, got \(mode)", file: file, line: line)
             return nil
@@ -131,9 +134,9 @@ final class CLIParseTests: XCTestCase {
         XCTAssertEqual(mode, .help)
 
         let help = CLI.helpText
-        XCTAssertTrue(help.contains("--profile"),    "help text missing --profile: \(help)")
-        XCTAssertTrue(help.contains("--language"),   "help text missing --language: \(help)")
-        XCTAssertTrue(help.contains("--model"),      "help text missing --model: \(help)")
+        XCTAssertTrue(help.contains("--profile"), "help text missing --profile: \(help)")
+        XCTAssertTrue(help.contains("--language"), "help text missing --language: \(help)")
+        XCTAssertTrue(help.contains("--model"), "help text missing --model: \(help)")
         XCTAssertTrue(help.contains("--vocabulary"), "help text missing --vocabulary: \(help)")
     }
 }

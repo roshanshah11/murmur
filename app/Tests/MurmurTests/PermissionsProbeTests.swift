@@ -1,5 +1,5 @@
-import XCTest
 @testable import Murmur
+import XCTest
 
 /// Permission probes are observational only — the tests can't assert that
 /// the host's TCC database holds a particular value (CI runners vary, and

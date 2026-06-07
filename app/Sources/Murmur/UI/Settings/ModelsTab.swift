@@ -28,7 +28,8 @@ struct ModelsTab: View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Transcription Engine").font(.headline)
-                Text("Parakeet runs on the Apple Neural Engine — fastest, and most accurate in English. Whisper.cpp covers 99 languages as a fallback.")
+                Text("Parakeet runs on the Apple Neural Engine — fastest, and most accurate in English. "
+                    + "Whisper.cpp covers 99 languages as a fallback.")
                     .font(.subheadline).foregroundStyle(.secondary)
             }
 
@@ -249,10 +250,10 @@ private struct ModelRow: View {
 
     @ViewBuilder
     private var controls: some View {
-        if let p = progress {
+        if let fraction = progress {
             VStack(alignment: .trailing, spacing: 2) {
-                ProgressView(value: p).frame(width: 110)
-                Text("\(Int((p * 100).rounded()))%")
+                ProgressView(value: fraction).frame(width: 110)
+                Text("\(Int((fraction * 100).rounded()))%")
                     .font(.caption2).foregroundStyle(.secondary)
                     .monospacedDigit()
             }
@@ -312,10 +313,10 @@ private struct ParakeetModelRow: View {
 
     @ViewBuilder
     private var controls: some View {
-        if let p = manager.progress {
+        if let fraction = manager.progress {
             VStack(alignment: .trailing, spacing: 2) {
-                ProgressView(value: p).frame(width: 110)
-                Text("\(Int((p * 100).rounded()))%")
+                ProgressView(value: fraction).frame(width: 110)
+                Text("\(Int((fraction * 100).rounded()))%")
                     .font(.caption2).foregroundStyle(.secondary).monospacedDigit()
             }
         } else if manager.isInstalled {
