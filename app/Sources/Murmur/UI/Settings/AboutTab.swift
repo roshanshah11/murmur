@@ -29,9 +29,9 @@ struct AboutTab: View {
             }
             Divider()
             HStack(spacing: 16) {
-                Link("GitHub", destination: URL(string: "https://github.com/roshanshah11/murmur")!)
-                Link("Docs", destination: URL(string: "https://roshanshah11.github.io/murmur/")!)
-                Link("Sponsor", destination: URL(string: "https://github.com/sponsors/roshanshah11")!)
+                aboutLink("GitHub", "https://github.com/roshanshah11/murmur")
+                aboutLink("Docs", "https://roshanshah11.github.io/murmur/")
+                aboutLink("Sponsor", "https://github.com/sponsors/roshanshah11")
             }
             Divider()
             HStack {
@@ -53,5 +53,15 @@ struct AboutTab: View {
         }
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    /// A Link to a known-valid URL literal without force-unwrapping (keeps the
+    /// force_unwrapping rule happy across SwiftLint versions). The string is a
+    /// compile-time constant, so the Link always renders.
+    @ViewBuilder
+    private func aboutLink(_ title: String, _ urlString: String) -> some View {
+        if let url = URL(string: urlString) {
+            Link(title, destination: url)
+        }
     }
 }
