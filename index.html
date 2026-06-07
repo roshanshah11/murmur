@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#EFE9DD">
+<meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#1C1814">
+<meta name="color-scheme" content="light dark">
+<title>Murmur — local-first dictation for macOS</title>
+<meta name="description" content="A quiet, local-first dictation utility for the Mac. Double-tap fn, speak, paste. Your voice never leaves the machine.">
+<meta property="og:type"        content="website">
+<meta property="og:title"       content="Murmur">
+<meta property="og:description" content="Local-first dictation for macOS. Double-tap fn, speak, paste.">
+<meta property="og:image"       content="https://murmur-landing-phi.vercel.app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url"         content="https://murmur-landing-phi.vercel.app/">
+<meta name="twitter:card"       content="summary_large_image">
+<meta name="twitter:title"      content="Murmur — local-first dictation for macOS">
+<meta name="twitter:description" content="Double-tap fn, speak, paste. Your voice never leaves the machine.">
+<meta name="twitter:image"      content="https://murmur-landing-phi.vercel.app/og-image.png">
+<link rel="canonical" href="https://murmur-landing-phi.vercel.app/">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/svg+xml" sizes="16x16" href="/favicon-source-16.svg">
+<link rel="icon" type="image/svg+xml" sizes="32x32" href="/favicon-source-32.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.svg">
+<link rel="manifest" href="/webmanifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Murmur","applicationCategory":"ProductivityApplication","operatingSystem":"macOS 13+","license":"https://opensource.org/licenses/MIT","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Roshan Shah"},"description":"Local-first dictation for macOS. Double-tap fn, speak, paste."}
+</script>
+<style>
+:root {
+  --paper:#EFE9DD; --paper-edge:#E8DFC9; --paper-deep:#DFD5BD;
+  --ink:#1C1814; --ink-soft:#46403A; --ink-fade:#6A6358;
+  --red:#B23A2A; --red-soft:#C66B5F; --gold:#94774A;
+  --serif: ui-serif,"New York","Cormorant Garamond","Apple Garamond",Garamond,"Hoefler Text","Times New Roman",serif;
+  --sans:  ui-sans-serif,-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,sans-serif;
+  --mono:  ui-monospace,"SF Mono","Menlo","Cascadia Mono",monospace;
+  --gutter: clamp(20px,4vw,64px);
+  --rule:1px solid color-mix(in srgb,var(--ink) 28%,transparent);
+  --rule-soft:1px solid color-mix(in srgb,var(--ink) 14%,transparent);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#1C1814; --paper-edge:#2A2520; --paper-deep:#0F0C0A; --ink:#EFE9DD; --ink-soft:#C7BFAE; --ink-fade:#8A8276; --red:#D7665B; --red-soft:#E58576; --gold:#BA9968; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-feature-settings:"kern","liga","calt","onum","pnum"}
+body{background-image:radial-gradient(circle at 0% 0%,color-mix(in srgb,var(--paper-edge) 55%,transparent) 0,transparent 38%),radial-gradient(circle at 100% 100%,color-mix(in srgb,var(--paper-deep) 30%,transparent) 0,transparent 42%);background-attachment:fixed}
+@media (prefers-reduced-motion: no-preference){ body{animation:fadein 600ms ease both} @keyframes fadein{from{opacity:0}to{opacity:1}} }
+::selection{background:color-mix(in srgb,var(--red) 30%,transparent);color:var(--ink)}
+a{color:var(--ink);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--red) 60%,transparent);text-underline-offset:3px;text-decoration-thickness:1px;transition:color 150ms,text-decoration-color 150ms}
+a:hover{color:var(--red);text-decoration-color:var(--red)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--red);outline-offset:3px;border-radius:4px}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:16px;top:16px;padding:8px 14px;background:var(--ink);color:var(--paper);text-decoration:none;z-index:9}
+.wrap{max-width:clamp(880px, 92vw, 1320px);margin:0 auto;padding:0 var(--gutter)}
+.wrap-narrow{max-width:1080px;margin:0 auto;padding:0 var(--gutter)}
+
+/* MASTHEAD */
+header.masthead{padding:28px 0 18px;border-bottom:var(--rule)}
+.masthead-row{display:flex;align-items:baseline;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.brand-row{display:flex;align-items:baseline;gap:10px;text-decoration:none}
+.brand-row svg{width:22px;height:22px;transform:translateY(3px)}
+.brand-mark{font-family:var(--serif);font-style:italic;font-weight:500;font-size:24px;letter-spacing:-0.01em}
+nav.masthead-nav{display:flex;gap:26px;flex-wrap:wrap}
+nav.masthead-nav a{font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;color:var(--ink-soft)}
+nav.masthead-nav a:hover{color:var(--red)}
+.issue-line{margin:14px 0 0;font-family:var(--sans);font-size:10.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-fade);display:flex;gap:18px;flex-wrap:wrap}
+.issue-line .pip{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);vertical-align:1px;margin-right:6px}
+
+/* HERO */
+.hero{padding:72px 0 56px}
+.hero-grid{display:grid;grid-template-columns:1fr;gap:48px;align-items:start}
+@media (min-width:1024px){
+  .hero-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:64px;align-items:center}
+  .hero-grid .demo-frame{margin-top:0}
+}
+@media (min-width:1600px){
+  .hero-grid{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:80px}
+  .hero-grid .demo-frame{align-self:start}
+}
+.kicker{font-family:var(--sans);font-size:11.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--red);margin:0 0 18px}
+h1.title{font-family:var(--serif);font-style:italic;font-weight:500;font-size:clamp(68px,8.5vw,128px);line-height:0.92;letter-spacing:-0.035em;margin:0;text-wrap:balance;margin-left:-0.04em}
+@media (min-width:1024px){ h1.title{font-size:clamp(96px,7.2vw,148px)} }
+@media (min-width:1600px){ h1.title{font-size:clamp(128px,9vw,168px)} }
+h1.title .endmark{display:inline-block;width:0.14em;height:0.14em;border-radius:50%;background:var(--red);vertical-align:0.18em;margin-left:0.08em;transform:translateY(-0.06em)}
+@media (prefers-reduced-motion: no-preference){ h1.title .endmark{animation:pulse 2.4s ease-in-out infinite} @keyframes pulse{0%,100%{opacity:0.75;transform:translateY(-0.06em) scale(1)} 50%{opacity:1;transform:translateY(-0.06em) scale(1.18)}} }
+.standfirst{max-width:38ch;margin:28px 0 0;font-family:var(--serif);font-size:21px;line-height:1.42;color:var(--ink-soft)}
+.standfirst::first-letter{font-family:var(--serif);font-weight:500;font-size:3.2em;float:left;line-height:0.88;margin:0.06em 0.08em 0 0;color:var(--ink)}
+.standfirst em{color:var(--ink);font-style:italic}
+.hero-byline{margin:36px 0 0;border-top:var(--rule-soft);padding-top:22px}
+.hero-byline .row-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.hero-byline .row-meta{margin-top:14px}
+.byline-meta{font-family:var(--sans);font-size:11.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-fade)}
+.install{display:inline-flex;align-items:stretch;font-family:var(--mono);font-size:13px;background:transparent;border:1px solid var(--ink-soft);border-radius:999px;overflow:hidden}
+.install code{padding:9px 14px 9px 16px;white-space:nowrap}
+.install button{font-family:var(--sans);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;background:var(--ink);color:var(--paper);border:none;padding:0 16px;cursor:pointer;transition:background 150ms}
+.install button:hover{background:var(--red)}
+.install button[data-copied="1"]{background:var(--gold)}
+.dmg-link{font-family:var(--sans);font-size:12px;letter-spacing:0.16em;text-transform:uppercase;text-decoration:none;border-bottom:1px solid var(--ink);padding-bottom:1px}
+.dmg-link::after{content:" ↓"}
+
+/* SECTIONS */
+section{padding:64px 0;border-top:var(--rule)}
+.section-head{display:grid;grid-template-columns:1fr 2fr;gap:32px;align-items:baseline;margin-bottom:36px}
+.section-num{font-family:var(--sans);font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:var(--red)}
+.section-title{font-family:var(--serif);font-style:italic;font-weight:500;font-size:clamp(32px,4.4vw,48px);line-height:1.05;letter-spacing:-0.018em;margin:0;text-wrap:balance}
+@media (max-width:640px){.section-head{grid-template-columns:1fr;gap:8px}}
+
+/* DEMO COMPOSITION (replaces dead notch box) */
+.demo-frame{
+  margin-top:48px;
+  padding:28px 28px 18px;
+  border:var(--rule);
+  border-radius:18px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--paper-edge) 60%,transparent),transparent 60%);
+  position:relative;
+}
+@media (min-width:1024px){
+  .demo-frame{
+    /* on wide viewports the demo sits inline with the hero text */
+    background:linear-gradient(180deg,color-mix(in srgb,var(--paper-edge) 80%,transparent),transparent 70%);
+  }
+  .hero-grid .demo-row{grid-template-columns:1fr;gap:18px}
+}
+.demo-frame::before{
+  content:"FIG. — THE NOTCH OVERLAY, DURING DICTATION";
+  position:absolute;top:-9px;left:24px;background:var(--paper);padding:0 10px;
+  font-family:var(--sans);font-size:10px;letter-spacing:0.22em;color:var(--ink-fade);
+}
+/* Mock MacBook screen — always-visible CSS replacement for the demo video */
+.mock-mac{
+  position:relative;aspect-ratio:16/10;border-radius:14px;overflow:hidden;
+  background:linear-gradient(180deg,#0F0C0A,#1C1814);
+  box-shadow:0 1px 0 rgba(28,24,20,0.08), 0 22px 60px -28px rgba(28,24,20,0.5);
+}
+.mock-menubar{
+  position:absolute;top:0;left:0;right:0;height:22px;
+  background:rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.07);
+  display:flex;align-items:center;gap:6px;padding:0 9px;
+}
+.mock-tl{width:8px;height:8px;border-radius:50%}
+.mock-menubar .mock-tl:nth-child(1){background:#FF5F57}
+.mock-menubar .mock-tl:nth-child(2){background:#FEBC2E}
+.mock-menubar .mock-tl:nth-child(3){background:#28C840}
+.mock-app{margin-left:14px;color:rgba(255,255,255,0.86);font-family:var(--sans);font-size:9.5px;letter-spacing:0.06em;font-weight:600}
+.mock-app-menu{margin-left:10px;color:rgba(255,255,255,0.42);font-family:var(--sans);font-size:9.5px;letter-spacing:0.06em;display:flex;gap:9px}
+.mock-clock{margin-left:auto;color:rgba(255,255,255,0.6);font-family:var(--sans);font-size:9.5px}
+.mock-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:140px;height:26px;background:#000;border-bottom-left-radius:14px;border-bottom-right-radius:14px}
+.mock-pill{
+  position:absolute;top:6px;left:50%;transform:translateX(-50%);
+  width:170px;height:30px;border-radius:99px;background:#FFFBF5;
+  box-shadow:0 8px 26px -6px rgba(178,58,42,0.45);
+  display:flex;align-items:center;gap:8px;padding:0 12px;z-index:2;
+}
+.mock-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex:none;box-shadow:0 0 0 0 rgba(178,58,42,0.6)}
+@media (prefers-reduced-motion: no-preference){
+  .mock-dot{animation:dotPulse 1.6s ease-in-out infinite}
+  @keyframes dotPulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(178,58,42,0.55)}
+    50%{box-shadow:0 0 0 6px rgba(178,58,42,0)}
+  }
+}
+.mock-bars{display:flex;align-items:center;gap:3px;flex:1;justify-content:center}
+.mock-bars b{display:inline-block;width:3px;border-radius:2px;background:#1C1814;height:8px}
+@media (prefers-reduced-motion: no-preference){
+  .mock-bars b{animation:bar 1100ms ease-in-out infinite}
+  .mock-bars b:nth-child(1){height:8px;animation-delay:0ms}
+  .mock-bars b:nth-child(2){height:14px;animation-delay:80ms}
+  .mock-bars b:nth-child(3){height:18px;animation-delay:160ms}
+  .mock-bars b:nth-child(4){height:13px;animation-delay:240ms}
+  .mock-bars b:nth-child(5){height:9px;animation-delay:320ms}
+  .mock-bars b:nth-child(6){height:16px;animation-delay:120ms}
+  .mock-bars b:nth-child(7){height:11px;animation-delay:200ms}
+  .mock-bars b:nth-child(8){height:15px;animation-delay:280ms}
+  @keyframes bar{0%,100%{transform:scaleY(0.55)}50%{transform:scaleY(1.2)}}
+}
+.mock-time{color:rgba(28,24,20,0.6);font-family:var(--mono);font-size:9.5px;letter-spacing:0.04em}
+.mock-target{
+  position:absolute;left:8%;right:8%;bottom:9%;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px;padding:12px 14px;color:rgba(255,255,255,0.85);
+  font-family:var(--serif);font-size:13px;line-height:1.42;
+}
+.mock-typed{}
+.mock-caret{display:inline-block;width:1.5px;height:0.95em;background:rgba(255,255,255,0.85);vertical-align:-1px;margin-left:2px}
+@media (prefers-reduced-motion: no-preference){
+  .mock-caret{animation:caretBlink 1s steps(2,end) infinite}
+  @keyframes caretBlink{50%{opacity:0}}
+}
+.demo-frame .demo-caption{margin-top:14px}
+.demo-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;
+}
+@media (max-width:720px){ .demo-row{grid-template-columns:1fr} }
+.demo-card{
+  position:relative;
+  aspect-ratio:16/10;
+  border-radius:14px;
+  background:linear-gradient(180deg,#0F0C0A,#1C1814);
+  overflow:hidden;
+  box-shadow:0 1px 0 color-mix(in srgb,var(--ink) 8%,transparent), 0 22px 60px -28px color-mix(in srgb,var(--ink) 50%,transparent);
+}
+.demo-card{border-top-left-radius:14px;border-top-right-radius:14px}
+.demo-card .menu-bar{
+  position:absolute;top:0;left:0;right:0;height:22px;
+  background:rgba(255,255,255,0.05);
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  display:flex;align-items:center;gap:6px;padding:0 9px;
+}
+.demo-card .menu-bar i{ display:inline-block;width:8px;height:8px;border-radius:50%;}
+.demo-card .menu-bar i:nth-child(1){background:#FF5F57;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18) inset}
+.demo-card .menu-bar i:nth-child(2){background:#FEBC2E;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18) inset}
+.demo-card .menu-bar i:nth-child(3){background:#28C840;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18) inset}
+.demo-card .menu-bar .app{margin-left:14px;color:rgba(255,255,255,0.86);font-family:var(--sans);font-size:9.5px;letter-spacing:0.06em;font-weight:600}
+.demo-card .menu-bar .app-menu{margin-left:10px;color:rgba(255,255,255,0.42);font-family:var(--sans);font-size:9.5px;letter-spacing:0.06em;display:flex;gap:9px}
+.demo-card .menu-bar .clk{ margin-left:auto;color:rgba(255,255,255,0.6);font-family:var(--sans);font-size:9.5px;letter-spacing:0.04em;display:flex;gap:8px;align-items:center}
+.demo-card .menu-bar .clk svg{width:9px;height:9px;opacity:0.7}
+/* notch */
+.demo-card .notch{ position:absolute;top:0;left:50%;transform:translateX(-50%); width:140px;height:26px; background:#000; border-bottom-left-radius:14px;border-bottom-right-radius:14px;}
+.demo-card.idle .pill{
+  position:absolute;top:6px;left:50%;transform:translateX(-50%);
+  width:54px;height:14px;border-radius:99px;
+  background:#1C1814; border:1px solid rgba(255,255,255,0.16);
+  display:flex;align-items:center;justify-content:center;gap:3px;
+}
+.demo-card.idle .pill::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--red);opacity:0.55;}
+.demo-card.idle .pill::after{content:"murmur";font-family:var(--sans);font-size:6px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.55);}
+.demo-card.active .pill{
+  position:absolute;top:6px;left:50%;transform:translateX(-50%);
+  width:160px;height:30px;border-radius:99px;
+  background:#FFFBF5; box-shadow:0 6px 20px -6px rgba(178,58,42,0.4);
+  display:flex;align-items:center;gap:6px;padding:0 12px;
+}
+.demo-card.active .dot{width:8px;height:8px;border-radius:50%;background:var(--red); flex:none;}
+.demo-card.active .bars{display:flex;align-items:center;gap:3px;flex:1;justify-content:center}
+.demo-card.active .bars b{display:inline-block;width:3px;border-radius:2px;background:#1C1814;height:8px;animation:bar 900ms ease-in-out infinite}
+.demo-card.active .bars b:nth-child(2){height:14px;animation-delay:90ms}
+.demo-card.active .bars b:nth-child(3){height:18px;animation-delay:160ms}
+.demo-card.active .bars b:nth-child(4){height:14px;animation-delay:240ms}
+.demo-card.active .bars b:nth-child(5){height:9px;animation-delay:320ms}
+.demo-card.active .bars b:nth-child(6){height:16px;animation-delay:120ms}
+.demo-card.active .bars b:nth-child(7){height:11px;animation-delay:200ms}
+@media (prefers-reduced-motion: no-preference){ @keyframes bar{0%,100%{transform:scaleY(0.6)} 50%{transform:scaleY(1.2)}} }
+@media (prefers-reduced-motion: reduce){ .demo-card.active .bars b{animation:none} }
+.demo-card.active .time{color:rgba(28,24,20,0.55); font-family:var(--mono); font-size:9.5px; letter-spacing:0.04em;}
+.demo-target{
+  position:absolute;left:8%;right:8%;bottom:8%;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px;padding:10px 12px; color:rgba(255,255,255,0.78);
+  font-family:var(--serif); font-size:11px; line-height:1.4;
+}
+.demo-target .caret{display:inline-block;width:1px;height:0.9em;background:rgba(255,255,255,0.8);vertical-align:-1px;animation:blink 1s steps(2,end) infinite;margin-left:1px}
+@media (prefers-reduced-motion: no-preference){ @keyframes blink{50%{opacity:0}} }
+.demo-caption{ margin:10px 4px 0; display:flex; justify-content:space-between; gap:16px; color:var(--ink-fade); font-family:var(--sans); font-size:11px; letter-spacing:0.14em; text-transform:uppercase;}
+
+/* THREE-ACT */
+.acts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.act{padding:6px 28px 6px 28px;border-left:var(--rule-soft)}
+.act:first-child{border-left:none;padding-left:0}
+.act-num{font-family:var(--serif);font-style:italic;font-weight:500;font-size:44px;line-height:1;color:var(--red);margin-bottom:10px}
+.act-name{font-family:var(--sans);font-size:11.5px;letter-spacing:0.2em;text-transform:uppercase;margin:0 0 12px;color:var(--ink)}
+.act-body{font-size:16px;line-height:1.5;color:var(--ink-soft);margin:0;max-width:28ch}
+.act-body em{color:var(--ink)}
+@media (max-width:720px){ .acts{grid-template-columns:1fr;gap:28px} .act,.act:first-child{border-left:none;padding-left:0;border-top:var(--rule-soft);padding-top:20px} .acts>.act:first-child{border-top:none;padding-top:0} }
+
+/* MANIFESTO */
+.manifesto p{font-family:var(--serif);font-size:20px;line-height:1.5;max-width:64ch;color:var(--ink);margin:0 0 18px}
+.manifesto p::first-letter{font-family:var(--serif);font-weight:500;font-size:3em;float:left;line-height:0.88;margin:0.05em 0.08em 0 0;color:var(--red)}
+.manifesto p em{color:var(--ink);font-style:italic}
+.manifesto .colophon{margin-top:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:var(--rule-soft);padding-top:18px}
+.manifesto .colophon>div{padding:6px 18px 6px 18px;border-left:var(--rule-soft)}
+.manifesto .colophon>div:first-child{border-left:none;padding-left:0}
+.manifesto .colophon dt{font-family:var(--sans);font-size:10.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-fade);margin-bottom:6px}
+.manifesto .colophon dd{font-size:15px;margin:0;color:var(--ink)}
+@media (max-width:720px){ .manifesto .colophon{grid-template-columns:1fr} .manifesto .colophon>div{border-left:none;padding-left:0;border-top:var(--rule-soft);padding-top:14px;margin-top:4px} .manifesto .colophon>div:first-child{border-top:none;padding-top:0;margin-top:0} }
+
+/* FEATURES */
+ul.features{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:var(--rule-soft)}
+ul.features li{padding:22px 0;border-bottom:var(--rule-soft);display:grid;grid-template-columns:28px 1fr;gap:14px;align-items:baseline}
+ul.features li:nth-child(odd){padding-right:28px;border-right:var(--rule-soft)}
+ul.features li:nth-child(even){padding-left:28px}
+@media (max-width:720px){ ul.features{grid-template-columns:1fr} ul.features li:nth-child(odd){padding-right:0;border-right:none} ul.features li:nth-child(even){padding-left:0} }
+.feat-num{font-family:var(--sans);font-size:11px;letter-spacing:0.2em;color:var(--ink-fade)}
+.feat-name{font-family:var(--serif);font-style:italic;font-weight:500;font-size:22px;line-height:1.18;margin:0 0 4px;color:var(--ink)}
+.feat-desc{font-size:15px;line-height:1.46;color:var(--ink-soft);margin:0}
+
+/* PERSONAS */
+.personas{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.persona{border-top:1px solid var(--ink);padding-top:14px}
+.persona h3{font-family:var(--serif);font-style:italic;font-weight:500;font-size:24px;line-height:1.1;margin:0 0 8px}
+.persona p{font-size:15px;line-height:1.48;color:var(--ink-soft);margin:0}
+.persona .ord{font-family:var(--sans);font-size:10.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--red);margin:0 0 6px}
+@media (max-width:720px){ .personas{grid-template-columns:1fr} }
+
+/* GET-IT */
+.get-it{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
+.get-it>div h3{font-family:var(--sans);font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:var(--red);margin:0 0 12px}
+.get-it pre{font-family:var(--mono);font-size:13px;background:transparent;margin:0 0 10px;padding:14px 16px;border:1px solid var(--ink-soft);border-radius:14px;overflow-x:auto;white-space:nowrap}
+.get-it .meta{font-family:var(--sans);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-fade)}
+@media (max-width:720px){ .get-it{grid-template-columns:1fr} }
+
+/* FOOTER */
+footer.colophon-foot{margin-top:48px;padding:28px 0 56px;border-top:var(--rule);font-family:var(--sans);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-fade)}
+.foot-row{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+footer.colophon-foot a{color:var(--ink-fade);text-decoration:none}
+footer.colophon-foot a:hover{color:var(--red)}
+footer .right{display:flex;gap:18px;flex-wrap:wrap}
+
+kbd{font-family:var(--mono);font-size:0.9em;background:color-mix(in srgb,var(--ink) 8%,transparent);border:1px solid color-mix(in srgb,var(--ink) 30%,transparent);padding:1px 7px;border-radius:6px;vertical-align:1px}
+
+@media (prefers-reduced-motion: no-preference){
+  section{opacity:0;transform:translateY(10px);animation:rise 600ms ease forwards}
+  section:nth-of-type(1){animation-delay:120ms}
+  section:nth-of-type(2){animation-delay:200ms}
+  section:nth-of-type(3){animation-delay:280ms}
+  section:nth-of-type(4){animation-delay:360ms}
+  section:nth-of-type(5){animation-delay:440ms}
+  @keyframes rise{to{opacity:1;transform:none}}
+}
+@media print{ body{background:white;color:black} nav,.install button,footer .right a{display:none} .demo-card{display:none} }
+
+/* MOBILE RECOVERY — hero must dominate above the fold on 390px */
+@media (max-width:640px){
+  header.masthead{padding:18px 0 12px}
+  nav.masthead-nav{display:none}
+  .issue-line{display:none}
+  .hero{padding:36px 0 36px}
+  .kicker{font-size:10.5px;margin:0 0 12px}
+  h1.title{font-size:clamp(64px,17vw,108px);line-height:0.9;margin-left:-0.03em}
+  .standfirst{font-size:18px;max-width:none;margin-top:22px}
+  .hero-byline{margin-top:24px;padding-top:18px}
+  .hero-byline .row-actions{flex-direction:column;align-items:stretch;gap:12px}
+  .install{width:100%;justify-content:space-between}
+  .install code{flex:1;overflow:hidden;text-overflow:ellipsis}
+  .dmg-link{align-self:flex-start}
+  .demo-frame{margin-top:30px;padding:22px 16px 14px}
+  .demo-frame::before{left:14px;font-size:9px}
+  .demo-card{aspect-ratio:16/11}
+  .demo-card .menu-bar .app-menu{display:none}
+  .demo-card.active .pill{width:130px;height:24px;top:5px}
+  .demo-card.active .time{font-size:8.5px}
+  .demo-card .menu-bar{height:18px}
+  .demo-card .menu-bar i{width:6.5px;height:6.5px}
+  .demo-card .menu-bar .app{margin-left:8px;font-size:8.5px}
+  .demo-card .menu-bar .clk{font-size:8.5px}
+  .demo-card .notch{width:96px;height:18px}
+  section{padding:44px 0}
+  .section-head{margin-bottom:24px}
+  .section-num{font-size:10px}
+  .act-num{font-size:36px}
+  .manifesto p{font-size:18px}
+  .manifesto p::first-letter{font-size:2.6em}
+  .feat-name{font-size:20px}
+  footer.colophon-foot{padding:22px 0 36px}
+  .foot-row{flex-direction:column;gap:14px}
+}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <a class="brand-row" href="/">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <text x="8" y="50" font-family="ui-serif, 'New York', 'Cormorant Garamond', Georgia, serif"
+                font-style="italic" font-weight="500" font-size="46" fill="currentColor">m</text>
+          <circle cx="54" cy="44" r="3" fill="#B23A2A"/>
+        </svg>
+        <span class="brand-mark">Murmur</span>
+      </a>
+      <nav class="masthead-nav" aria-label="Primary">
+        <a href="#how">How</a>
+        <a href="#manifesto">Why</a>
+        <a href="#features">Features</a>
+        <a href="#get">Install</a>
+        <a href="https://github.com/roshanshah11/murmur">GitHub</a>
+      </nav>
+    </div>
+    <p class="issue-line">
+      <span><span class="pip"></span>Vol. 1 · No. 1</span>
+      <span>May 2026</span>
+      <span>An independent release</span>
+      <span>v1.0.0</span>
+    </p>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="hero-text">
+        <p class="kicker">Local-first dictation for macOS</p>
+        <h1 id="hero-title" class="title">Murmur<span class="endmark" aria-hidden="true"></span></h1>
+
+        <p class="standfirst">
+          A quiet little app that listens only when you ask, transcribes <em>on your Mac</em>,
+          and never sends a single byte of audio to anyone. Double-tap <kbd>fn</kbd>, speak, paste.
+          That is the whole product.
+        </p>
+
+        <div class="hero-byline">
+          <div class="row-actions">
+            <div class="install" role="group" aria-label="Install via Homebrew">
+              <code id="brew-cmd">brew install --cask roshanshah11/murmur/murmur</code>
+              <button type="button" id="copy-btn" aria-label="Copy install command">Copy</button>
+            </div>
+            <a class="dmg-link" href="https://github.com/roshanshah11/murmur/releases/latest/download/Murmur.dmg" title="On first launch, right-click → Open to bypass Gatekeeper">DMG (advanced)</a>
+          </div>
+          <div class="row-meta">
+            <span class="byline-meta">macOS 13+ &nbsp;·&nbsp; Apple Silicon &amp; Intel &nbsp;·&nbsp; Free, forever</span>
+          </div>
+        </div>
+      </div>
+
+      <figure class="demo-frame" aria-label="Murmur's notch overlay during dictation">
+        <div class="mock-mac" role="img" aria-label="A MacBook screen showing Murmur's recording overlay in the notch area, with live spectrum bars and the transcribed sentence landing inside a Notes window.">
+          <div class="mock-menubar">
+            <span class="mock-tl"></span><span class="mock-tl"></span><span class="mock-tl"></span>
+            <span class="mock-app">Notes</span>
+            <span class="mock-app-menu"><span>File</span><span>Edit</span><span>View</span></span>
+            <span class="mock-clock">100% &nbsp; Sun 10:42</span>
+          </div>
+          <div class="mock-notch"></div>
+          <div class="mock-pill">
+            <span class="mock-dot"></span>
+            <span class="mock-bars"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span>
+            <span class="mock-time">0:04</span>
+          </div>
+          <div class="mock-target">
+            <span class="mock-typed">A quiet little app that listens only when you ask.</span><span class="mock-caret"></span>
+          </div>
+        </div>
+        <figcaption class="demo-caption">
+          <span>Live overlay</span><span>Text lands at the caret</span>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="how" aria-labelledby="how-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">§ I · The Flow</div>
+      <h2 class="section-title" id="how-title">A three-act play, performed daily.</h2>
+    </div>
+    <div class="acts">
+      <article class="act">
+        <div class="act-num">i.</div>
+        <h3 class="act-name">Hold &nbsp; <kbd>fn</kbd></h3>
+        <p class="act-body">A pill slides down from the notch. It is the only sign that anyone is listening, and it is gone the moment you finish.</p>
+      </article>
+      <article class="act">
+        <div class="act-num">ii.</div>
+        <h3 class="act-name">Speak</h3>
+        <p class="act-body">Audio is captured locally and passed to <em>whisper.cpp</em>, accelerated on the Mac's own GPU. No network, no queue, no telemetry.</p>
+      </article>
+      <article class="act">
+        <div class="act-num">iii.</div>
+        <h3 class="act-name">Paste</h3>
+        <p class="act-body">Cleaned text drops into whichever app held the cursor — your email, your editor, your terminal, your notes.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="manifesto" class="manifesto" aria-labelledby="manifesto-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">§ II · The Position</div>
+      <h2 class="section-title" id="manifesto-title">Local-first, by construction.</h2>
+    </div>
+    <p>
+      Murmur runs the entire transcription pipeline on your Mac. No socket opens during a dictation,
+      no analytics ping is fired afterward, no account is required to install. The audio file lives
+      for a few seconds inside <code style="font-family:var(--mono);font-size:0.9em">~/Library/Caches/Murmur</code> and is removed the moment its
+      transcript reaches the clipboard. The transcript itself <em>is never written to any log</em>.
+      Murmur is MIT-licensed, so the only way to verify this is the only way that ever really matters:
+      read the source.
+    </p>
+    <dl class="colophon" aria-label="Trust">
+      <div><dt>Network</dt><dd>None during use. Sparkle requests an appcast only when checking for updates.</dd></div>
+      <div><dt>Telemetry</dt><dd>None. No analytics, no crash reports, no anonymous pings.</dd></div>
+      <div><dt>License</dt><dd>MIT. Read it, fork it, ship your own. <a href="https://github.com/roshanshah11/murmur">→ source</a></dd></div>
+    </dl>
+  </div>
+</section>
+
+<section id="features" aria-labelledby="features-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">§ III · The Tools</div>
+      <h2 class="section-title" id="features-title">Six surfaces, all yours to adjust.</h2>
+    </div>
+    <ul class="features">
+      <li><span class="feat-num">01</span><span class="feat-body"><p class="feat-name">Settings</p><p class="feat-desc">Seven tabs. Hotkey picker, profile picker, vocabulary editor, model chooser, update channel, and an honest About panel.</p></span></li>
+      <li><span class="feat-num">02</span><span class="feat-body"><p class="feat-name">History</p><p class="feat-desc">Off by default — opt-in if you want a searchable record of past dictations, kept entirely on your machine.</p></span></li>
+      <li><span class="feat-num">03</span><span class="feat-body"><p class="feat-name">Vocabulary</p><p class="feat-desc">Teach Murmur the words it keeps mishearing. Case-insensitive replacements, JSON import and export.</p></span></li>
+      <li><span class="feat-num">04</span><span class="feat-body"><p class="feat-name">Profiles</p><p class="feat-desc">Raw, Casual, Formal, Code. Deterministic cleanup rules — no LLM, no surprise rewrites of what you said.</p></span></li>
+      <li><span class="feat-num">05</span><span class="feat-body"><p class="feat-name">Models</p><p class="feat-desc">Pick a Whisper model that fits your Mac. Murmur downloads it with progress and verifies the SHA-256.</p></span></li>
+      <li><span class="feat-num">06</span><span class="feat-body"><p class="feat-name">Updates</p><p class="feat-desc">Sparkle delivers signed updates from a public appcast. You stay in control of when to take them.</p></span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="for-who" aria-labelledby="for-who-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">§ IV · The Reader</div>
+      <h2 class="section-title" id="for-who-title">Made for people who write a lot, quietly.</h2>
+    </div>
+    <div class="personas">
+      <article class="persona">
+        <p class="ord">i.</p>
+        <h3>The writer</h3>
+        <p>Drafts long emails, longer Notion pages, and the occasional essay. Wants to keep the cursor in flow without typing every word.</p>
+      </article>
+      <article class="persona">
+        <p class="ord">ii.</p>
+        <h3>The coder</h3>
+        <p>Dictates code comments and Slack replies into Cursor. The Code profile keeps spoken operators (<em>equals equals</em>, <em>arrow</em>) intact.</p>
+      </article>
+      <article class="persona">
+        <p class="ord">iii.</p>
+        <h3>The researcher</h3>
+        <p>Captures quotes and field notes in Obsidian. Murmur happily runs on a plane — there is no network step to fail.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="get" aria-labelledby="get-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">§ V · The Install</div>
+      <h2 class="section-title" id="get-title">Take it home in one paste.</h2>
+    </div>
+    <div class="get-it">
+      <div>
+        <h3>Via Homebrew</h3>
+        <pre><code>brew install --cask roshanshah11/murmur/murmur</code></pre>
+        <p class="meta">Signed and notarized. Auto-updates via Sparkle.</p>
+      </div>
+      <div>
+        <h3>Via Direct Download</h3>
+        <pre><code><a href="https://github.com/roshanshah11/murmur/releases/latest/download/Murmur.dmg">Murmur-latest.dmg</a> → /Applications</code></pre>
+        <p class="meta">Drag the app, open once, grant Microphone &amp; Accessibility.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="colophon-foot">
+  <div class="wrap">
+    <div class="foot-row">
+      <span>Set in ui-serif &amp; ui-sans-serif. Hand-coded. © 2026 Roshan Shah.</span>
+      <span class="right">
+        <a href="/privacy.html">Privacy</a>
+        <a href="https://github.com/roshanshah11/murmur/blob/main/LICENSE">MIT License</a>
+        <a href="https://github.com/roshanshah11/murmur">GitHub</a>
+        <a href="https://github.com/sponsors/roshanshah11">Sponsor</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var btn = document.getElementById('copy-btn');
+  var cmd = document.getElementById('brew-cmd');
+  if (!btn || !cmd) return;
+  btn.addEventListener('click', async function(){
+    try {
+      await navigator.clipboard.writeText(cmd.textContent.trim());
+      btn.textContent = 'Copied';
+      btn.setAttribute('data-copied','1');
+      setTimeout(function(){ btn.textContent = 'Copy'; btn.removeAttribute('data-copied'); }, 1600);
+    } catch (e) {
+      var r = document.createRange(); r.selectNodeContents(cmd);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<style>
+.bg{fill:#FFFBF5}
+.ink{fill:#1C1814}
+.red{fill:#B23A2A}
+@media (prefers-color-scheme: dark){
+.bg{fill:#1C1814}
+.ink{fill:#FFFBF5}
+}
+</style>
+<rect class="bg" width="64" height="64" rx="14"/>
+<text class="ink" x="8" y="50"
+      font-family="ui-serif, 'New York', 'Cormorant Garamond', Georgia, 'Times New Roman', serif"
+      font-style="italic" font-weight="500" font-size="46">m</text>
+<circle class="red" cx="54" cy="44" r="3"/>
+</svg>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+<style>
+.bg{fill:#FFFBF5}
+.ink{fill:#1C1814}
+@media (prefers-color-scheme: dark){
+.bg{fill:#1C1814}
+.ink{fill:#FFFBF5}
+}
+</style>
+<rect class="bg" width="16" height="16" rx="3"/>
+<text class="ink" x="2" y="13" font-family="ui-serif, Georgia, serif"
+      font-style="italic" font-weight="500" font-size="13">m</text>
+<circle cx="14" cy="12" r="1.2" fill="#B23A2A"/>
+</svg>

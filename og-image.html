@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Murmur — OG image (1200×630)</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; background: #2A2520;
+    font-family: ui-sans-serif, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  }
+  /* The frame is exactly 1200×630 — screenshot the .og element. */
+  .og {
+    width: 1200px; height: 630px;
+    margin: 0;
+    background: #EFE9DD;
+    color: #1C1814;
+    position: relative; overflow: hidden;
+    font-family: ui-serif, "New York", "Cormorant Garamond", Georgia, "Times New Roman", serif;
+    font-feature-settings: "kern","liga","calt","onum","pnum";
+    background-image:
+      radial-gradient(circle at 0% 0%,   rgba(232,223,201,0.9) 0, rgba(239,233,221,0) 38%),
+      radial-gradient(circle at 100% 100%, rgba(223,213,189,0.5) 0, rgba(239,233,221,0) 42%);
+  }
+  .sans { font-family: ui-sans-serif, -apple-system, "SF Pro Text", Helvetica, sans-serif; }
+
+  /* Masthead */
+  .rule-top, .rule-bot {
+    position: absolute; left: 64px; right: 64px;
+    height: 1px; background: rgba(28,24,20,0.28);
+  }
+  .rule-top { top: 118px; }
+  .rule-bot { top: 554px; }
+
+  .brand {
+    position: absolute; left: 64px; top: 60px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .brand svg { width: 42px; height: 42px; transform: translateY(8px); }
+  .brand .mark {
+    font-style: italic; font-weight: 500; font-size: 32px; letter-spacing: -0.4px;
+    line-height: 1; color: #1C1814;
+  }
+
+  .tagline-tr {
+    position: absolute; right: 64px; top: 78px;
+    font-size: 11px; font-weight: 500; color: #46403A;
+    letter-spacing: 0.22em; text-transform: uppercase;
+  }
+
+  .issue {
+    position: absolute; left: 64px; top: 138px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10.5px; color: #7D766B;
+    letter-spacing: 0.22em;
+  }
+  .issue .pip { width: 6px; height: 6px; border-radius: 50%; background: #B23A2A; }
+  .issue span { text-transform: uppercase; }
+
+  /* Headline */
+  .headline {
+    position: absolute; left: 56px; top: 178px;
+    font-style: italic; font-weight: 500;
+    font-size: 196px; line-height: 1; letter-spacing: -0.035em;
+    color: #1C1814;
+    display: flex; align-items: baseline;
+  }
+  .headline .endmark {
+    display: inline-block; width: 26px; height: 26px; border-radius: 50%;
+    background: #B23A2A; margin-left: 10px; transform: translateY(-12px);
+  }
+  .standfirst {
+    position: absolute; left: 62px; top: 408px; max-width: 700px;
+    font-size: 26px; line-height: 1.42; color: #46403A; letter-spacing: -0.005em;
+  }
+
+  /* Right composition */
+  .rcol {
+    position: absolute; left: 820px; top: 200px;
+    width: 320px; height: 300px;
+    border-left: 1px solid rgba(28,24,20,0.14);
+    padding-left: 28px; box-sizing: border-box;
+  }
+  .rcol .sec {
+    font-size: 10.5px; color: #7D766B; letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .rcol .rules {
+    position: relative; margin-top: 50px; height: 110px;
+  }
+  .rcol .rules .r {
+    position: absolute; left: 0; height: 0; border-top: 1.4px solid #94774A;
+  }
+  .rcol .rules .r1 { top: 0;   width: 288px; opacity: 0.85; }
+  .rcol .rules .r2 { top: 42px; width: 200px; opacity: 0.95; left: 52px; }
+  .rcol .rules .r3 { top: 84px; width: 96px;  opacity: 0.7;  left: 104px; }
+  .rcol .rules .dot {
+    position: absolute; top: 37px; left: 247px;
+    width: 10px; height: 10px; border-radius: 50%; background: #B23A2A;
+  }
+  .rcol .wave {
+    margin-top: 36px; position: relative; height: 24px;
+  }
+  .rcol .wave svg { display: block; }
+  .rcol .cap {
+    margin-top: 32px;
+    font-size: 11px; color: #46403A; letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+  .rcol .cap2 {
+    margin-top: 8px;
+    font-family: ui-serif, "New York", Georgia, serif;
+    font-style: italic; font-size: 15px; color: #7D766B; letter-spacing: -0.1px;
+  }
+
+  /* Bottom meta */
+  .meta-l, .meta-r {
+    position: absolute; top: 578px;
+    font-size: 12px; color: #46403A;
+    letter-spacing: 0.22em; text-transform: uppercase;
+  }
+  .meta-l { left: 64px; }
+  .meta-r { right: 64px; }
+</style>
+</head>
+<body>
+  <div class="og" id="og">
+
+    <!-- Masthead -->
+    <div class="rule-top"></div>
+
+    <div class="brand">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <path d="M6 28 Q6 16 14 16 Q18 16 18 22 L18 28 M18 22 Q18 16 24 16 Q28 16 28 22 L28 28"
+              fill="none" stroke="#1C1814" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M28 24 Q31 22 32.5 24 T35.5 24"
+              fill="none" stroke="#B23A2A" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="36.5" cy="24" r="1.6" fill="#B23A2A"/>
+      </svg>
+      <span class="mark">Murmur</span>
+    </div>
+
+    <div class="tagline-tr sans">LOCAL-FIRST DICTATION FOR macOS</div>
+
+    <div class="issue sans">
+      <span class="pip"></span>
+      <span>VOL. 1 &nbsp;&middot;&nbsp; NO. 1 &nbsp;&middot;&nbsp; MAY 2026 &nbsp;&middot;&nbsp; AN INDEPENDENT RELEASE</span>
+    </div>
+
+    <!-- Headline -->
+    <div class="headline">
+      Murmur<span class="endmark" aria-hidden="true"></span>
+    </div>
+
+    <!-- Standfirst -->
+    <div class="standfirst">
+      Local-first dictation for macOS.<br/>
+      Double-tap fn, speak, paste.
+    </div>
+
+    <!-- Right column composition -->
+    <div class="rcol">
+      <div class="sec sans">&sect; COVER &nbsp;&middot;&nbsp; NO. 01</div>
+      <div class="rules">
+        <div class="r r1"></div>
+        <div class="r r2"></div>
+        <div class="r r3"></div>
+        <div class="dot"></div>
+      </div>
+      <div class="wave">
+        <svg width="240" height="20" viewBox="0 0 240 20" aria-hidden="true">
+          <path d="M 2 12 Q 22 -2 42 12 T 82 12 T 122 12 T 162 12 T 202 12"
+                fill="none" stroke="#B23A2A" stroke-opacity="0.55" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="208" cy="12" r="3.5" fill="#B23A2A"/>
+        </svg>
+      </div>
+      <div class="cap sans">DOUBLE-TAP &thinsp;FN&thinsp; &middot; SPEAK &middot; PASTE</div>
+      <div class="cap2">the whole product.</div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="rule-bot"></div>
+    <div class="meta-l sans">MURMUR-LANDING-PHI.VERCEL.APP</div>
+    <div class="meta-r sans">MIT &nbsp;&middot;&nbsp; FREE &nbsp;&middot;&nbsp; macOS 13+</div>
+  </div>
+</body>
+</html>

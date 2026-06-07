@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#FFFBF5"/>
+<stop offset="100%" stop-color="#F3EBDF"/>
+</linearGradient>
+</defs>
+<rect width="180" height="180" rx="40" fill="url(#bg)"/>
+<text x="28" y="138"
+      font-family="ui-serif, 'New York', 'Cormorant Garamond', Georgia, 'Times New Roman', serif"
+      font-style="italic" font-weight="500" font-size="130" fill="#1C1814">m</text>
+<circle cx="146" cy="120" r="8" fill="#B23A2A"/>
+</svg>
