@@ -30,20 +30,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fail if a Swift 6 Xcode is unavailable
+      - name: Fail if a Swift 6 toolchain is unavailable
         run: |
-          set -euo pipefail
+          set -u
           # macos-14's default Xcode ships Swift 5.10, but Package.swift declares
-          # swift-tools-version 6.0. Point DEVELOPER_DIR at the newest Xcode 16.x
-          # on the runner; the GITHUB_ENV write overrides the job-level default
-          # for every subsequent step.
-          XC=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1 || true)
-          if [ -z "$XC" ]; then
-            echo "::error::No Xcode 16.x found on $(sw_vers -productVersion)"; exit 1
+          # swift-tools-version 6.0. If the default toolchain is already Swift 6
+          # (true on macos-15), keep it. Otherwise point DEVELOPER_DIR at an
+          # Xcode 16.x whose swift binary actually exists AND reports Swift 6 —
+          # some bundle aliases (e.g. Xcode_16.x.0.app) lack a usable binary, so
+          # verify before selecting. The GITHUB_ENV write overrides the
+          # job-level DEVELOPER_DIR for every subsequent step.
+          if xcrun swift --version 2>/dev/null | grep -qE 'Swift version 6'; then
+            echo "Default toolchain is already Swift 6:"
+            xcrun swift --version
+            exit 0
           fi
-          echo "Selected $XC"
-          echo "DEVELOPER_DIR=$XC/Contents/Developer" >> "$GITHUB_ENV"
-          "$XC/Contents/Developer/usr/bin/swift" --version
+          for XC in $(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -Vr); do
+            SW="$XC/Contents/Developer/usr/bin/swift"
+            if [ -x "$SW" ] && "$SW" --version 2>/dev/null | grep -qE 'Swift version 6'; then
+              echo "Selected $XC"
+              echo "DEVELOPER_DIR=$XC/Contents/Developer" >> "$GITHUB_ENV"
+              "$SW" --version
+              exit 0
+            fi
+          done
+          echo "::error::No Swift 6 toolchain found on $(sw_vers -productVersion)"; exit 1
 
       - name: Fail if whisper.cpp cache is unreadable
         id: whisper-cache
