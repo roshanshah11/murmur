@@ -7,6 +7,16 @@ edit_uri: edit/main/docs/
 
 docs_dir: docs
 
+# Internal / dev-only docs that are not part of the public site. Excluding them
+# keeps `mkdocs build --strict` green (it errors on any markdown not in `nav`).
+exclude_docs: |
+  internal/
+  launch/
+  plans/
+  specs/
+  superpowers/
+  ux-evaluation.md
+
 theme:
   name: material
   language: en

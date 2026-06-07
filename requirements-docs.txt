@@ -1,0 +1,5 @@
+# Documentation build dependencies for the MkDocs site (.github/workflows/pages.yml).
+# mkdocs-material pulls in mkdocs, pygments, and pymdown-extensions, but the
+# extensions are pinned explicitly because mkdocs.yml relies heavily on pymdownx.
+mkdocs-material>=9.5,<10
+pymdown-extensions>=10.7,<11
