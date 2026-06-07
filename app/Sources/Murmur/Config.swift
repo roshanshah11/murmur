@@ -27,6 +27,10 @@ struct Config: Codable {
     /// Which speech-to-text backend the dictation pipeline uses.
     /// Defaults to `.deviceDefault` (Parakeet on Apple Silicon, whisper.cpp on Intel).
     var transcriptionEngine: TranscriptionEngineKind
+    /// User-selected app appearance (auto / light / dark). Default `.auto`
+    /// follows the system. Governs the windowed surfaces (Settings, Onboarding,
+    /// History); the dictation notch stays dark in every mode.
+    var appearance: AppearanceMode
 
     static func defaultConfigURL() -> URL {
         AppPaths.configFile
@@ -93,7 +97,8 @@ struct Config: Codable {
             vocabulary: defaultVocabulary(),
             activeProfile: .casual,
             onboardingCompletedVersion: nil,
-            transcriptionEngine: .deviceDefault
+            transcriptionEngine: .deviceDefault,
+            appearance: .auto
         )
     }
 
@@ -115,7 +120,8 @@ struct Config: Codable {
         vocabulary: Vocabulary,
         activeProfile: PromptLibrary.Profile,
         onboardingCompletedVersion: String? = nil,
-        transcriptionEngine: TranscriptionEngineKind = .deviceDefault
+        transcriptionEngine: TranscriptionEngineKind = .deviceDefault,
+        appearance: AppearanceMode = .auto
     ) {
         self.whisperBinaryPath = whisperBinaryPath
         self.modelPath = modelPath
@@ -135,6 +141,7 @@ struct Config: Codable {
         self.activeProfile = activeProfile
         self.onboardingCompletedVersion = onboardingCompletedVersion
         self.transcriptionEngine = transcriptionEngine
+        self.appearance = appearance
     }
 
     /// Coding keys are listed explicitly so we can decode the legacy
@@ -159,6 +166,7 @@ struct Config: Codable {
         case activeProfile
         case onboardingCompletedVersion
         case transcriptionEngine
+        case appearance
         case customVocabulary  // legacy — migrated into `vocabulary`
     }
 
@@ -182,6 +190,7 @@ struct Config: Codable {
         self.activeProfile = try c.decodeIfPresent(PromptLibrary.Profile.self, forKey: .activeProfile) ?? d.activeProfile
         self.onboardingCompletedVersion = try c.decodeIfPresent(String.self, forKey: .onboardingCompletedVersion)
         self.transcriptionEngine = try c.decodeIfPresent(TranscriptionEngineKind.self, forKey: .transcriptionEngine) ?? d.transcriptionEngine
+        self.appearance = try c.decodeIfPresent(AppearanceMode.self, forKey: .appearance) ?? d.appearance
 
         // Vocabulary precedence: modern `vocabulary` key wins. If absent, fall
         // back to legacy `customVocabulary: [String: String]` (sorted-key order
@@ -219,6 +228,7 @@ struct Config: Codable {
         try c.encode(activeProfile, forKey: .activeProfile)
         try c.encodeIfPresent(onboardingCompletedVersion, forKey: .onboardingCompletedVersion)
         try c.encode(transcriptionEngine, forKey: .transcriptionEngine)
+        try c.encode(appearance, forKey: .appearance)
         // Deliberately do not emit `customVocabulary` — the field is decode-only
         // for legacy migration.
     }

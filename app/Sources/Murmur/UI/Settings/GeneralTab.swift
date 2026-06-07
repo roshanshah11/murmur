@@ -12,9 +12,30 @@ struct GeneralTab: View {
     @State private var historyEnabled: Bool = false
     @State private var hasEntriesOnDisk: Bool = false
     @State private var saveError: String?
+    @State private var appearance: AppearanceMode = .auto
 
     var body: some View {
         Form {
+            Section {
+                Picker("Appearance", selection: $appearance) {
+                    ForEach(AppearanceMode.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .onChange(of: appearance) { newValue in
+                    persistAppearance(newValue)
+                }
+
+                Text("How Murmur's windows look. Auto follows your Mac's system setting. "
+                     + "The dictation notch stays dark in every mode.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } header: {
+                Text("Appearance")
+            }
+
             Section {
                 Toggle("Enable dictation history", isOn: $historyEnabled)
                     .onChange(of: historyEnabled) { newValue in
@@ -65,7 +86,21 @@ struct GeneralTab: View {
     private func loadFromDisk() {
         let cfg = Config.loadOrCreateDefault()
         historyEnabled = cfg.historyEnabled
+        appearance = cfg.appearance
         refreshHasEntries()
+    }
+
+    private func persistAppearance(_ newValue: AppearanceMode) {
+        do {
+            var cfg = Config.loadOrCreateDefault()
+            cfg.appearance = newValue
+            try cfg.save()
+            saveError = nil
+            // main.swift applies the new mode to NSApp live (re-themes all windows).
+            NotificationCenter.default.post(name: .murmurAppearanceChanged, object: newValue)
+        } catch {
+            saveError = "Couldn't save: \(error.localizedDescription)"
+        }
     }
 
     private func refreshHasEntries() {

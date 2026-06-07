@@ -21,6 +21,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         NSApp.setActivationPolicy(.accessory)
 
         let config = Config.loadOrCreateDefault()
+        // Apply the saved appearance (auto/light/dark) before any window shows.
+        config.appearance.apply()
         sweepStaleTemp(config: config)
 
         let recorder = AudioRecorder()
@@ -154,6 +156,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
                 self?.appState.config.historyEnabled = newValue
             }
             self?.rebuildMenu()
+        }
+
+        // Live appearance switching: Settings → General posts the new mode;
+        // applying it to NSApp re-themes every window without a relaunch.
+        NotificationCenter.default.addObserver(
+            forName: .murmurAppearanceChanged,
+            object: nil,
+            queue: .main
+        ) { note in
+            if let mode = note.object as? AppearanceMode {
+                mode.apply()
+            }
         }
 
         Log.event(state: "launched", fields: [
