@@ -430,6 +430,11 @@ final class NotchPillView: NSView {
     private let cancelButton = NotchPillButton(title: "Cancel")
     private let retryButton = NotchPillButton(title: "Retry")
     private let glowLayer = CALayer()
+    /// Subtle rim highlight tracing the pill silhouette — a faint glassy lip
+    /// that gives the notch a more dimensional, "premium panel" feel. Drawn
+    /// with the SAME path as the mask, so it can never read as a misaligned
+    /// rectangle along the concave top corners.
+    private let rimHighlight = CAShapeLayer()
     /// Track + fill views for the model-download progress bar. Two flat
     /// NSViews so they can be alpha-crossfaded by the existing helper.
     private let progressTrack = NSView()
@@ -468,6 +473,13 @@ final class NotchPillView: NSView {
         glowLayer.shadowRadius = 12
         glowLayer.shadowOffset = .zero
         layer?.addSublayer(glowLayer)
+
+        // Rim highlight sits above the black fill but below the content
+        // subviews. Faint enough to read as a glassy edge, never a border.
+        rimHighlight.fillColor = NSColor.clear.cgColor
+        rimHighlight.strokeColor = NSColor(white: 1.0, alpha: 0.08).cgColor
+        rimHighlight.lineWidth = 1.5
+        layer?.addSublayer(rimHighlight)
 
         micIcon.imageScaling = .scaleProportionallyUpOrDown
         micIcon.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 13, weight: .semibold)
@@ -710,12 +722,17 @@ final class NotchPillView: NSView {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         maskShape?.frame = bounds
-        maskShape?.path = Self.makeNotchPath(
+        let notchPath = Self.makeNotchPath(
             width: bounds.width,
             height: bounds.height,
             topR: min(topCornerR, bounds.height / 2),
             bottomR: min(bottomCornerR, bounds.height / 2)
         )
+        maskShape?.path = notchPath
+        // Rim highlight reuses the exact silhouette so it tracks the animated
+        // height and the concave top corners perfectly.
+        rimHighlight.frame = bounds
+        rimHighlight.path = notchPath
         CATransaction.commit()
 
         let visibleH = bounds.height

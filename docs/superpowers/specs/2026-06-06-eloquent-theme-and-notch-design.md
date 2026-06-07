@@ -71,6 +71,14 @@ spectrum-bar colors, or timing. Explicitly **not** doing: floating-panel convers
 transcript, bar recolor, larger footprint — all either identity-breaking, out of scope, or
 against documented preferences.
 
+**Shipped vs deferred (autonomous-session reality):** Item 1 (rim highlight) **shipped** — it
+reuses the mask path verbatim, so it is correct by construction and cannot misalign even though
+the notch couldn't be screenshotted (locked screen + the notch only appears mid-dictation).
+Item 2 (elevation shadow) is **deferred**: a shadow on a masked layer is unreliable (the mask
+clips the very shadow that should extend below the pill), and getting it right needs visual
+iteration on an unlocked screen — shipping it blind risked a silently-broken or clipped render.
+It should be picked up when the screen is available to eyeball.
+
 ## Testing & verification
 - **Unit:** `AppearanceModeTests` — `nsAppearance` mapping (auto→nil, light→aqua, dark→darkAqua)
   and round-trip `Config` encode/decode preserving `appearance` + defaulting to `.auto` when the
