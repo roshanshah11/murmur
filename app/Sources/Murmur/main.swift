@@ -208,7 +208,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
     private func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem.button?.title = "Murmur"
+        if let button = statusItem.button {
+            button.image = Self.statusSymbol(named: "waveform", recording: false)
+            button.imagePosition = .imageOnly
+            button.title = ""
+        }
+    }
+
+    /// Status-bar glyph for the current state. Idle / transcribing / downloading
+    /// use a *template* image so AppKit tints it to match the menu bar in both
+    /// light and dark appearances; recording uses a fixed red mic so "live"
+    /// reads regardless of appearance. Always carries an accessibility
+    /// description so VoiceOver still announces "Murmur" in the symbol-only
+    /// idle state (replacing the old literal "Murmur" text title).
+    private static func statusSymbol(named name: String, recording: Bool) -> NSImage? {
+        let desc = recording ? "Murmur — recording" : "Murmur"
+        let base = NSImage(systemSymbolName: name, accessibilityDescription: desc)
+        let sized = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        if recording {
+            let red = sized.applying(NSImage.SymbolConfiguration(paletteColors: [.systemRed]))
+            let img = base?.withSymbolConfiguration(red) ?? base
+            img?.isTemplate = false
+            img?.accessibilityDescription = desc
+            return img
+        }
+        let img = base?.withSymbolConfiguration(sized) ?? base
+        img?.isTemplate = true
+        img?.accessibilityDescription = desc
+        return img
     }
 
     private func rebuildMenu() {
@@ -228,24 +255,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         triggerHint.isEnabled = false
         menu.addItem(triggerHint)
 
-        let rawItem = NSMenuItem(
-            title: "Raw Transcript Mode: \(appState.config.rawTranscriptMode ? "On" : "Off")",
-            action: nil,
-            keyEquivalent: ""
-        )
-        rawItem.isEnabled = false
-        menu.addItem(rawItem)
-
-        let debugItem = NSMenuItem(
-            title: "Debug Retain Audio: \(appState.config.debugRetainAudio ? "On" : "Off")",
-            action: nil,
-            keyEquivalent: ""
-        )
-        debugItem.isEnabled = false
-        menu.addItem(debugItem)
-
         menu.addItem(NSMenuItem.separator())
 
+        // Persistent accessibility nudge — the only state-dependent top-level
+        // item, kept prominent because paste and the global hotkey both depend
+        // on it. (Diagnostics + read-only status moved to a submenu below.)
         if !Self.isAXTrusted() {
             let warn = NSMenuItem(
                 title: "⚠ Grant Accessibility Permission",
@@ -256,21 +270,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
             menu.addItem(warn)
         }
 
-        let testItem = NSMenuItem(title: "Test Setup", action: #selector(testWhisperSetup), keyEquivalent: "")
-        testItem.target = self
-        menu.addItem(testItem)
-
+        // At-a-glance recent transcripts.
         let historyItem = NSMenuItem(title: "History", action: nil, keyEquivalent: "")
         historyItem.submenu = buildHistorySubmenu()
         menu.addItem(historyItem)
-
-        let configItem = NSMenuItem(title: "Open Config", action: #selector(openConfig), keyEquivalent: "")
-        configItem.target = self
-        menu.addItem(configItem)
-
-        let logsItem = NSMenuItem(title: "Open Logs Folder", action: #selector(openLogs), keyEquivalent: "")
-        logsItem.target = self
-        menu.addItem(logsItem)
 
         menu.addItem(NSMenuItem.separator())
 
@@ -298,6 +301,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         updatesItem.target = self
         menu.addItem(updatesItem)
 
+        let diagnosticsItem = NSMenuItem(title: "Diagnostics", action: nil, keyEquivalent: "")
+        diagnosticsItem.submenu = buildDiagnosticsSubmenu()
+        menu.addItem(diagnosticsItem)
+
+        menu.addItem(NSMenuItem.separator())
+
         let quitItem = NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
@@ -314,43 +323,52 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     }
 
     private func applyLiveTitle() {
-        let base = appState.state.shortTitle
-        let menuBarTitle: String
         let menuLabel: String
+        // Status-bar presentation: an SF Symbol per state plus a compact
+        // trailing timer / percent. Replaces the old literal "Murmur" /
+        // "● 0:05" text title with a native menu-bar glyph.
+        var symbolName = "waveform"
+        var recording = false
+        var trailing = ""
         switch appState.state {
         case .recording:
             let elapsed = appState.recordingElapsedSeconds ?? 0
-            menuBarTitle = "● \(formatElapsed(elapsed))"
+            symbolName = "mic.fill"
+            recording = true
+            trailing = " " + formatElapsed(elapsed)
             menuLabel = "Murmur: Recording… \(formatElapsed(elapsed))"
             notch.setRecording()
         case .transcribing:
             let elapsed = appState.transcribingElapsedSeconds ?? 0
             let recorded = appState.recordingElapsedSeconds ?? 0
-            menuBarTitle = "… \(formatElapsed(elapsed))"
+            symbolName = "waveform"
+            trailing = " " + formatElapsed(elapsed)
             menuLabel = "Murmur: Transcribing… \(formatElapsed(elapsed))  (\(formatElapsed(recorded)) audio)"
             notch.setProcessing(label: "Transcribing…")
         case .pasting:
-            menuBarTitle = base
-            menuLabel = "Murmur: \(appState.state.displayName)"
             // The contextual success message ("Pasted into TextEdit") is set
             // by AppState.onPasteResult once paste actually completes — see
             // wiring below in applicationDidFinishLaunching. Don't show a
             // generic "Inserted" here, because the result may be
             // copied-only and the message should match reality.
+            menuLabel = "Murmur: \(appState.state.displayName)"
         case .idle:
-            menuBarTitle = base
             menuLabel = "Murmur: \(appState.state.displayName)"
             notch.hide()
         case .error(let message):
-            menuBarTitle = base
             menuLabel = "Murmur: \(appState.state.displayName)"
             notch.setError(label: message)
         case .downloadingModel(let progress):
-            menuBarTitle = appState.state.shortTitle
+            symbolName = "arrow.down.circle"
+            trailing = " \(Int((progress * 100).rounded()))%"
             menuLabel = "Murmur: \(appState.state.displayName)"
             notch.setDownloading(progress: progress)
         }
-        statusItem.button?.title = menuBarTitle
+        if let button = statusItem.button {
+            button.image = Self.statusSymbol(named: symbolName, recording: recording)
+            button.imagePosition = trailing.isEmpty ? .imageOnly : .imageLeading
+            button.title = trailing
+        }
         stateItemRef?.title = menuLabel
     }
 
@@ -422,6 +440,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         MainActor.assumeIsolated {
             SparkleUpdater.shared.checkForUpdates()
         }
+    }
+
+    /// Developer / troubleshooting actions plus read-only config status,
+    /// grouped out of the top-level menu so the menubar stays quiet and
+    /// consumer-facing. Every action that used to live at the top level is
+    /// preserved here verbatim.
+    private func buildDiagnosticsSubmenu() -> NSMenu {
+        let submenu = NSMenu()
+
+        let rawItem = NSMenuItem(
+            title: "Raw Transcript Mode: \(appState.config.rawTranscriptMode ? "On" : "Off")",
+            action: nil,
+            keyEquivalent: ""
+        )
+        rawItem.isEnabled = false
+        submenu.addItem(rawItem)
+
+        let debugItem = NSMenuItem(
+            title: "Debug Retain Audio: \(appState.config.debugRetainAudio ? "On" : "Off")",
+            action: nil,
+            keyEquivalent: ""
+        )
+        debugItem.isEnabled = false
+        submenu.addItem(debugItem)
+
+        submenu.addItem(NSMenuItem.separator())
+
+        let testItem = NSMenuItem(title: "Test Setup", action: #selector(testWhisperSetup), keyEquivalent: "")
+        testItem.target = self
+        submenu.addItem(testItem)
+
+        let configItem = NSMenuItem(title: "Open Config", action: #selector(openConfig), keyEquivalent: "")
+        configItem.target = self
+        submenu.addItem(configItem)
+
+        let logsItem = NSMenuItem(title: "Open Logs Folder", action: #selector(openLogs), keyEquivalent: "")
+        logsItem.target = self
+        submenu.addItem(logsItem)
+
+        return submenu
     }
 
     private func buildHistorySubmenu() -> NSMenu {

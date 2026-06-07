@@ -115,6 +115,11 @@ struct ModelsTab: View {
         inFlightError = nil
         do {
             try await manager.download(entry)
+            // Quiet completion notice for a Settings-started download: the user
+            // may have switched apps mid-download, so the inline green check
+            // alone wouldn't be seen. Best-effort banner (no-op if unsigned /
+            // notifications denied); the inline check still confirms in-window.
+            Notifier.success("\(entry.displayName) is ready to use.")
             NotificationCenter.default.post(name: .murmurModelDownloadFinished, object: entry.name)
         } catch {
             inFlightError = "Download failed: \(error)"
@@ -316,8 +321,17 @@ private struct ParakeetModelRow: View {
         } else if manager.isInstalled {
             Text("Installed").font(.caption).foregroundStyle(.secondary)
         } else {
-            Button("Download") { Task { await manager.download() } }
-                .buttonStyle(.bordered)
+            Button("Download") {
+                Task {
+                    await manager.download()
+                    // Quiet completion notice for the away user (see ModelsTab
+                    // .downloadAction). Fires only on a successful install.
+                    if manager.isInstalled {
+                        Notifier.success("Parakeet model is ready to use.")
+                    }
+                }
+            }
+            .buttonStyle(.bordered)
         }
     }
 }

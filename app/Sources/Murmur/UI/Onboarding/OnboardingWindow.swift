@@ -400,6 +400,7 @@ private struct StatusPill: View {
 private struct AccessibilityStepView: View {
     @ObservedObject var model: OnboardingModel
     @State private var pollTimer: Timer?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -455,6 +456,9 @@ private struct AccessibilityStepView: View {
     private func startPolling() {
         model.accessibilityStatus = PermissionsProbe.accessibility()
         guard model.accessibilityStatus != .granted else { return }
+        // Capture once: the cosmetic "let them see the green tick" pause is
+        // skipped under Reduce Motion — it's a flourish, not navigation.
+        let skipBeat = reduceMotion
         pollTimer?.invalidate()
         pollTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
             Task { @MainActor in
@@ -462,9 +466,11 @@ private struct AccessibilityStepView: View {
                 model.accessibilityStatus = status
                 if status == .granted {
                     stopPolling()
-                    // Brief beat so the user sees the green tick before
-                    // we slide to the next step.
-                    try? await Task.sleep(nanoseconds: 600_000_000)
+                    // Brief beat so the user sees the green tick before we
+                    // advance to the next step.
+                    if !skipBeat {
+                        try? await Task.sleep(nanoseconds: 600_000_000)
+                    }
                     model.goNext()
                 }
             }
